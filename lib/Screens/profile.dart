@@ -54,8 +54,18 @@ class Profile extends HookWidget {
 
     final userData = useState<dynamic>({});
 
-    useEffect(() {
+    List<Map<String, dynamic>> userInfo = [
+      {
+        'title': 'Employee Number',
+        'value': userData.value['Employee_No']
+      }
+    ];
 
+    listInfo() {
+      
+    }
+
+    useEffect(() {
       return () async{
         var data = await getDetails();
         userData.value = jsonDecode(data)['data'];

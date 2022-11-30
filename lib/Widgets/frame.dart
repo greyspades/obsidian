@@ -49,9 +49,6 @@ class Frame extends HookWidget {
       selectedItemColor: const Color(0xff15B77C),
 
       unselectedItemColor: const Color(0xff939393),
-
-
-
       ),
       );
   }
