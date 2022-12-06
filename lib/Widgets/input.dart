@@ -9,8 +9,8 @@ class CustomInput extends HookWidget {
   String? hintText;
   String? labelText;
   final Function(String)? validation;
-  IconButton? suffixIcon;
-  IconButton? prefixIcon;
+  dynamic suffixIcon;
+  dynamic prefixIcon;
   bool? isPassword;
   CustomInput({super.key, required this.controller, this.hintText, this.labelText, this.validation, this.suffixIcon, this.prefixIcon, this.isPassword});
 
@@ -34,7 +34,8 @@ class CustomInput extends HookWidget {
     }
     ): null,
     filled: true,
-    fillColor: focussed.value ? const Color(0xffDFEEE9) : const Color(0xffD9D9D9),
+    prefixIcon: prefixIcon,
+    fillColor: focussed.value ? const Color(0xffDFEEE9) : const Color(0xffDFEEE9),
     hintText: hintText,
     labelText: labelText,
     labelStyle: const TextStyle(color: Colors.black),

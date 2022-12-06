@@ -5,6 +5,7 @@ import 'package:e_360/Widgets/input.dart';
 import 'dart:convert';
 import 'package:e_360/Models/Staff.dart';
 import 'package:e_360/Widgets/frame.dart';
+import 'package:e_360/Screens/profile.dart';
 
 
 class Login extends HookWidget {
@@ -18,6 +19,7 @@ class Login extends HookWidget {
     final _passwordController = useTextEditingController();
     final focussed = useState<bool>(false);
     final inputState = useState<String>('');
+    final loading = useState<bool>(false);
     // final isValid = useState<bool>(_formKey.currentState!.validate());
 
     useEffect(() {
@@ -39,6 +41,7 @@ class Login extends HookWidget {
     }
 
     void login() async{
+      loading.value = true;
       Uri url = Uri.parse('http://10.0.0.184:8015/userservices/mobile/authenticatem');
       var token = { 'br': "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300" };
     var headers = {
@@ -48,12 +51,15 @@ class Login extends HookWidget {
       final result = await http.post(url,
       headers: headers,
       body: jsonEncode({
-              'UsN': _usernameController.text,
-              'Pwd': _passwordController.text,
+              // 'UsN': _usernameController.text,
+              // 'Pwd': _passwordController.text,
+              'UsN': 'SN11536',
+              'Pwd': 'Password6\$',
               'xAppSource': "AS-IN-D659B-e3M"
             })
       );
       if(result.statusCode == 200){
+        loading.value = false;
         final Staff data = Staff.fromJson(jsonDecode(result.body)['data']);
         Navigator.push(context, MaterialPageRoute(builder: (context) => Frame(staff: data)));
       }
@@ -128,14 +134,17 @@ class Login extends HookWidget {
                       textColor: Colors.white,
                       disabledColor: const Color(0xffA6D2C2),
                       onPressed:() {
-                        if (_formKey.currentState!.validate()) {
-                          login();
-                        }
+                        // if (_formKey.currentState!.validate()) {
+                        //   login();
+                        // }
+                        login();
                       },
                       splashColor: Colors.redAccent,
-                      child: const Text("Sign in",
+                      child: loading.value == false ? const Text("Sign in",
                           style: TextStyle(
-                              fontWeight: FontWeight.w400, fontSize: 22)),
+                              fontWeight: FontWeight.w400, fontSize: 22))
+                              :
+                              const CircularProgressIndicator(color: Colors.white, strokeWidth: 5,),
                     ),
                   ),
                   Padding(padding: const EdgeInsets.only(top: 20), child: TextButton(onPressed: (){}, child: const Text('Change password', style: TextStyle(color:Color(0xff15B77C)))),)
