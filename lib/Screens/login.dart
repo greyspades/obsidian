@@ -6,11 +6,15 @@ import 'dart:convert';
 import 'package:e_360/Models/Staff.dart';
 import 'package:e_360/Widgets/frame.dart';
 import 'package:e_360/Screens/profile.dart';
+import 'package:ota_update/ota_update.dart';
+import 'dart:io' show Platform;
 
 
 class Login extends HookWidget {
   final String title;
-  const Login({super.key, required this.title});
+  Login({super.key, required this.title});
+  
+  OtaEvent? event;
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +24,7 @@ class Login extends HookWidget {
     final focussed = useState<bool>(false);
     final inputState = useState<String>('');
     final loading = useState<bool>(false);
+    final updateState = useState<dynamic>('');
     // final isValid = useState<bool>(_formKey.currentState!.validate());
 
     useEffect(() {
@@ -67,6 +72,33 @@ class Login extends HookWidget {
         throw Exception('Failed to load data');
       }
     }
+
+  //   Future<void> tryOtaUpdate() async {
+  //   try {
+  //     //LINK CONTAINS APK OF FLUTTER HELLO WORLD FROM FLUTTER SDK EXAMPLES
+  //     OtaUpdate()
+  //         .execute(
+  //       'https://internal1.4q.sk/flutter_hello_world.apk',
+  //       destinationFilename: 'flutter_hello_world.apk',
+  //       //FOR NOW ANDROID ONLY - ABILITY TO VALIDATE CHECKSUM OF FILE:
+  //       sha256checksum: 'd6da28451a1e15cf7a75f2c3f151befad3b80ad0bb232ab15c20897e54f21478',
+  //     )
+  //         .listen(
+  //       (OtaEvent event) {
+  //         print(event.value);
+  //         print(event.status);
+  //         updateState.value = event;
+  //       },
+  //     );
+  //     // ignore: avoid_catches_without_on_clauses
+  //   } catch (e) {
+  //     print('Failed to make OTA update. Details: $e');
+  //   }
+  // }
+
+  // useEffect(() {
+  //   tryOtaUpdate();
+  // }, []);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -147,7 +179,10 @@ class Login extends HookWidget {
                               const CircularProgressIndicator(color: Colors.white, strokeWidth: 5,),
                     ),
                   ),
-                  Padding(padding: const EdgeInsets.only(top: 20), child: TextButton(onPressed: (){}, child: const Text('Change password', style: TextStyle(color:Color(0xff15B77C)))),)
+                  Padding(padding: const EdgeInsets.only(top: 20), child: TextButton(onPressed: (){}, child: const Text('Change password', style: TextStyle(color:Color(0xff15B77C)))),),
+                  // Container(
+                  //   child: Text('OTA status: ${updateState.value?.status} : ${updateState.value?.value} \n'),
+                  // )
                 ],
               ))
         ],

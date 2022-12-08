@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:e_360/Models/DrawerItem.dart';
 import 'package:e_360/Screens/Requests.dart';
+import 'package:e_360/Screens/Home.dart';
 
 class Frame extends HookWidget {
   final Staff staff;
@@ -47,13 +48,13 @@ class Frame extends HookWidget {
       getData();
     }, []);
 
-    useEffect(() {
-      switch (screen) {
-        case 'profile':
-          {}
-          break;
-      }
-    }, []);
+    // useEffect(() {
+    //   switch (screen) {
+    //     case 'profile':
+    //       {}
+    //       break;
+    //   }
+    // }, []);
 
     var token = {
       'br':
@@ -67,6 +68,7 @@ class Frame extends HookWidget {
     };
 
     List<Widget> screens = <Widget>[
+      Home(),
       Profile(
         staff: staff,
         info: userData.value,
@@ -75,9 +77,8 @@ class Frame extends HookWidget {
         staff: staff,
         info: userData.value,
       ),
-      Text('second'),
-      Text('third'),
-      Text('fourth')
+      Text('coming soon'),
+      Text('coming soon')
     ];
 
     return Scaffold(
@@ -205,28 +206,31 @@ class Frame extends HookWidget {
                     padding: EdgeInsets.zero,
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 70,
+                        Container(
+                          margin: const EdgeInsets.only(top: 30),
+                          child: CircleAvatar(
+                          radius: 50,
                           backgroundImage: NetworkImage(
                             'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
                             headers: headers,
                           ),
                         ),
+                        ),
                         Container(
-                          margin: EdgeInsets.only(top: 20),
+                          margin: const EdgeInsets.only(top: 20),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Padding(
-                                padding: EdgeInsets.only(right: 10),
+                                padding: const EdgeInsets.only(right: 10),
                                 child: Text(
                                   (staff.firstName as String),
-                                  style: TextStyle(color: Colors.black),
+                                  style: const TextStyle(color: Colors.white),
                                 ),
                               ),
                               Text(
                                 (staff.lastName as String),
-                                style: TextStyle(color: Colors.black),
+                                style: const TextStyle(color: Colors.white),
                               ),
                             ],
                           ),
@@ -234,46 +238,56 @@ class Frame extends HookWidget {
                       ],
                     )),
               ),
-              const ListTile(
-                leading: Icon(
-                  Icons.home,
-                  color: Colors.white,
-                ),
-                title: Text('Home'),
-              ),
               ListTile(
-                leading: const Icon(
-                  Icons.person,
-                  color: Colors.white,
-                ),
-                title: const Text('Profile'),
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
+                  child: const Icon(
+                  Icons.home,
+                  color: Color(0xffEF9545),
+                ),),
+                title: const Text('Home', style: TextStyle(color: Colors.white)),
                 onTap: () {
                   Navigator.pop(context);
                   currentIndex.value = 0;
                 },
               ),
               ListTile(
-                leading: const Icon(
-                  Icons.note_add,
-                  color: Colors.white,
-                ),
-                title: const Text('Requisitions'),
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
+                  child: const Icon(
+                  Icons.person,
+                  color: Color(0xffEF9545),
+                ),),
+                title: const Text('Profile', style: TextStyle(color: Colors.white),),
                 onTap: () {
                   Navigator.pop(context);
                   currentIndex.value = 1;
                 },
               ),
-              const ListTile(
-                leading: Icon(
-                  Icons.home,
-                  color: Colors.white,
-                ),
-                title: Text('Apraisals'),
-              )
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
+                  child: const Icon(
+                  Icons.note_add,
+                  color: Color(0xffEF9545),
+                ),),
+                title: const Text('Requisitions', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.pop(context);
+                  currentIndex.value = 2;
+                },
+              ),
             ],
           )),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           BottomNavigationBarItem(
               icon: Icon(Icons.note_add), label: 'Requests'),

@@ -4,6 +4,7 @@ import 'package:e_360/Models/Staff.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:e_360/Widgets/input.dart';
+import 'package:e_360/Models/DepOfficer.dart';
 
 class Requests extends HookWidget {
   final Staff staff;
@@ -51,6 +52,23 @@ class Requests extends HookWidget {
     final resumptionDate = useState<DateTime>(DateTime.now());
 
     final setLoading = useState<bool>(false);
+
+    final depOfficer = useState<List<Map>>([{}]);
+
+    List<Map<String, dynamic>> dummy = [
+      {
+        'name': 'ludex',
+        'title': 'gundyr'
+      },
+      {
+        'name': 'peter',
+        'title': 'gundyr'
+      },
+      {
+        'name': 'pan',
+        'title': 'gundyr'
+      }
+    ];
 
     Future<void> _selectStartDate(BuildContext context) async {
       final DateTime? picked = await showDatePicker(
@@ -101,6 +119,31 @@ class Requests extends HookWidget {
 
       return formattedDate;
     }
+
+    getDeputizingOfficer() async{
+      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/mylinemanager');
+      var token = {
+          'br':
+              "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+          'us': staff.userRef,
+          'rl': staff.uRole
+        };
+        var headers = {
+          'x-lapo-eve-proc': jsonEncode(token),
+          'Content-type': 'text/json',
+        };
+        var response = await http.get(url, headers: headers);
+
+        if (response.statusCode == 200) {
+        
+          depOfficer.value = List<Map<dynamic, dynamic>>.from(jsonDecode(response.body)['data']);
+          // DepOfficer officer = DepOfficer.fromJson(jsonDecode(response.body)['data']);
+        }
+    }
+
+    useEffect(() {
+      getDeputizingOfficer();
+    },[]);
 
     void submit() {
       setLoading.value = !setLoading.value;
@@ -198,6 +241,7 @@ class Requests extends HookWidget {
                                       value: payLtg.value,
                                       onChanged: (bool value) {
                                         payLtg.value = value;
+                                        print(depOfficer.value);
                                       },
                                       activeColor: const Color(0xff15B77C),
                                       activeTrackColor: const Color(0xffD6EBE3),
@@ -219,13 +263,27 @@ class Requests extends HookWidget {
                         ),
                         Container(
                           margin: const EdgeInsets.only(top: 10, bottom: 10),
-                          child: CustomInput(
-                            controller: _deputizingOfficerController,
-                            validation: validateField,
-                            hintText: 'Deputizing Officer',
-                            prefixIcon: const Icon(Icons.assignment_ind,
-                                color: Color(0xffF88A4C)),
+                          child: Autocomplete(optionsBuilder: (TextEditingValue value){
+                            if (value.text == '') {
+          return const Iterable<String>.empty();
+        }
+        return depOfficer.value.where((option) {
+          var item = option.toString().contains(value.text.toLowerCase());
+          return item;
+        });
+                          },
+                          // displayStringForOption: (item) => item.['kjj'].toString(),
+                          onSelected: (selection) {
+                            print(selection);
+                          },
                           ),
+                          // child: CustomInput(
+                          //   controller: _deputizingOfficerController,
+                          //   validation: validateField,
+                          //   hintText: 'Deputizing Officer',
+                          //   prefixIcon: const Icon(Icons.assignment_ind,
+                          //       color: Color(0xffF88A4C)),
+                          // ),
                         ),
                         Container(
                           child: const Text(
