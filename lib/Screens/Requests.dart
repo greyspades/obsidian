@@ -6,18 +6,61 @@ import 'dart:convert';
 import 'package:e_360/Widgets/input.dart';
 import 'package:e_360/Models/DepOfficer.dart';
 
-class Requests extends HookWidget {
+class Requests extends StatefulWidget {
   final Staff staff;
   final Map<String, dynamic> info;
   Requests({super.key, required this.staff, required this.info});
+
+  @override
+  State<Requests> createState() => RequestsState();
+}
+
+class RequestsState extends State<Requests> {
+  // final Staff staff;
+  // final Map<String, dynamic> info;
+  // Requests({super.key, required this.staff, required this.info});
+
+  String? leaveType;
+
+  List<dynamic>? leaveTypes;
+
+  List<dynamic>? depOfficers;
+
+  DateTime startDate = DateTime.now();
+
+  DateTime endDate = DateTime.now();
+
+  DateTime resumptionDate = DateTime.now();
+
+  bool setLoading = false;
+
+  String? depOfficer;
+
+  bool payLtg = false;
+
+  bool self = true;
+
+  String? startDateError;
+
+  String? endDateError;
+
+  String? resumptionDateError;
+
+  final _deputizingOfficerController = TextEditingController();
+  final _startDateController = TextEditingController();
+  final _endDateController = TextEditingController();
+  final _resumptionDateController = TextEditingController();
+  final _mobileController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _addressController = TextEditingController();
 
   Future<void> getLeaveTypes() async {
     Uri url = Uri.parse('http://10.0.0.184:8015/requisition/leave/leavetypes');
     var token = {
       'br':
           "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
-      'us': staff.userRef,
-      'rl': staff.uRole
+      'us': widget.staff.userRef,
+      'rl': widget.staff.uRole
     };
     var headers = {
       'x-lapo-eve-proc': jsonEncode(token),
@@ -26,89 +69,231 @@ class Requests extends HookWidget {
     var response = await http.get(url, headers: headers);
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body)['data'];
+      setState(() {
+        leaveTypes = jsonDecode(response.body)['data'];
+        leaveType = jsonDecode(response.body)['data'][0]['Code'].toString();
+      });
     }
+  }
+
+  Future<void> getDeputizingOfficer() async {
+    Uri url = Uri.parse('http://10.0.0.184:8015/userservices/mylinemanager');
+    var token = {
+      'br':
+          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+      'us': widget.staff.userRef,
+      'rl': widget.staff.uRole
+    };
+    var headers = {
+      'x-lapo-eve-proc': jsonEncode(token),
+      'Content-type': 'text/json',
+    };
+    var response = await http.get(url, headers: headers);
+
+    if (response.statusCode == 200) {
+      setState(() {
+        depOfficers = jsonDecode(response.body)['data'];
+        depOfficer = jsonDecode(response.body)['data'][0]['ItemCode'];
+      });
+    }
+  }
+
+  Future<void> _selectStartDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: startDate,
+        firstDate: DateTime(2015, 8),
+        lastDate: DateTime(2101));
+    if (picked != null &&
+        picked != startDate &&
+        picked.compareTo(DateTime.now()) > 0) {
+      final trueEndDate = picked.add(const Duration(days: 10));
+      setState(() {
+        startDate = picked;
+        endDate = trueEndDate;
+        startDateError = null;
+      });
+    } else if (picked != null &&
+        picked != startDate &&
+        picked.compareTo(DateTime.now()) < 0) {
+      setState(() {
+        startDateError = 'Only enter future dates';
+      });
+    }
+  }
+
+  Future<void> _selectResumptiontDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: resumptionDate,
+        firstDate: DateTime(2015, 8),
+        lastDate: DateTime(2101));
+    if (picked != null &&
+        picked != resumptionDate &&
+        picked.compareTo(DateTime.now()) > 0) {
+      setState(() {
+        resumptionDate = picked;
+        resumptionDateError = null;
+      });
+    } else if (picked != null &&
+        picked != resumptionDate &&
+        picked.compareTo(DateTime.now()) < 0) {
+      setState(() {
+        resumptionDateError = 'Only enter future dates';
+      });
+    }
+  }
+
+  Future<void> _selectEndDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: endDate,
+        firstDate: DateTime(2015, 8),
+        lastDate: DateTime(2101));
+    if (picked != null && picked != endDate && picked.compareTo(DateTime.now()) > 0) {
+      setState(() {
+        endDate = picked;
+        endDateError = null;
+      });
+    } else if (picked != null &&
+        picked != endDate &&
+        picked.compareTo(DateTime.now()) < 0) {
+      setState(() {
+        endDateError = 'Only enter future dates';
+      });
+    }
+  }
+
+  void createLeave() async {
+    DateTime start = DateTime.parse(startDate.toString());
+    DateTime end = DateTime.parse(endDate.toString());
+    final differenceInDays = end.difference(start).inDays;
+
+    Uri url = Uri.parse('http://10.0.0.184:8015/requisition/createleave');
+    var token = {
+      'br':
+          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+      'us': widget.staff.userRef,
+      'rl': widget.staff.uRole
+    };
+    var headers = {
+      'x-lapo-eve-proc': jsonEncode(token),
+      'Content-type': 'text/json',
+    };
+    var body = {
+      "xLeaveType": leaveType.toString(),
+      "xSelf": 0,
+      "xOnBehalf": 0,
+      "xLeaveOrigin": widget.staff.userRef.toString(),
+      "xLeaveOwner": widget.staff.userRef.toString(),
+      "xLTG": "0",
+      "xBhalfReason": "9999",
+      "xDepOfficer": depOfficer,
+      "xStart_Date": startDate.toString(),
+      "xEnd_Date": endDate.toString(),
+      "xRsm_Date": resumptionDate.toString(),
+      "xYear": "2022",
+      "xHasDoc": "0",
+      "xDuration": differenceInDays.toString(),
+      "xisJustifiable": 0,
+      "xJustify": "",
+      "xMobile": _mobileController.text.toString(),
+      "xEmail": _emailController.text.toString(),
+      "xAddress": _addressController.text.toString(),
+      "xTrans": {
+        "xTransRef": "",
+        "xTransScope": "129dekekddkffmf2sv25",
+        "xAppTransScope": "9e9efefech009eee",
+        "xAppSource": "AS-IN-D659B-e3M"
+      }
+    };
+    var response =
+        await http.post(url, headers: headers, body: jsonEncode(body));
+    if (response.statusCode == 200) {
+      _showMyDialog(jsonDecode(response.body));
+    }
+  }
+
+  validateField(String value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a username';
+    }
+    return null;
+  }
+
+  validatePhone(String value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a phone number during leave';
+    }
+    if (value.length != 11) {
+      return 'Must be 11 digits and start with 0';
+    }
+    return null;
+  }
+
+  validateEmail(String value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter an email address during leave';
+    }
+    if (!value.contains('@') || !value.contains('.')) {
+      return 'Not a valid email address';
+    }
+    return null;
+  }
+
+  validateAddress(String value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a residential address during leave';
+    }
+    return null;
+  }
+
+  Future<void> _showMyDialog(Map data) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: data['status'] == false
+              ? const Text('Unsuccessful')
+              : const Text('Success'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(data['message']),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   static final _formKey = GlobalKey<FormState>(debugLabel: '');
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getLeaveTypes();
+    getDeputizingOfficer();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final leaveType = useState<String>('Annual Leave');
-    final payLtg = useState<bool>(false);
-
-    final _deputizingOfficerController = useTextEditingController();
-    final _startDateController = useTextEditingController();
-    final _endDateController = useTextEditingController();
-    final _resumptionDateController = useTextEditingController();
-    final _mobileController = useTextEditingController();
-    final _emailController = useTextEditingController();
-    final _addressController = useTextEditingController();
-
-    final startDate = useState<DateTime>(DateTime.now());
-
-    final endDate = useState<DateTime>(DateTime.now());
-
-    final resumptionDate = useState<DateTime>(DateTime.now());
-
-    final setLoading = useState<bool>(false);
-
-    final depOfficer = useState<List<Map>>([{}]);
-
     List<Map<String, dynamic>> dummy = [
-      {
-        'name': 'ludex',
-        'title': 'gundyr'
-      },
-      {
-        'name': 'peter',
-        'title': 'gundyr'
-      },
-      {
-        'name': 'pan',
-        'title': 'gundyr'
-      }
+      {'name': 'ludex', 'title': 'gundyr'},
+      {'name': 'peter', 'title': 'gundyr'},
+      {'name': 'pan', 'title': 'gundyr'}
     ];
-
-    Future<void> _selectStartDate(BuildContext context) async {
-      final DateTime? picked = await showDatePicker(
-          context: context,
-          initialDate: startDate.value,
-          firstDate: DateTime(2015, 8),
-          lastDate: DateTime(2101));
-      if (picked != null && picked != startDate.value) {
-        startDate.value = picked;
-      }
-    }
-
-    Future<void> _selectResumptiontDate(BuildContext context) async {
-      final DateTime? picked = await showDatePicker(
-          context: context,
-          initialDate: resumptionDate.value,
-          firstDate: DateTime(2015, 8),
-          lastDate: DateTime(2101));
-      if (picked != null && picked != resumptionDate.value) {
-        resumptionDate.value = picked;
-      }
-    }
-
-    Future<void> _selectEndDate(BuildContext context) async {
-      final DateTime? picked = await showDatePicker(
-          context: context,
-          initialDate: endDate.value,
-          firstDate: DateTime(2015, 8),
-          lastDate: DateTime(2101));
-      if (picked != null && picked != endDate.value) {
-        endDate.value = picked;
-      }
-    }
-
-    validateField(String value) {
-      if (value == null || value.isEmpty) {
-        return 'Please enter a username';
-      }
-      return null;
-    }
 
     getCurrentDate(String type) {
       var date = type == 'start' ? startDate.toString() : endDate.toString();
@@ -120,33 +305,8 @@ class Requests extends HookWidget {
       return formattedDate;
     }
 
-    getDeputizingOfficer() async{
-      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/mylinemanager');
-      var token = {
-          'br':
-              "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
-          'us': staff.userRef,
-          'rl': staff.uRole
-        };
-        var headers = {
-          'x-lapo-eve-proc': jsonEncode(token),
-          'Content-type': 'text/json',
-        };
-        var response = await http.get(url, headers: headers);
-
-        if (response.statusCode == 200) {
-        
-          depOfficer.value = List<Map<dynamic, dynamic>>.from(jsonDecode(response.body)['data']);
-          // DepOfficer officer = DepOfficer.fromJson(jsonDecode(response.body)['data']);
-        }
-    }
-
-    useEffect(() {
-      getDeputizingOfficer();
-    },[]);
-
     void submit() {
-      setLoading.value = !setLoading.value;
+      setLoading = !setLoading;
     }
 
     return Container(
@@ -159,6 +319,31 @@ class Requests extends HookWidget {
             style: TextStyle(color: Color(0xff88A59A)),
           ),
         ),
+
+        // Container(
+        //   padding: EdgeInsets.only(left: 120, right: 120),
+
+        //   alignment: Alignment.center,
+        //   width: 200,
+        //   child:  Row(
+        //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        //     children: [
+        //     SizedBox(
+        //       child: Checkbox(value: self, onChanged: (bool? value) {
+        //         setState(() {
+        //           self = value!;
+        //         });
+        //       },)
+        //     ),
+        //     SizedBox(
+        //       child: Checkbox(value: self, onChanged: (bool? value) {
+        //         setState(() {
+        //           self = value!;
+        //         });
+        //       },)
+        //     )
+        //   ],)
+        // ),
         Container(
           child: Form(
               key: _formKey,
@@ -168,49 +353,39 @@ class Requests extends HookWidget {
                       width: MediaQuery.of(context).size.width,
                       height: 130,
                       color: const Color(0xffD6EBE3),
-                      child: FutureBuilder(
-                        future: getLeaveTypes(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.done) {
-                            if (snapshot.hasError) {
-                              return const Text('An error occured');
-                            } else if (snapshot.hasData) {
-                              List<dynamic> data =
-                                  snapshot.data as List<dynamic>;
-
-                              return Container(
-                                margin: const EdgeInsets.only(
-                                    top: 40, left: 20, bottom: 20, right: 70),
-                                width: 100,
-                                height: 40,
-                                child: DropdownButtonFormField(
-                                  decoration: const InputDecoration(
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    border: OutlineInputBorder(
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(10.0),
-                                      ),
-                                    ),
-                                  ),
-                                  value: leaveType.value,
-                                  icon: const Icon(Icons.keyboard_arrow_down),
-                                  items: data.map<DropdownMenuItem>((item) {
-                                    return DropdownMenuItem(
-                                      child: Text(item['Item']),
-                                      value: item['Item'],
-                                    );
-                                  }).toList(),
-                                  onChanged: (item) {
-                                    leaveType.value = item!;
-                                  },
-                                ),
-                              );
-                            }
-                          }
-                          return Container();
-                        },
+                      child: Container(
+                        margin: const EdgeInsets.only(
+                            top: 40, left: 20, bottom: 20, right: 70),
+                        width: 100,
+                        height: 40,
+                        child: DropdownButtonFormField(
+                          decoration: const InputDecoration(
+                            fillColor: Colors.white,
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(10.0),
+                              ),
+                            ),
+                          ),
+                          value: leaveTypes?[0]['Item'],
+                          icon: const Icon(Icons.keyboard_arrow_down),
+                          items: leaveTypes?.map<DropdownMenuItem>((item) {
+                            return DropdownMenuItem(
+                              child: Text(item['Item']),
+                              value: item['Item'],
+                            );
+                          }).toList(),
+                          onChanged: (item) {
+                            var ref = leaveTypes
+                                ?.where((element) => element['Item'] == item)
+                                .single['Code']
+                                .toString();
+                            setState(() {
+                              leaveType = ref;
+                            });
+                          },
+                        ),
                       )),
                   Padding(
                     padding: const EdgeInsets.only(
@@ -238,10 +413,11 @@ class Requests extends HookWidget {
                                   child: FittedBox(
                                     fit: BoxFit.fill,
                                     child: Switch(
-                                      value: payLtg.value,
+                                      value: payLtg,
                                       onChanged: (bool value) {
-                                        payLtg.value = value;
-                                        print(depOfficer.value);
+                                        setState(() {
+                                          payLtg = !payLtg;
+                                        });
                                       },
                                       activeColor: const Color(0xff15B77C),
                                       activeTrackColor: const Color(0xffD6EBE3),
@@ -263,27 +439,37 @@ class Requests extends HookWidget {
                         ),
                         Container(
                           margin: const EdgeInsets.only(top: 10, bottom: 10),
-                          child: Autocomplete(optionsBuilder: (TextEditingValue value){
-                            if (value.text == '') {
-          return const Iterable<String>.empty();
-        }
-        return depOfficer.value.where((option) {
-          var item = option.toString().contains(value.text.toLowerCase());
-          return item;
-        });
-                          },
-                          // displayStringForOption: (item) => item.['kjj'].toString(),
-                          onSelected: (selection) {
-                            print(selection);
-                          },
+                          // child: depOfficer.value != null ? Text('fer') : null,
+                          width: 200,
+                          child: DropdownButtonFormField(
+                            decoration: const InputDecoration(
+                              fillColor: Colors.white,
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10.0),
+                                ),
+                              ),
+                            ),
+                            value: depOfficers?[0]['ItemName'],
+                            icon: const Icon(Icons.keyboard_arrow_down),
+                            items: depOfficers?.map<DropdownMenuItem>((item) {
+                              return DropdownMenuItem(
+                                  child: Text(
+                                    item['ItemName'],
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                  value: item['ItemName']);
+                            }).toList(),
+                            onChanged: (item) {
+                              var value = depOfficers
+                                  ?.where((data) => data['ItemName'] == item)
+                                  .single;
+                              setState(() {
+                                value['ItemCode']!;
+                              });
+                            },
                           ),
-                          // child: CustomInput(
-                          //   controller: _deputizingOfficerController,
-                          //   validation: validateField,
-                          //   hintText: 'Deputizing Officer',
-                          //   prefixIcon: const Icon(Icons.assignment_ind,
-                          //       color: Color(0xffF88A4C)),
-                          // ),
                         ),
                         Container(
                           child: const Text(
@@ -328,7 +514,6 @@ class Requests extends HookWidget {
                                                     ),
                                                     title: Text(
                                                         DateTime.parse(startDate
-                                                                .value
                                                                 .toString())
                                                             .toString()
                                                             .split(" ")[0],
@@ -339,7 +524,14 @@ class Requests extends HookWidget {
                                                             context),
                                                   ),
                                                 )),
-                                            const Text('Start Date')
+                                            startDateError != null
+                                                ? Text(
+                                                    startDateError ?? '',
+                                                    style: TextStyle(
+                                                        color: Colors.red,
+                                                        fontSize: 11),
+                                                  )
+                                                : Text('Start Date')
                                           ],
                                         ))),
                                 Expanded(
@@ -369,7 +561,6 @@ class Requests extends HookWidget {
                                                     ),
                                                     title: Text(
                                                       DateTime.parse(endDate
-                                                              .value
                                                               .toString())
                                                           .toString()
                                                           .split(" ")[0],
@@ -380,7 +571,14 @@ class Requests extends HookWidget {
                                                         _selectEndDate(context),
                                                   ),
                                                 )),
-                                            const Text('End Date')
+                                            endDateError != null
+                                                ? Text(
+                                                    endDateError ?? '',
+                                                    style: TextStyle(
+                                                        color: Colors.red,
+                                                        fontSize: 11),
+                                                  )
+                                                : Text('End Date')
                                           ],
                                         )))
                               ]),
@@ -406,8 +604,8 @@ class Requests extends HookWidget {
                                           color: Color(0xffF88A4C),
                                         ),
                                         title: Text(
-                                            DateTime.parse(resumptionDate.value
-                                                    .toString())
+                                            DateTime.parse(
+                                                    resumptionDate.toString())
                                                 .toString()
                                                 .split(" ")[0],
                                             style:
@@ -416,7 +614,14 @@ class Requests extends HookWidget {
                                             _selectResumptiontDate(context),
                                       ),
                                     )),
-                                const Text('Resumption Date')
+                                resumptionDateError != null
+                                                ? Text(
+                                                    resumptionDateError ?? '',
+                                                    style: TextStyle(
+                                                        color: Colors.red,
+                                                        fontSize: 11),
+                                                  )
+                                                : Text('Resumption Date')
                               ],
                             )),
                         Container(
@@ -427,7 +632,7 @@ class Requests extends HookWidget {
                               thickness: 2),
                         ),
                         Container(
-                          height: 130,
+                          height: 220,
                           margin: const EdgeInsets.only(top: 10),
                           child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -435,16 +640,24 @@ class Requests extends HookWidget {
                               children: [
                                 CustomInput(
                                   controller: _mobileController,
-                                  validation: validateField,
+                                  validation: validatePhone,
                                   hintText: 'Mobile during leave',
                                   prefixIcon: const Icon(Icons.call,
                                       color: Color(0xffF88A4C)),
+                                  textType: TextInputType.number,
                                 ),
                                 CustomInput(
                                   controller: _emailController,
-                                  validation: validateField,
+                                  validation: validateEmail,
                                   hintText: 'Email during leave',
                                   prefixIcon: const Icon(Icons.email,
+                                      color: Color(0xffF88A4C)),
+                                ),
+                                CustomInput(
+                                  controller: _addressController,
+                                  validation: validateAddress,
+                                  hintText: 'Address during leave',
+                                  prefixIcon: const Icon(Icons.home,
                                       color: Color(0xffF88A4C)),
                                 ),
                               ]),
@@ -458,14 +671,17 @@ class Requests extends HookWidget {
         Padding(
             padding: const EdgeInsets.only(left: 10, right: 10, bottom: 20),
             child: SizedBox(
+              height: 60,
               child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff15B77C),
                   ),
                   onPressed: () {
-                    submit();
+                    if (_formKey.currentState!.validate()) {
+                      createLeave();
+                    }
                   },
-                  child: setLoading.value != true
+                  child: setLoading != true
                       ? const Text(
                           'Submit',
                           style: TextStyle(
@@ -475,7 +691,6 @@ class Requests extends HookWidget {
                           color: Colors.white,
                           strokeWidth: 5,
                         )),
-              height: 60,
             ))
       ]),
     );

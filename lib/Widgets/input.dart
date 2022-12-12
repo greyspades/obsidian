@@ -12,7 +12,9 @@ class CustomInput extends HookWidget {
   dynamic suffixIcon;
   dynamic prefixIcon;
   bool? isPassword;
-  CustomInput({super.key, required this.controller, this.hintText, this.labelText, this.validation, this.suffixIcon, this.prefixIcon, this.isPassword});
+  TextInputType? textType = TextInputType.text;
+
+  CustomInput({super.key, required this.controller, this.hintText, this.labelText, this.validation, this.suffixIcon, this.prefixIcon, this.isPassword, this.textType});
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +22,7 @@ class CustomInput extends HookWidget {
     final passwordVissible = useState<bool>(false);
     
     return TextFormField(
+    keyboardType: textType,
     obscureText: isPassword == true ? !passwordVissible.value : false,
     onTap: () => focussed.value = true,
     controller: controller,

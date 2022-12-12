@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:e_360/Models/DrawerItem.dart';
 import 'package:e_360/Screens/Requests.dart';
 import 'package:e_360/Screens/Home.dart';
+import 'package:e_360/Screens/Payslip.dart';
 
 class Frame extends HookWidget {
   final Staff staff;
@@ -77,7 +78,10 @@ class Frame extends HookWidget {
         staff: staff,
         info: userData.value,
       ),
-      Text('coming soon'),
+      Payslip(
+        staff: staff,
+        info: userData.value
+      ),
       Text('coming soon')
     ];
 
@@ -101,6 +105,7 @@ class Frame extends HookWidget {
                       'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
                       headers: headers,
                     ),
+                    // backgroundImage: AssetImage('images/ebele.png'),
                   ),
                 ),
                 Container(
@@ -126,12 +131,14 @@ class Frame extends HookWidget {
                             Padding(
                               padding: EdgeInsets.only(right: 10),
                               child: Text(
+                                // 'Ebele',
                                 (staff.firstName as String),
                                 style: TextStyle(color: Colors.black),
                               ),
                             ),
                             Text(
                               (staff.lastName as String),
+                              // '',
                               style: TextStyle(color: Colors.black),
                             ),
                           ],
@@ -214,6 +221,7 @@ class Frame extends HookWidget {
                             'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
                             headers: headers,
                           ),
+                          // backgroundImage: AssetImage('images/ebele.png'),
                         ),
                         ),
                         Container(
@@ -225,11 +233,13 @@ class Frame extends HookWidget {
                                 padding: const EdgeInsets.only(right: 10),
                                 child: Text(
                                   (staff.firstName as String),
+                                  // 'Ebele',
                                   style: const TextStyle(color: Colors.white),
                                 ),
                               ),
                               Text(
                                 (staff.lastName as String),
+                                // '',
                                 style: const TextStyle(color: Colors.white),
                               ),
                             ],
@@ -292,8 +302,8 @@ class Frame extends HookWidget {
           BottomNavigationBarItem(
               icon: Icon(Icons.note_add), label: 'Requests'),
           BottomNavigationBarItem(icon: Icon(Icons.receipt), label: 'Pay Slip'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.request_quote), label: 'Appraisals')
+          // BottomNavigationBarItem(
+          //     icon: Icon(Icons.request_quote), label: 'Appraisals')
         ],
         currentIndex: currentIndex.value,
         onTap: (int index) {

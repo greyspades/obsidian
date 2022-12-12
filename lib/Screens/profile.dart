@@ -56,42 +56,42 @@ class Profile extends HookWidget {
     List<Map<String, dynamic>> userInfo = [
       {
         'title': 'Employee Number',
-        'value': info?['Employee_No'] ?? '',
+        'value': info?['Employee_No'] ?? 'null',
         'icon': Icons.numbers
       },
       {
         'title': 'Email Address',
-        'value': info?['Email'] ?? '',
+        'value': info?['Email'] ?? 'null',
         'icon': Icons.mail
       },
       {
         'title': 'Phone Number',
-        'value': info?['Mobile'] ?? '',
+        'value': info?['Mobile'] ?? 'null',
         'icon': Icons.local_phone
       },
       {
         'title': 'Gender',
-        'value': info?['Gender'] ?? '',
+        'value': info?['Gender'] ?? 'null',
         'icon': info?['Gender'] == 'Male' ? Icons.male : Icons.female
       },
       {
         'title': 'Rank',
-        'value': info?['Rank'] ?? '',
+        'value': info?['Rank'] ?? 'null',
         'icon': Icons.group
       },
       {
         'title': 'Hire Date',
-        'value': info?['HireDate'] ?? '',
+        'value': info?['HireDate'] ?? 'null',
         'icon': Icons.event
       },
       {
         'title': 'Confirm Date',
-        'value': info?['ConfirmDate'] ?? '',
+        'value': info?['ConfirmDate'] ?? 'null',
         'icon': Icons.event_available,
       },
       {
         'title': 'Marital Status',
-        'value': info?['maritalStatus'] ?? '',
+        'value': info?['maritalStatus'] ?? 'null',
         'icon': Icons.group
       }
     ];
@@ -162,10 +162,9 @@ class Profile extends HookWidget {
     return Padding(
       padding: const EdgeInsets.all(10),
       child: Container(
-            child: Expanded(
-                child: ListView(
+            child: ListView(
               children: listInfo(),
-            )),
+            )
           )
     );
   }

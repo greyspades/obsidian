@@ -6,6 +6,8 @@ class DepOfficer {
   DepOfficer(
       {required this.ref, required this.name, required this.title});
 
+  
+
   factory DepOfficer.fromJson(Map<String, dynamic> json) {
     return DepOfficer(
         ref: json['ItemCode'],

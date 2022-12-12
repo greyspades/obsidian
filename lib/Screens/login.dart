@@ -8,6 +8,7 @@ import 'package:e_360/Widgets/frame.dart';
 import 'package:e_360/Screens/profile.dart';
 import 'package:ota_update/ota_update.dart';
 import 'dart:io' show Platform;
+import 'package:package_info_plus/package_info_plus.dart';
 
 
 class Login extends HookWidget {
@@ -33,17 +34,46 @@ class Login extends HookWidget {
 
     validateUsername(String value) {
       if (value == null || value.isEmpty) {
-        return 'Please enter a username';
+        return 'Please enter a Username';
       }
       return null;
     }
 
     validatePassword(String value) {
       if (value == null || value.isEmpty) {
-        return 'Please enter a username';
+        return 'Please enter a Password';
       }
       return null;
     }
+
+    Future<void> _showMyDialog(Map data) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false, // user must tap button!
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: data['status'] == false ? const Text('Unsuccessful') : const Text('Success'),
+        // title: Text('Unsuccessful'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              // Text('Invalid details'),
+              Text(data['message'])
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Close'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
     void login() async{
       loading.value = true;
@@ -64,14 +94,35 @@ class Login extends HookWidget {
             })
       );
       if(result.statusCode == 200){
+        if(jsonDecode(result.body)?['status'] == false) {
+            _showMyDialog(jsonDecode(result.body));
+        }
         loading.value = false;
         final Staff data = Staff.fromJson(jsonDecode(result.body)['data']);
         Navigator.push(context, MaterialPageRoute(builder: (context) => Frame(staff: data)));
       }
       else {
-        throw Exception('Failed to load data');
+        loading.value = false;
       }
     }
+
+    void checkForUpdate() async{
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      String version = packageInfo.version;
+      String code = packageInfo.buildNumber;
+      Uri url = Uri.parse('http://10.0.0.94:5000/get_latest_version');
+
+      final result = await http.get(url, headers: {
+      "Access-Control-Allow-Origin": "*",
+      'Content-Type': 'application/json',
+      'Accept': '*/*'
+    });
+      print(result);
+      // await http.get(url)
+      // .then((value) => print(value));
+      // .catchError((err) => print(err));
+    }
+    
 
   //   Future<void> tryOtaUpdate() async {
   //   try {
@@ -97,7 +148,8 @@ class Login extends HookWidget {
   // }
 
   // useEffect(() {
-  //   tryOtaUpdate();
+  //   // tryOtaUpdate();
+  //   checkForUpdate();
   // }, []);
 
     return Scaffold(
