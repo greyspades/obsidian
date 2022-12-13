@@ -38,13 +38,14 @@ class RequestsState extends State<Requests> {
 
   bool payLtg = false;
 
-  bool self = true;
+  bool onBehalf = false;
 
   String? startDateError;
 
   String? endDateError;
 
   String? resumptionDateError;
+
 
   final _deputizingOfficerController = TextEditingController();
   final _startDateController = TextEditingController();
@@ -53,6 +54,8 @@ class RequestsState extends State<Requests> {
   final _mobileController = TextEditingController();
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
+  final _beneficiaryController = TextEditingController();
+  final _justificationController = TextEditingController();
 
   Future<void> getLeaveTypes() async {
     Uri url = Uri.parse('http://10.0.0.184:8015/requisition/leave/leavetypes');
@@ -320,6 +323,37 @@ class RequestsState extends State<Requests> {
           ),
         ),
 
+        const Padding(padding: EdgeInsets.only(left: 10, right: 20), child: Text('Who is this Requisition for?'),),
+        Container(
+          padding: const EdgeInsets.only(left: 100, right: 100),
+          width: 100,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+          const Text('Self'),
+          SizedBox(
+                                  width: 90,
+                                  height: 70,
+                                  child: FittedBox(
+                                    fit: BoxFit.fill,
+                                    child: Switch(
+                                      value: onBehalf,
+                                      onChanged: (bool value) {
+                                        setState(() {
+                                          onBehalf = value;
+                                        });
+                                      },
+                                      activeColor: const Color(0xff15B77C),
+                                      activeTrackColor: const Color(0xffD6EBE3),
+                                      inactiveThumbColor:
+                                          const Color(0xffD6EBE3),
+                                      inactiveTrackColor:
+                                          const Color(0xffD9D9D9),
+                                    ),
+                                  ),
+                                ),
+                                const Text('On Behalf')
+        ],)),
         // Container(
         //   padding: EdgeInsets.only(left: 120, right: 120),
 
@@ -387,6 +421,17 @@ class RequestsState extends State<Requests> {
                           },
                         ),
                       )),
+                      Container(
+                        margin: onBehalf == true ? const EdgeInsets.only(top: 30) : null,
+                        padding: const EdgeInsets.only(left: 10, right: 20),
+                        child: onBehalf == true ? CustomInput(
+                                  controller: _beneficiaryController,
+                                  validation: validateField,
+                                  hintText: 'Beneficiary',
+                                  prefixIcon: const Icon(Icons.person,
+                                      color: Color(0xffF88A4C)),
+                                ) : null
+                      ),
                   Padding(
                     padding: const EdgeInsets.only(
                         left: 10, top: 20, bottom: 30, right: 10),

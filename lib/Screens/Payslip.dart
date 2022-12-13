@@ -95,25 +95,36 @@ class Payslip extends HookWidget {
         // color: Colors.red,
         child: ListView(children: [
         Container(
-          child: Column(children: [
+          height: 80,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
             Row(children: [
-              const Text('Name'),
-              Row(children: [Text(staff.firstName  ?? ''),const Text(' '), Text(staff.lastName ?? '')],)
+              const Text('Name:',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),),
+              const Text(' '),
+              Row(children: [Text(staff.firstName  ?? '',style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),),const Text(' '), Text(staff.lastName ?? '',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)],)
             ],),
 
             Row(children: [
-              const Text('Dept/Group'),
-              Text(staff.buName ?? '')
+              const Text('Dept/Group:',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),),
+              const Text(' '),
+              Text(staff.buName ?? '',style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
             ],),
 
             Row(children: [
-              const Text('Employee No'),
-              Text(staff.employeeNo ?? '')
+              const Text('Employee No:',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),),
+              const Text(' '),
+              Text(staff.employeeNo ?? '',style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
+            ],),
+            Row(children: [
+              const Text('Designation:',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),),
+              const Text(' '),
+              Text(info['JobTitle'] ,style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
             ],)
           ]),
         ),
         Container(
-          margin: const EdgeInsets.only(bottom: 20, top: 10),
+          margin: const EdgeInsets.only(bottom: 20, top: 20),
           alignment: Alignment.centerLeft,
           child: const Text('Earnings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xff55BE88)),),
         ),

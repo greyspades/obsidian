@@ -10,6 +10,7 @@ import 'package:e_360/Models/DrawerItem.dart';
 import 'package:e_360/Screens/Requests.dart';
 import 'package:e_360/Screens/Home.dart';
 import 'package:e_360/Screens/Payslip.dart';
+import 'package:e_360/Screens/Settings.dart';
 
 class Frame extends HookWidget {
   final Staff staff;
@@ -82,7 +83,7 @@ class Frame extends HookWidget {
         staff: staff,
         info: userData.value
       ),
-      Text('coming soon')
+      Settings(staff: staff, info: userData.value)
     ];
 
     return Scaffold(
@@ -302,8 +303,8 @@ class Frame extends HookWidget {
           BottomNavigationBarItem(
               icon: Icon(Icons.note_add), label: 'Requests'),
           BottomNavigationBarItem(icon: Icon(Icons.receipt), label: 'Pay Slip'),
-          // BottomNavigationBarItem(
-          //     icon: Icon(Icons.request_quote), label: 'Appraisals')
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Settings')
         ],
         currentIndex: currentIndex.value,
         onTap: (int index) {
