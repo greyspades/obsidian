@@ -102,18 +102,19 @@ class Profile extends HookWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    margin: EdgeInsets.only(left: 5, top: 20),
+                    margin: const EdgeInsets.only(left: 5, top: 20),
                     child: Text(data['title']),
                   ),
                   SizedBox(
                     // width: 330,
                     height: 71,
                     child: Card(
-                      color: Color(0xffD6EBE3),
+                      // color: Color(0xffD6EBE3),
+                      color: Colors.grey[200],
                       child: Row(children: [
                         Padding(
-                          padding: EdgeInsets.only(left: 5, right: 10),
-                          child: Icon(data['icon'], color: Color(0xffF88A4C)),
+                          padding: const EdgeInsets.only(left: 5, right: 10),
+                          child: Icon(data['icon'], color: const Color(0xff15B77C)),
                         ),
                         Text(data['value'] != null ? data['value'] : "null")
                       ]),

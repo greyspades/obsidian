@@ -294,6 +294,36 @@ class Frame extends HookWidget {
                   currentIndex.value = 2;
                 },
               ),
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
+                  child: const Icon(
+                  Icons.receipt,
+                  color: Color(0xffEF9545),
+                ),),
+                title: const Text('Payslip', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.pop(context);
+                  currentIndex.value = 3;
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
+                  child: const Icon(
+                  Icons.settings,
+                  color: Color(0xffEF9545),
+                ),),
+                title: const Text('Settings', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.pop(context);
+                  currentIndex.value = 4;
+                },
+              ),
             ],
           )),
       bottomNavigationBar: BottomNavigationBar(

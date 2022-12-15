@@ -24,7 +24,7 @@ class Staff {
 
   factory Staff.fromJson(Map<String, dynamic> json) {
     return Staff(
-        employeeNo: json['Employee_no'],
+        employeeNo: json['Employee_No'],
         firstName: json['FirstName'],
         lastName: json['LastName'],
         fullNameDot: json['FullNameDot'],

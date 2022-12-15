@@ -19,7 +19,7 @@ class Settings extends HookWidget {
 
     return Container(
       margin: const EdgeInsets.only(top: 30),
-      padding: const EdgeInsets.only(left: 30, right: 30),
+      padding: const EdgeInsets.only(left: 10, right: 10),
       child: ListView(children: [
           Container(
             alignment: Alignment.centerLeft,

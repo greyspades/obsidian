@@ -46,6 +46,11 @@ class RequestsState extends State<Requests> {
 
   String? resumptionDateError;
 
+  String? leaveTypeError;
+
+  List<dynamic>? setups;
+
+  Map<dynamic, dynamic>? activeSetup;
 
   final _deputizingOfficerController = TextEditingController();
   final _startDateController = TextEditingController();
@@ -101,6 +106,29 @@ class RequestsState extends State<Requests> {
     }
   }
 
+  Future<void> getLeaveSetup() async {
+    Uri url = Uri.parse('http://10.0.0.184:8015/requisition/leave/leavesetup');
+    var token = {
+      'br':
+          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+      'us': widget.staff.userRef,
+      'rl': widget.staff.uRole
+    };
+    var headers = {
+      'x-lapo-eve-proc': jsonEncode(token),
+      'Content-type': 'text/json',
+    };
+    var response = await http.get(url, headers: headers);
+    if (response.statusCode == 200) {
+       var activeData = List<dynamic>.from(jsonDecode(response.body)['data']).toList().where((element) => element['lv_type_Id'].toString() == leaveType).single;
+       var activeMap = Map<dynamic, dynamic>.from(activeData);
+      setState(() {
+        setups = jsonDecode(response.body)['data'];
+        activeSetup = activeMap;
+      });
+    }
+  }
+
   Future<void> _selectStartDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
         context: context,
@@ -109,7 +137,9 @@ class RequestsState extends State<Requests> {
         lastDate: DateTime(2101));
     if (picked != null &&
         picked != startDate &&
-        picked.compareTo(DateTime.now()) > 0) {
+        picked.compareTo(DateTime.now()) > 0 &&
+        picked.weekday != DateTime.saturday &&
+        picked.weekday != DateTime.sunday) {
       final trueEndDate = picked.add(const Duration(days: 10));
       setState(() {
         startDate = picked;
@@ -122,6 +152,15 @@ class RequestsState extends State<Requests> {
       setState(() {
         startDateError = 'Only enter future dates';
       });
+    } else if (picked != null &&
+        picked != startDate &&
+        activeSetup?['hasWeekEnds'] == false &&
+        (picked.weekday == DateTime.saturday ||
+            picked.weekday == DateTime.sunday)
+        ) {
+      setState(() {
+        startDateError = 'Can only select weekdays';
+      });
     }
   }
 
@@ -133,7 +172,9 @@ class RequestsState extends State<Requests> {
         lastDate: DateTime(2101));
     if (picked != null &&
         picked != resumptionDate &&
-        picked.compareTo(DateTime.now()) > 0) {
+        picked.compareTo(DateTime.now()) > 0 &&
+        picked.weekday != DateTime.saturday &&
+        picked.weekday != DateTime.sunday) {
       setState(() {
         resumptionDate = picked;
         resumptionDateError = null;
@@ -144,6 +185,14 @@ class RequestsState extends State<Requests> {
       setState(() {
         resumptionDateError = 'Only enter future dates';
       });
+    } else if (picked != null &&
+        picked != resumptionDate &&
+        activeSetup?['hasWeekEnds'] == false &&
+        (picked.weekday == DateTime.saturday ||
+            picked.weekday == DateTime.sunday)) {
+      setState(() {
+        resumptionDateError = 'Can only select weekdays';
+      });
     }
   }
 
@@ -153,7 +202,11 @@ class RequestsState extends State<Requests> {
         initialDate: endDate,
         firstDate: DateTime(2015, 8),
         lastDate: DateTime(2101));
-    if (picked != null && picked != endDate && picked.compareTo(DateTime.now()) > 0) {
+    if (picked != null &&
+        picked != endDate &&
+        picked.compareTo(DateTime.now()) > 0 &&
+        picked.weekday != DateTime.saturday &&
+        picked.weekday != DateTime.sunday) {
       setState(() {
         endDate = picked;
         endDateError = null;
@@ -163,6 +216,14 @@ class RequestsState extends State<Requests> {
         picked.compareTo(DateTime.now()) < 0) {
       setState(() {
         endDateError = 'Only enter future dates';
+      });
+    } else if (picked != null &&
+        picked != endDate &&
+        activeSetup?['hasWeekEnds'] == false &&
+        (picked.weekday == DateTime.saturday ||
+            picked.weekday == DateTime.sunday)) {
+      setState(() {
+        endDateError = 'Can only select weekdays';
       });
     }
   }
@@ -288,6 +349,7 @@ class RequestsState extends State<Requests> {
     super.initState();
     getLeaveTypes();
     getDeputizingOfficer();
+    getLeaveSetup();
   }
 
   @override
@@ -323,37 +385,39 @@ class RequestsState extends State<Requests> {
           ),
         ),
 
-        const Padding(padding: EdgeInsets.only(left: 10, right: 20), child: Text('Who is this Requisition for?'),),
+        const Padding(
+          padding: EdgeInsets.only(left: 10, right: 20),
+          child: Text('Who is this Requisition for?'),
+        ),
         Container(
-          padding: const EdgeInsets.only(left: 100, right: 100),
-          width: 100,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-          const Text('Self'),
-          SizedBox(
-                                  width: 90,
-                                  height: 70,
-                                  child: FittedBox(
-                                    fit: BoxFit.fill,
-                                    child: Switch(
-                                      value: onBehalf,
-                                      onChanged: (bool value) {
-                                        setState(() {
-                                          onBehalf = value;
-                                        });
-                                      },
-                                      activeColor: const Color(0xff15B77C),
-                                      activeTrackColor: const Color(0xffD6EBE3),
-                                      inactiveThumbColor:
-                                          const Color(0xffD6EBE3),
-                                      inactiveTrackColor:
-                                          const Color(0xffD9D9D9),
-                                    ),
-                                  ),
-                                ),
-                                const Text('On Behalf')
-        ],)),
+            padding: const EdgeInsets.only(left: 80, right: 80),
+            width: 200,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Self'),
+                SizedBox(
+                  width: 90,
+                  height: 70,
+                  child: FittedBox(
+                    fit: BoxFit.fill,
+                    child: Switch(
+                      value: onBehalf,
+                      onChanged: (bool value) {
+                        setState(() {
+                          onBehalf = value;
+                        });
+                      },
+                      activeColor: const Color(0xff15B77C),
+                      activeTrackColor: const Color(0xffD6EBE3),
+                      inactiveThumbColor: const Color(0xffD6EBE3),
+                      inactiveTrackColor: const Color(0xffD9D9D9),
+                    ),
+                  ),
+                ),
+                const Text('On Behalf')
+              ],
+            )),
         // Container(
         //   padding: EdgeInsets.only(left: 120, right: 120),
 
@@ -385,19 +449,20 @@ class RequestsState extends State<Requests> {
                 children: [
                   Container(
                       width: MediaQuery.of(context).size.width,
-                      height: 130,
+                      height: 150,
                       color: const Color(0xffD6EBE3),
-                      child: Container(
+                      child:  Container(
                         margin: const EdgeInsets.only(
                             top: 40, left: 20, bottom: 20, right: 70),
                         width: 100,
                         height: 40,
-                        child: DropdownButtonFormField(
+                        child: Column(children: [
+                          DropdownButtonFormField(
                           decoration: const InputDecoration(
                             fillColor: Colors.white,
                             filled: true,
                             border: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(
+                              borderRadius: BorderRadius.all(
                                 Radius.circular(10.0),
                               ),
                             ),
@@ -415,23 +480,44 @@ class RequestsState extends State<Requests> {
                                 ?.where((element) => element['Item'] == item)
                                 .single['Code']
                                 .toString();
+                            var _setup = Map<dynamic, dynamic>.from(setups?.toList()
+                                .where((elem) => elem["lv_type_Id"].toString() == ref)
+                                .single);
+                            // var error = _setup["isMaleValid"] != true && widget.staff.gender == 'Male' ? 'You are not eligible for this leave type' : '';
+                            // : _setup["isFemaleValid"] == true && widget.staff.gender != 'Female' ? 'You are not eligible for this leave type' : '';
                             setState(() {
                               leaveType = ref;
+                              activeSetup = _setup;
+                              startDateError = null;
+                              endDateError = null;
+                              resumptionDateError = null;
+                              startDate = DateTime.now();
+                              endDate = DateTime.now();
+                              resumptionDate = DateTime.now();
+                              // leaveTypeError = error;
                             });
                           },
                         ),
-                      )),
-                      Container(
-                        margin: onBehalf == true ? const EdgeInsets.only(top: 30) : null,
-                        padding: const EdgeInsets.only(left: 10, right: 20),
-                        child: onBehalf == true ? CustomInput(
-                                  controller: _beneficiaryController,
-                                  validation: validateField,
-                                  hintText: 'Beneficiary',
-                                  prefixIcon: const Icon(Icons.person,
-                                      color: Color(0xffF88A4C)),
-                                ) : null
+                        Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text(leaveTypeError ?? '', style: const TextStyle(color: Colors.red),))
+                        ],)
                       ),
+                      ),
+                  Container(
+                      margin: onBehalf == true
+                          ? const EdgeInsets.only(top: 30)
+                          : null,
+                      padding: const EdgeInsets.only(left: 10, right: 20),
+                      child: onBehalf == true
+                          ? CustomInput(
+                              controller: _beneficiaryController,
+                              validation: validateField,
+                              hintText: 'Beneficiary',
+                              prefixIcon: const Icon(Icons.person,
+                                  color: Color(0xff15B77C)),
+                            )
+                          : null),
                   Padding(
                     padding: const EdgeInsets.only(
                         left: 10, top: 20, bottom: 30, right: 10),
@@ -555,7 +641,7 @@ class RequestsState extends State<Requests> {
                                                   child: ListTile(
                                                     leading: const Icon(
                                                       Icons.today,
-                                                      color: Color(0xffF88A4C),
+                                                      color: Color(0xff15B77C),
                                                     ),
                                                     title: Text(
                                                         DateTime.parse(startDate
@@ -602,7 +688,7 @@ class RequestsState extends State<Requests> {
                                                   child: ListTile(
                                                     leading: const Icon(
                                                       Icons.today,
-                                                      color: Color(0xffF88A4C),
+                                                      color: Color(0xff15B77C),
                                                     ),
                                                     title: Text(
                                                       DateTime.parse(endDate
@@ -646,7 +732,7 @@ class RequestsState extends State<Requests> {
                                       child: ListTile(
                                         leading: const Icon(
                                           Icons.today,
-                                          color: Color(0xffF88A4C),
+                                          color: Color(0xff15B77C),
                                         ),
                                         title: Text(
                                             DateTime.parse(
@@ -660,13 +746,12 @@ class RequestsState extends State<Requests> {
                                       ),
                                     )),
                                 resumptionDateError != null
-                                                ? Text(
-                                                    resumptionDateError ?? '',
-                                                    style: TextStyle(
-                                                        color: Colors.red,
-                                                        fontSize: 11),
-                                                  )
-                                                : Text('Resumption Date')
+                                    ? Text(
+                                        resumptionDateError ?? '',
+                                        style: TextStyle(
+                                            color: Colors.red, fontSize: 11),
+                                      )
+                                    : Text('Resumption Date')
                               ],
                             )),
                         Container(
@@ -688,7 +773,7 @@ class RequestsState extends State<Requests> {
                                   validation: validatePhone,
                                   hintText: 'Mobile during leave',
                                   prefixIcon: const Icon(Icons.call,
-                                      color: Color(0xffF88A4C)),
+                                      color: Color(0xff15B77C)),
                                   textType: TextInputType.number,
                                 ),
                                 CustomInput(
@@ -696,14 +781,14 @@ class RequestsState extends State<Requests> {
                                   validation: validateEmail,
                                   hintText: 'Email during leave',
                                   prefixIcon: const Icon(Icons.email,
-                                      color: Color(0xffF88A4C)),
+                                      color: Color(0xff15B77C)),
                                 ),
                                 CustomInput(
                                   controller: _addressController,
                                   validation: validateAddress,
                                   hintText: 'Address during leave',
                                   prefixIcon: const Icon(Icons.home,
-                                      color: Color(0xffF88A4C)),
+                                      color: Color(0xff15B77C)),
                                 ),
                               ]),
                         )
@@ -722,9 +807,11 @@ class RequestsState extends State<Requests> {
                     backgroundColor: const Color(0xff15B77C),
                   ),
                   onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      createLeave();
-                    }
+                    // if (_formKey.currentState!.validate()) {
+                    //   createLeave();
+                    // }
+                    print(leaveTypeError);
+                    print(activeSetup);
                   },
                   child: setLoading != true
                       ? const Text(

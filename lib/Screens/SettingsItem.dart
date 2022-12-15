@@ -38,11 +38,11 @@ class SettingsItem extends HookWidget {
   }
 
   validatePassword(String value) {
-      if (value == null || value.isEmpty) {
-        return 'Please enter a new Password';
-      }
-      return null;
+    if (value == null || value.isEmpty) {
+      return 'Please enter a new Password';
     }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,10 +55,9 @@ class SettingsItem extends HookWidget {
     final _confirmPasswordController = TextEditingController();
     final loading = useState<bool>(false);
 
-     Future<void> resetPassword() async {
+    Future<void> resetPassword() async {
       loading.value = true;
-      Uri url =
-          Uri.parse('http://10.0.0.184:8015/userservices/passreset');
+      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/passreset');
       var token = {
         'br':
             "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300"
@@ -69,16 +68,36 @@ class SettingsItem extends HookWidget {
       };
       var body = {
         "rUsN": "SN11536",
-  "rOldPwd": "Password6\$1",
-  "rNewPwd": _passwordController.text,
-  "rONewPwdVrfy": _confirmPasswordController.text,
-  "xAppSource": "AS-IN-D659B-e3M"
+        "rOldPwd": "Password6\$1",
+        "rNewPwd": _passwordController.text,
+        "rONewPwdVrfy": _confirmPasswordController.text,
+        "xAppSource": "AS-IN-D659B-e3M"
       };
 
-      final result = http.post(url, headers: headers, body: jsonEncode(body))
-      .then((result) => {
-        print(result.body)
-      });
+      final result = http
+          .post(url, headers: headers, body: jsonEncode(body))
+          .then((result) => {print(result.body)});
+    }
+
+    Future<void> updatePhone() async {
+      loading.value = true;
+      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/updatemobile');
+      var token = {
+        'br':
+            "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300"
+      };
+      var headers = {
+        'x-lapo-eve-proc': jsonEncode(token),
+        'Content-type': 'text/json',
+      };
+      var body = {
+        "employee_No": staff.employeeNo,
+        "phone_Number": _mobileController.text,
+        "phone_Type_Id": "string"
+      };
+      final result = http
+          .post(url, headers: headers, body: jsonEncode(body))
+          .then((result) => {print(result.body)});
     }
 
     return Container(
@@ -96,7 +115,7 @@ class SettingsItem extends HookWidget {
                           hintText: 'New Email',
                           labelText: 'New Email',
                           prefixIcon:
-                              const Icon(Icons.email, color: Color(0xffF88A4C)),
+                              const Icon(Icons.email, color: Color(0xff15B77C)),
                         ),
                       ])
                     : null,
@@ -110,7 +129,7 @@ class SettingsItem extends HookWidget {
                           hintText: 'New Phone Number',
                           labelText: 'New Phone Number',
                           prefixIcon:
-                              const Icon(Icons.phone, color: Color(0xffF88A4C)),
+                              const Icon(Icons.phone, color: Color(0xff15B77C)),
                         ),
                       ])
                     : null,
@@ -124,73 +143,74 @@ class SettingsItem extends HookWidget {
                           hintText: 'New Email',
                           labelText: 'New Email',
                           prefixIcon:
-                              const Icon(Icons.email, color: Color(0xffF88A4C)),
+                              const Icon(Icons.email, color: Color(0xff15B77C)),
                         ),
                       ])
                     : null,
               ),
-
               Container(
-                height: 200,
+                height: currentItem == '300' ? 200 : null,
                 child: currentItem == '300'
                     ? Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CustomInput(
-                          controller: _oldPasswordController,
-                          validation: validatePassword,
-                          hintText: 'Old Password',
-                          labelText: 'Old Password',
-                          isPassword: true,
-                          prefixIcon:
-                              const Icon(Icons.lock, color: Color(0xffF88A4C)),
-                        ),
-                        CustomInput(
-                          controller: _passwordController,
-                          validation: validatePassword,
-                          hintText: 'New Password',
-                          labelText: 'New Password',
-                          isPassword: true,
-                          prefixIcon:
-                              const Icon(Icons.lock, color: Color(0xffF88A4C)),
-                        ),
-                        CustomInput(
-                          controller: _confirmPasswordController,
-                          validation: validatePassword,
-                          hintText: 'Confirm New Password',
-                          labelText: 'Confirm New Password',
-                          isPassword: true,
-                          prefixIcon:
-                              const Icon(Icons.lock, color: Color(0xffF88A4C)),
-                        ),
-                      ])
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                            CustomInput(
+                              controller: _oldPasswordController,
+                              validation: validatePassword,
+                              hintText: 'Old Password',
+                              labelText: 'Old Password',
+                              isPassword: true,
+                              prefixIcon: const Icon(Icons.lock,
+                                  color: Color(0xff15B77C)),
+                            ),
+                            CustomInput(
+                              controller: _passwordController,
+                              validation: validatePassword,
+                              hintText: 'New Password',
+                              labelText: 'New Password',
+                              isPassword: true,
+                              prefixIcon: const Icon(Icons.lock,
+                                  color: Color(0xff15B77C)),
+                            ),
+                            CustomInput(
+                              controller: _confirmPasswordController,
+                              validation: validatePassword,
+                              hintText: 'Confirm New Password',
+                              labelText: 'Confirm New Password',
+                              isPassword: true,
+                              prefixIcon: const Icon(Icons.lock,
+                                  color: Color(0xff15B77C)),
+                            ),
+                          ])
                     : null,
               ),
-
               Container(
                 margin: const EdgeInsets.only(top: 40),
                 width: 300,
-              child: currentItem.isNotEmpty ? SizedBox(
-              height: 60,
-              child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff15B77C),
-                  ),
-                  onPressed: () {
-                    // if (_formKey.currentState!.validate()) {
-  
-                    // }
-                    switch(currentItem) {
-                      case '300':
-                      resetPassword();
-                      break;
+                child: currentItem.isNotEmpty
+                    ? SizedBox(
+                        height: 60,
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xff15B77C),
+                            ),
+                            onPressed: () {
+                              // if (_formKey.currentState!.validate()) {
 
-                      case '200':
-                      print('other');
-                    }
-                  },
-                  child: Text('Update')),
-            ) : null,)
+                              // }
+                              switch (currentItem) {
+                                case '300':
+                                  resetPassword();
+                                  break;
+
+                                case '200':
+                                  print('other');
+                              }
+                            },
+                            child: Text('Update')),
+                      )
+                    : null,
+              )
             ],
           ),
         ));

@@ -28,6 +28,7 @@ class Login extends HookWidget {
     final loading = useState<bool>(false);
     final updateState = useState<dynamic>('');
     final forgottenPassword = useState<bool>(false);
+    final connectionError = useState<String?>(null);
     // final isValid = useState<bool>(_formKey.currentState!.validate());
 
     useEffect(() {
@@ -99,7 +100,10 @@ class Login extends HookWidget {
             'UsN': 'SN11536',
             'Pwd': 'Password6\$1',
             'xAppSource': "AS-IN-D659B-e3M"
-          }));
+          })).timeout(Duration(seconds: 10)).catchError((err) => {
+            loading.value = false,
+            connectionError.value = 'Check your internet connection'
+          });
       if (result.statusCode == 200) {
         if (jsonDecode(result.body)?['status'] == false) {
           _showMyDialog(jsonDecode(result.body));
@@ -143,68 +147,73 @@ class Login extends HookWidget {
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String version = packageInfo.version;
       String code = packageInfo.buildNumber;
-      Uri url =
-          Uri.parse('http://10.0.0.184:8015/updates/checkappversiondetails');
 
-      var token = {
-        'br':
-            "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300"
-      };
-      var headers = {
-        'x-lapo-eve-proc': jsonEncode(token),
-        'Content-type': 'text/json',
-      };
-      final result = await http.post(url,
-          headers: headers,
-          body: jsonEncode({
-            "xTransRef": "string",
-            "xTransScope": "129dekekddkffmf2sv25",
-            "xAppTransScope": "9e9efefech009eee",
-            "xAppSource": "AS-IN-D659B-e3M"
-          }));
-      print(result.body);
+      Uri url = Uri.parse('http://10.0.0.94:5000/get_latest_version');
+      // Uri url =
+      //     Uri.parse('http://10.0.0.184:8015/updates/checkappversiondetails');
 
-      if (result.statusCode == 200) {
-        var data = jsonDecode(result.body);
-        print('was successful');
-        print(data);
-      }
-      // await http.get(url)
-      // .then((value) => print(value));
-      // .catchError((err) => print(err));
+      // var token = {
+      //   'br':
+      //       "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300"
+      // };
+      // var headers = {
+      //   'x-lapo-eve-proc': jsonEncode(token),
+      //   'Content-type': 'text/json',
+      // };
+      // final result = await http.post(url,
+      //     headers: headers,
+      //     body: jsonEncode({
+      //       "xTransRef": "string",
+      //       "xTransScope": "129dekekddkffmf2sv25",
+      //       "xAppTransScope": "9e9efefech009eee",
+      //       "xAppSource": "AS-IN-D659B-e3M"
+      //     }));
+      // print(result.body);
+
+      // if (result.statusCode == 200) {
+      //   var data = jsonDecode(result.body);
+      //   print('was successful');
+      //   print(data);
+      // }
+
+      await http.get(url)
+      .then((value) => print(value.body))
+      .catchError((err) => print(err));
     }
 
-    //   Future<void> tryOtaUpdate() async {
-    //   try {
-    //     //LINK CONTAINS APK OF FLUTTER HELLO WORLD FROM FLUTTER SDK EXAMPLES
-    //     OtaUpdate()
-    //         .execute(
-    //       'https://internal1.4q.sk/flutter_hello_world.apk',
-    //       destinationFilename: 'flutter_hello_world.apk',
-    //       //FOR NOW ANDROID ONLY - ABILITY TO VALIDATE CHECKSUM OF FILE:
-    //       sha256checksum: 'd6da28451a1e15cf7a75f2c3f151befad3b80ad0bb232ab15c20897e54f21478',
-    //     )
-    //         .listen(
-    //       (OtaEvent event) {
-    //         print(event.value);
-    //         print(event.status);
-    //         updateState.value = event;
-    //       },
-    //     );
-    //     // ignore: avoid_catches_without_on_clauses
-    //   } catch (e) {
-    //     print('Failed to make OTA update. Details: $e');
-    //   }
-    // }
+      Future<void> tryOtaUpdate() async {
+      try {
+        //LINK CONTAINS APK OF FLUTTER HELLO WORLD FROM FLUTTER SDK EXAMPLES
+        OtaUpdate()
+            .execute(
+              'http://10.0.0.94:5000/apk/E360_alpha.apk',
+          // 'https://internal1.4q.sk/flutter_hello_world.apk',
+          destinationFilename: 'E360_alpha.apk',
+          //FOR NOW ANDROID ONLY - ABILITY TO VALIDATE CHECKSUM OF FILE:
+          // sha256checksum: 'd6da28451a1e15cf7a75f2c3f151befad3b80ad0bb232ab15c20897e54f21478',
+        )
+            .listen(
+          (OtaEvent event) {
+            print(event.value);
+            print(event.status);
+            updateState.value = event;
+          },
+        );
+        // ignore: avoid_catches_without_on_clauses
+      } catch (e) {
+        print('Failed to make OTA update. Details: $e');
+      }
+    }
 
     // useEffect(() {
-    //   // tryOtaUpdate();
-    //   checkForUpdate();
+    //   tryOtaUpdate();
+    //   // checkForUpdate();
     // }, []);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
+        elevation: 0,
         backgroundColor: Colors.white,
         actions: [
           IconButton(
@@ -212,20 +221,21 @@ class Login extends HookWidget {
               icon: const Icon(Icons.help, color: Color(0xff15B77C)))
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      body: ListView(
+        // crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             alignment: Alignment.center,
             child: Image.asset(
               'images/lapo_360.png',
               width: 200,
-              height: 200,
+              height: 150,
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.only(bottom: 20),
-            child: Text(
+          Container(
+            padding: const EdgeInsets.only(bottom: 20),
+            alignment: Alignment.center,
+            child: const Text(
               'Hey there!',
               style: TextStyle(fontWeight: FontWeight.w800, fontSize: 32),
             ),
@@ -270,8 +280,8 @@ class Login extends HookWidget {
                             )),
                   ),
                   Container(
-                    margin: forgottenPassword.value == true ? EdgeInsets.only(top: 20) : null,
-                    height: forgottenPassword.value == true ? 140 : null,
+                    margin: forgottenPassword.value == true ? const EdgeInsets.only(top: 20) : null,
+                    height: forgottenPassword.value == true ? 160 : null,
                       child: forgottenPassword.value == true
                           ? Column(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -348,10 +358,20 @@ class Login extends HookWidget {
                         onPressed: () {
                           forgottenPassword.value = !forgottenPassword.value;
                         },
-                        child: const Text('Reset Password',
+                        child: forgottenPassword.value == true ? const Text('Cancel Password Reset',
+                            style: TextStyle(color: Color(0xff15B77C))) : const Text('Forgot Password',
                             style: TextStyle(color: Color(0xff15B77C)))
                             ),
                   ),
+                  Container(child: connectionError.value != null ? Column(children: [
+                    Container(
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.signal_wifi_connected_no_internet_4, color: Color(0xffEF9545),size: 80),
+                  ),
+                   Padding(padding: const EdgeInsets.only(top: 20), child: Text(connectionError.value ?? '', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),),)
+                  ],) : null,)
+                 
+                 
                   // Container(
                   //   child: Text('OTA status: ${updateState.value?.status} : ${updateState.value?.value} \n'),
                   // )
