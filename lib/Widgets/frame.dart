@@ -159,12 +159,12 @@ class Frame extends HookWidget {
                             onPressed: () {},
                             icon: const Icon(
                               Icons.notifications,
-                              color: Color(0xff939393),
+                              color: Color(0xff15B77C),
                             )),
                         IconButton(
                             onPressed: () => Scaffold.of(context).openDrawer(),
                             icon: const Icon(Icons.menu,
-                                color: Color(0xff939393)))
+                                color: Color(0xff15B77C)))
                       ],
                     ),
                   );
@@ -205,7 +205,9 @@ class Frame extends HookWidget {
       ),
       body: screens.elementAt(currentIndex.value),
       drawer: Drawer(
-          backgroundColor: Color(0xff15B77C),
+          // backgroundColor: Color(0xff15B77C),
+          backgroundColor: const Color(0xffD6EBE3),
+          // backgroundColor: Colors.grey[200],
           child: ListView(
             children: [
               SizedBox(
@@ -235,13 +237,13 @@ class Frame extends HookWidget {
                                 child: Text(
                                   (staff.firstName as String),
                                   // 'Ebele',
-                                  style: const TextStyle(color: Colors.white),
+                                  style: const TextStyle(color: Colors.black),
                                 ),
                               ),
                               Text(
                                 (staff.lastName as String),
                                 // '',
-                                style: const TextStyle(color: Colors.white),
+                                style: const TextStyle(color: Colors.black),
                               ),
                             ],
                           ),
@@ -256,9 +258,9 @@ class Frame extends HookWidget {
                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
                   child: const Icon(
                   Icons.home,
-                  color: Color(0xffEF9545),
+                  color: Color(0xff15B77C),
                 ),),
-                title: const Text('Home', style: TextStyle(color: Colors.white)),
+                title: const Text('Home', style: TextStyle(color: Colors.black)),
                 onTap: () {
                   Navigator.pop(context);
                   currentIndex.value = 0;
@@ -271,9 +273,9 @@ class Frame extends HookWidget {
                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
                   child: const Icon(
                   Icons.person,
-                  color: Color(0xffEF9545),
+                  color: Color(0xff15B77C),
                 ),),
-                title: const Text('Profile', style: TextStyle(color: Colors.white),),
+                title: const Text('Profile', style: TextStyle(color: Colors.black),),
                 onTap: () {
                   Navigator.pop(context);
                   currentIndex.value = 1;
@@ -286,9 +288,9 @@ class Frame extends HookWidget {
                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
                   child: const Icon(
                   Icons.note_add,
-                  color: Color(0xffEF9545),
+                  color: Color(0xff15B77C),
                 ),),
-                title: const Text('Requisitions', style: TextStyle(color: Colors.white)),
+                title: const Text('Requisitions', style: TextStyle(color: Colors.black)),
                 onTap: () {
                   Navigator.pop(context);
                   currentIndex.value = 2;
@@ -301,9 +303,9 @@ class Frame extends HookWidget {
                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
                   child: const Icon(
                   Icons.receipt,
-                  color: Color(0xffEF9545),
+                  color: Color(0xff15B77C),
                 ),),
-                title: const Text('Payslip', style: TextStyle(color: Colors.white)),
+                title: const Text('Payslip', style: TextStyle(color: Colors.black)),
                 onTap: () {
                   Navigator.pop(context);
                   currentIndex.value = 3;
@@ -316,9 +318,9 @@ class Frame extends HookWidget {
                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
                   child: const Icon(
                   Icons.settings,
-                  color: Color(0xffEF9545),
+                  color: Color(0xff15B77C),
                 ),),
-                title: const Text('Settings', style: TextStyle(color: Colors.white)),
+                title: const Text('Settings', style: TextStyle(color: Colors.black)),
                 onTap: () {
                   Navigator.pop(context);
                   currentIndex.value = 4;

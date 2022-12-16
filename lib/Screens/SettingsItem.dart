@@ -5,6 +5,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:e_360/Widgets/input.dart';
 import 'package:e_360/Models/DepOfficer.dart';
+// import 'package:image_form_field/image_form_field.dart';
+// import 'package:e_360/Models/ImageInputAdapter.dart';
+import 'dart:io';
 
 class SettingsItem extends HookWidget {
   Staff staff;
@@ -184,33 +187,45 @@ class SettingsItem extends HookWidget {
                           ])
                     : null,
               ),
-              Container(
-                margin: const EdgeInsets.only(top: 40),
-                width: 300,
-                child: currentItem.isNotEmpty
-                    ? SizedBox(
-                        height: 60,
-                        child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xff15B77C),
-                            ),
-                            onPressed: () {
-                              // if (_formKey.currentState!.validate()) {
+              // Container(
+              //     height: currentItem == '400' ? 200 : null,
+              //     child: currentItem == '400'
+              //         ? ImageFormField(
+              //             buttonBuilder: (_, int count) => Container(
+              //                 child: Text(count == null || count < 1
+              //                     ? "Upload Image"
+              //                     : "Upload More")),
+              //             initializeFileAsImage: (File file) =>
+              //               ImageInputAdapter(file: file),        
+              //             )
+              //         : null),
+              // Container(
+              //   margin: const EdgeInsets.only(top: 40),
+              //   width: 300,
+              //   child: currentItem.isNotEmpty
+              //       ? SizedBox(
+              //           height: 60,
+              //           child: ElevatedButton(
+              //               style: ElevatedButton.styleFrom(
+              //                 backgroundColor: const Color(0xff15B77C),
+              //               ),
+              //               onPressed: () {
+              //                 // if (_formKey.currentState!.validate()) {
 
-                              // }
-                              switch (currentItem) {
-                                case '300':
-                                  resetPassword();
-                                  break;
+              //                 // }
+              //                 switch (currentItem) {
+              //                   case '300':
+              //                     resetPassword();
+              //                     break;
 
-                                case '200':
-                                  print('other');
-                              }
-                            },
-                            child: Text('Update')),
-                      )
-                    : null,
-              )
+              //                   case '200':
+              //                     print('other');
+              //                 }
+              //               },
+              //               child: Text('Update')),
+              //         )
+              //       : null,
+              // )
             ],
           ),
         ));

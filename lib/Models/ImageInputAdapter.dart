@@ -5,17 +5,18 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:e_360/Widgets/input.dart';
 import 'package:e_360/Models/DepOfficer.dart';
+import 'dart:io';
 
 
 class ImageInputAdapter {
   /// Initialize from either a URL or a file, but not both.
   ImageInputAdapter({
-    this.file,
+    required this.file,
     this.url
   }) : assert(file != null || url != null), assert(file != null && url == null), assert(file == null && url != null);
 
   /// An image file
-  final dynamic file;
+  final File file;
   /// A direct link to the remote image
   final String? url;
 

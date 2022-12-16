@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:e_360/Widgets/input.dart';
 import 'package:e_360/Models/DepOfficer.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 class Requests extends StatefulWidget {
   final Staff staff;
@@ -14,6 +15,8 @@ class Requests extends StatefulWidget {
   @override
   State<Requests> createState() => RequestsState();
 }
+
+enum Reasons { sick, mandated }
 
 class RequestsState extends State<Requests> {
   // final Staff staff;
@@ -52,6 +55,20 @@ class RequestsState extends State<Requests> {
 
   Map<dynamic, dynamic>? activeSetup;
 
+  Map<dynamic, dynamic>? division;
+
+  List<Map<dynamic, dynamic>>? searchResult;
+
+  Map<dynamic, dynamic>? selectedOfficer;
+
+  Map<dynamic, dynamic>? selectedBeneficiary;
+
+  bool sick = false;
+
+  bool mandated = false;
+
+  int reason = -1;
+
   final _deputizingOfficerController = TextEditingController();
   final _startDateController = TextEditingController();
   final _endDateController = TextEditingController();
@@ -59,8 +76,9 @@ class RequestsState extends State<Requests> {
   final _mobileController = TextEditingController();
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
-  final _beneficiaryController = TextEditingController();
-  final _justificationController = TextEditingController();
+  final beneficiaryController = TextEditingController();
+  final justificationController = TextEditingController();
+  final searchController = TextEditingController();
 
   Future<void> getLeaveTypes() async {
     Uri url = Uri.parse('http://10.0.0.184:8015/requisition/leave/leavetypes');
@@ -120,12 +138,72 @@ class RequestsState extends State<Requests> {
     };
     var response = await http.get(url, headers: headers);
     if (response.statusCode == 200) {
-       var activeData = List<dynamic>.from(jsonDecode(response.body)['data']).toList().where((element) => element['lv_type_Id'].toString() == leaveType).single;
-       var activeMap = Map<dynamic, dynamic>.from(activeData);
+      var activeData = List<dynamic>.from(jsonDecode(response.body)['data'])
+          .toList()
+          .where((element) => element['lv_type_Id'].toString() == leaveType)
+          .single;
+      var activeMap = Map<dynamic, dynamic>.from(activeData);
       setState(() {
         setups = jsonDecode(response.body)['data'];
         activeSetup = activeMap;
       });
+    }
+  }
+
+  Future<void> getDivision() async {
+    Uri url = Uri.parse('http://10.0.0.184:8015/userservices/divisionbyempNo');
+    var token = {
+      'br':
+          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+      'us': widget.staff.userRef,
+      'rl': widget.staff.uRole
+    };
+    var headers = {
+      'x-lapo-eve-proc': jsonEncode(token),
+      'Content-type': 'text/json',
+    };
+    var response = await http.post(url,
+        headers: headers, body: jsonEncode({"xParam": widget.staff.userRef}));
+    if (response.statusCode == 200) {
+      var divisionResponse =
+          Map<dynamic, dynamic>.from(jsonDecode(response.body)['data']);
+      setState(() {
+        division = divisionResponse;
+      });
+    }
+  }
+
+  Future<dynamic> search(String item) async {
+    Uri url = Uri.parse('http://10.0.0.184:8015/userservices/searchemployees');
+    var token = {
+      'br':
+          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+      'us': widget.staff.userRef,
+      'rl': widget.staff.uRole
+    };
+    var headers = {
+      'x-lapo-eve-proc': jsonEncode(token),
+      'Content-type': 'text/json',
+    };
+    var body = {
+      "xParam": item,
+      "xBuCode": "",
+      "xScope": division?['DivisionName'],
+      "xScopeRef": division?['DivisionCode'],
+      "xRowCount": 1,
+      "xFromDate": "",
+      "xToDate": "",
+      "xApp": "AS-IN-D659B-e3M",
+      "xPageIndex": 1,
+      "xPageSize": 1
+    };
+    var response =
+        await http.post(url, headers: headers, body: jsonEncode(body));
+    if (response.statusCode == 200) {
+      var result =
+          List<Map<dynamic, dynamic>>.from(jsonDecode(response.body)['data']);
+
+      return result;
     }
   }
 
@@ -156,8 +234,7 @@ class RequestsState extends State<Requests> {
         picked != startDate &&
         activeSetup?['hasWeekEnds'] == false &&
         (picked.weekday == DateTime.saturday ||
-            picked.weekday == DateTime.sunday)
-        ) {
+            picked.weekday == DateTime.sunday)) {
       setState(() {
         startDateError = 'Can only select weekdays';
       });
@@ -350,6 +427,7 @@ class RequestsState extends State<Requests> {
     getLeaveTypes();
     getDeputizingOfficer();
     getLeaveSetup();
+    getDivision();
   }
 
   @override
@@ -387,7 +465,10 @@ class RequestsState extends State<Requests> {
 
         const Padding(
           padding: EdgeInsets.only(left: 10, right: 20),
-          child: Text('Who is this Requisition for?'),
+          child: Text('Leave transport grant',
+                              style: TextStyle(
+                                  color: Color(0xff88A59A),
+                                  fontWeight: FontWeight.bold)),
         ),
         Container(
             padding: const EdgeInsets.only(left: 80, right: 80),
@@ -448,75 +529,174 @@ class RequestsState extends State<Requests> {
               child: Column(
                 children: [
                   Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: 150,
-                      color: const Color(0xffD6EBE3),
-                      child:  Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: 150,
+                    color: const Color(0xffD6EBE3),
+                    child: Container(
                         margin: const EdgeInsets.only(
                             top: 40, left: 20, bottom: 20, right: 70),
                         width: 100,
                         height: 40,
-                        child: Column(children: [
-                          DropdownButtonFormField(
-                          decoration: const InputDecoration(
-                            fillColor: Colors.white,
-                            filled: true,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10.0),
+                        child: Column(
+                          children: [
+                            DropdownButtonFormField(
+                              decoration: const InputDecoration(
+                                fillColor: Colors.white,
+                                filled: true,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10.0),
+                                  ),
+                                ),
                               ),
+                              value: leaveTypes?[0]['Item'],
+                              icon: const Icon(Icons.keyboard_arrow_down),
+                              items: leaveTypes?.map<DropdownMenuItem>((item) {
+                                return DropdownMenuItem(
+                                  child: Text(item['Item']),
+                                  value: item['Item'],
+                                );
+                              }).toList(),
+                              onChanged: (item) {
+                                var ref = leaveTypes
+                                    ?.where(
+                                        (element) => element['Item'] == item)
+                                    .single['Code']
+                                    .toString();
+                                var _setup = Map<dynamic, dynamic>.from(setups
+                                    ?.toList()
+                                    .where((elem) =>
+                                        elem["lv_type_Id"].toString() == ref)
+                                    .single);
+                                // var error = _setup["isMaleValid"] != true && widget.staff.gender == 'Male' ? 'You are not eligible for this leave type' : '';
+                                // : _setup["isFemaleValid"] == true && widget.staff.gender != 'Female' ? 'You are not eligible for this leave type' : '';
+                                setState(() {
+                                  leaveType = ref;
+                                  activeSetup = _setup;
+                                  startDateError = null;
+                                  endDateError = null;
+                                  resumptionDateError = null;
+                                  startDate = DateTime.now();
+                                  endDate = DateTime.now();
+                                  resumptionDate = DateTime.now();
+                                  // leaveTypeError = error;
+                                });
+                              },
                             ),
-                          ),
-                          value: leaveTypes?[0]['Item'],
-                          icon: const Icon(Icons.keyboard_arrow_down),
-                          items: leaveTypes?.map<DropdownMenuItem>((item) {
-                            return DropdownMenuItem(
-                              child: Text(item['Item']),
-                              value: item['Item'],
-                            );
-                          }).toList(),
-                          onChanged: (item) {
-                            var ref = leaveTypes
-                                ?.where((element) => element['Item'] == item)
-                                .single['Code']
-                                .toString();
-                            var _setup = Map<dynamic, dynamic>.from(setups?.toList()
-                                .where((elem) => elem["lv_type_Id"].toString() == ref)
-                                .single);
-                            // var error = _setup["isMaleValid"] != true && widget.staff.gender == 'Male' ? 'You are not eligible for this leave type' : '';
-                            // : _setup["isFemaleValid"] == true && widget.staff.gender != 'Female' ? 'You are not eligible for this leave type' : '';
-                            setState(() {
-                              leaveType = ref;
-                              activeSetup = _setup;
-                              startDateError = null;
-                              endDateError = null;
-                              resumptionDateError = null;
-                              startDate = DateTime.now();
-                              endDate = DateTime.now();
-                              resumptionDate = DateTime.now();
-                              // leaveTypeError = error;
-                            });
-                          },
-                        ),
-                        Container(
-                          alignment: Alignment.centerLeft,
-                          child: Text(leaveTypeError ?? '', style: const TextStyle(color: Colors.red),))
-                        ],)
-                      ),
-                      ),
+                            Container(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  leaveTypeError ?? '',
+                                  style: const TextStyle(color: Colors.red),
+                                ))
+                          ],
+                        )),
+                  ),
                   Container(
                       margin: onBehalf == true
                           ? const EdgeInsets.only(top: 30)
                           : null,
                       padding: const EdgeInsets.only(left: 10, right: 20),
                       child: onBehalf == true
-                          ? CustomInput(
-                              controller: _beneficiaryController,
-                              validation: validateField,
-                              hintText: 'Beneficiary',
-                              prefixIcon: const Icon(Icons.person,
-                                  color: Color(0xff15B77C)),
-                            )
+                          ? Column(children: [
+                            TypeAheadFormField(
+                            textFieldConfiguration: TextFieldConfiguration(
+                                autofocus: false,
+                                style:
+                                    DefaultTextStyle.of(context).style.copyWith(
+                                          fontStyle: FontStyle.italic,
+                                          height: 2,
+                                          fontSize: 16
+                                        ),
+                                controller: beneficiaryController,
+                                cursorColor: Colors.black,
+                                decoration: const InputDecoration(
+                                  prefixIcon: Icon(Icons.person_search, color: Color(0xff15B77C), size: 30,),
+                                  border: OutlineInputBorder(),
+                                  filled: true,
+                                  focusColor: Color(0xffDFEEE9),
+                                  fillColor: Color(0xffDFEEE9),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Color(0xff15B77C),
+                                      width: 3.0,
+                                    ),
+                                  ),
+                                  enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Color(0xff15B77C),
+                                    width: 3.0,
+                                  ),
+                                ),
+                                )),
+                            suggestionsCallback: (pattern) async {
+                              return await search(pattern);
+                            },
+                            itemBuilder: (context, item) {
+                              var data = item as Map<dynamic, dynamic>;
+                              return Container(
+                                  height: 60,
+                                  padding: const EdgeInsets.all(10),
+                                  child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,  
+                                  children: [
+                                  Text(data['ItemName']),
+                                  Container(
+                                  padding: const EdgeInsets.only(top: 5),
+                                  child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                  Text(data['Item_Title_Desc']),
+                                  Text(data['Bu'])
+                                ],),)
+                                ]),);
+                            },
+                            onSuggestionSelected: (suggestion) {
+                              var data = suggestion as Map<dynamic, dynamic>;
+                                beneficiaryController.value = TextEditingValue(
+                                text: data['ItemName'],
+                                selection: TextSelection.fromPosition(
+                                  TextPosition(offset: data['ItemName'].length),
+                                ),
+                              );
+                              setState(() {
+                                selectedBeneficiary=
+                                    suggestion;
+                              });
+                            },
+                          ),
+                          Container(
+                            child: Column(children: [
+                
+                            Container(
+                               margin: const EdgeInsets.only(top: 10, bottom: 20),
+                              child: const Text('You can search by Employee name or Employee number.',),),
+                            Container(
+                              alignment: Alignment.centerLeft,child: const Text('Reason', style: TextStyle(
+                                  color: Color(0xff88A59A),
+                                  fontWeight: FontWeight.bold)),),
+                            Container(child: Column(children: [
+                              RadioListTile(value: 1,
+                                activeColor: const Color(0xff15B77C),
+                                groupValue: reason,
+                                title: const Text('Sick'),
+                                onChanged: ((value) {
+                                  setState(() {
+                                    reason = value!;
+                                  });
+                                }),),
+                              RadioListTile(value: 2,
+                                activeColor: const Color(0xff15B77C),
+                                groupValue: reason,
+                                title: const Text('Mandated'),
+                                onChanged: ((value) {
+                                  setState(() {
+                                    reason = value!;
+                                  });
+                                }),)
+                            ]),)
+                          ]),)
+                          ],)
                           : null),
                   Padding(
                     padding: const EdgeInsets.only(
@@ -571,33 +751,71 @@ class RequestsState extends State<Requests> {
                         Container(
                           margin: const EdgeInsets.only(top: 10, bottom: 10),
                           // child: depOfficer.value != null ? Text('fer') : null,
-                          width: 200,
-                          child: DropdownButtonFormField(
-                            decoration: const InputDecoration(
-                              fillColor: Colors.white,
-                              filled: true,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10.0),
-                                ),
-                              ),
-                            ),
-                            value: depOfficers?[0]['ItemName'],
-                            icon: const Icon(Icons.keyboard_arrow_down),
-                            items: depOfficers?.map<DropdownMenuItem>((item) {
-                              return DropdownMenuItem(
-                                  child: Text(
-                                    item['ItemName'],
-                                    style: TextStyle(fontSize: 14),
+                          width: MediaQuery.of(context).size.width,
+                          child: TypeAheadFormField(
+                            // initialValue: 'ndlkw;nfe',
+                            textFieldConfiguration: TextFieldConfiguration(
+                                autofocus: false,
+                                style:
+                                    DefaultTextStyle.of(context).style.copyWith(
+                                          fontStyle: FontStyle.italic,
+                                          height: 2,
+                                          fontSize: 16
+                                        ),
+                                controller: searchController,
+                                cursorColor: Colors.black,
+                                decoration: const InputDecoration(
+                                  prefixIcon: Icon(Icons.person_search, color: Color(0xff15B77C), size: 30,),
+                                  border: OutlineInputBorder(),
+                                  filled: true,
+                                  focusColor: Color(0xffDFEEE9),
+                                  fillColor: Color(0xffDFEEE9),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Color(0xff15B77C),
+                                      width: 3.0,
+                                    ),
                                   ),
-                                  value: item['ItemName']);
-                            }).toList(),
-                            onChanged: (item) {
-                              var value = depOfficers
-                                  ?.where((data) => data['ItemName'] == item)
-                                  .single;
+                                  enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Color(0xff15B77C),
+                                    width: 3.0,
+                                  ),
+                                ),
+                                )),
+                            suggestionsCallback: (pattern) async {
+                              return await search(pattern);
+                            },
+                            itemBuilder: (context, item) {
+                              var data = item as Map<dynamic, dynamic>;
+                              return Container(
+                                  height: 60,
+                                  padding: const EdgeInsets.all(10),
+                                  child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,  
+                                  children: [
+                                  Text(data['ItemName']),
+                                  Container(
+                                  padding: const EdgeInsets.only(top: 5),
+                                  child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                  Text(data['Item_Title_Desc']),
+                                  Text(data['Bu'])
+                                ],),)
+                                ]),);
+                            },
+                            onSuggestionSelected: (suggestion) {
+                              var data = suggestion as Map<dynamic, dynamic>;
+                              searchController.value = TextEditingValue(
+                                text: data['ItemName'],
+                                selection: TextSelection.fromPosition(
+                                  TextPosition(offset: data['ItemName'].length),
+                                ),
+                              );
                               setState(() {
-                                value['ItemCode']!;
+                                selectedOfficer =
+                                    suggestion;
                               });
                             },
                           ),
@@ -754,6 +972,13 @@ class RequestsState extends State<Requests> {
                                     : Text('Resumption Date')
                               ],
                             )),
+
+                        // Container(child: CustomInput(
+                        //   controller: justificationController,
+                        //   hintText: 'Leave Justification',
+                        //   minLines: 3,
+                        //   maxLines: 3,
+                        // ),),
                         Container(
                           margin: const EdgeInsets.only(bottom: 10, top: 15),
                           child: const Divider(
