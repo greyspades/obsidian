@@ -47,6 +47,7 @@ class Settings extends HookWidget {
             }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
 
             ElevatedButton(child: Text('Update Profile Photo', style: TextStyle(color: Colors.black),), onPressed: () {
+              currentItem.value = '400';
             }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
             ],)
           ),

@@ -104,11 +104,11 @@ class Frame extends HookWidget {
                   margin: EdgeInsets.only(top: 20, right: 5),
                   child: CircleAvatar(
                     radius: 40,
-                    backgroundImage: NetworkImage(
-                      'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
-                      headers: headers,
-                    ),
-                    // backgroundImage: AssetImage('images/ebele.png'),
+                    // backgroundImage: NetworkImage(
+                    //   'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
+                    //   headers: headers,
+                    // ),
+                    backgroundImage: AssetImage('images/ebele.png'),
                   ),
                 ),
                 Container(
@@ -134,15 +134,15 @@ class Frame extends HookWidget {
                             Padding(
                               padding: EdgeInsets.only(right: 10),
                               child: Text(
-                                // 'Ebele',
-                                (staff.firstName as String),
+                                'Ebele',
+                                // (staff.firstName as String),
                                 style: TextStyle(color: Colors.black),
                               ),
                             ),
                             Text(
-                              (staff.lastName as String),
-                              // '',
-                              style: TextStyle(color: Colors.black),
+                              // (staff.lastName as String),
+                              '',
+                              // style: TextStyle(color: Colors.black),
                             ),
                           ],
                         ),
@@ -223,11 +223,11 @@ class Frame extends HookWidget {
                           margin: const EdgeInsets.only(top: 30),
                           child: CircleAvatar(
                           radius: 50,
-                          backgroundImage: NetworkImage(
-                            'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
-                            headers: headers,
-                          ),
-                          // backgroundImage: AssetImage('images/ebele.png'),
+                          // backgroundImage: NetworkImage(
+                          //   'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
+                          //   headers: headers,
+                          // ),
+                          backgroundImage: AssetImage('images/ebele.png'),
                         ),
                         ),
                         Container(
@@ -238,14 +238,14 @@ class Frame extends HookWidget {
                               Padding(
                                 padding: const EdgeInsets.only(right: 10),
                                 child: Text(
-                                  (staff.firstName as String),
-                                  // 'Ebele',
+                                  // (staff.firstName as String),
+                                  'Ebele',
                                   style: const TextStyle(color: Colors.black),
                                 ),
                               ),
                               Text(
-                                (staff.lastName as String),
-                                // '',
+                                // (staff.lastName as String),
+                                '',
                                 style: const TextStyle(color: Colors.black),
                               ),
                             ],
@@ -350,7 +350,7 @@ class Frame extends HookWidget {
         
         data: Theme.of(context).copyWith(
               // canvasColor: const Color(0xffD6EBE3),
-              canvasColor: const Color(0xff15B77C),
+              canvasColor: Colors.white,
               textTheme: Theme.of(context)
                   .textTheme
                   .copyWith(caption: const TextStyle(color: Colors.black54))),child: BottomNavigationBar(
@@ -371,8 +371,8 @@ class Frame extends HookWidget {
         onTap: (int index) {
           currentIndex.value = index;
         },
-        selectedItemColor: Colors.white,
-        unselectedItemColor:Colors.grey[200],
+        selectedItemColor: const Color(0xff15B77C),
+        unselectedItemColor:Colors.grey[400],
         unselectedFontSize: 12,
         selectedFontSize: 16,
       ),)

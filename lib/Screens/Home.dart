@@ -4,6 +4,7 @@ import 'package:e_360/Models/Staff.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:e_360/Widgets/input.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class Home extends HookWidget {
   Home({super.key});
@@ -41,7 +42,7 @@ class Home extends HookWidget {
               ],
             ),
             Container(
-              child: Image.asset('images/amico.png', width: 110, height: 120,),
+              child: SvgPicture.asset('images/onboarding.svg', width: 110, height: 120),
             )
           ]),
         ),

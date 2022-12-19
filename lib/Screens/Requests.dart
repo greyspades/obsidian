@@ -8,7 +8,6 @@ import 'package:e_360/Models/DepOfficer.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:e_360/Widgets/leaveUtilization.dart';
 
-
 class Requests extends StatefulWidget {
   final Staff staff;
   final Map<String, dynamic> info;
@@ -77,7 +76,6 @@ class RequestsState extends State<Requests> {
 
   int reason = -1;
 
-
   final _deputizingOfficerController = TextEditingController();
   final _startDateController = TextEditingController();
   final _endDateController = TextEditingController();
@@ -88,8 +86,6 @@ class RequestsState extends State<Requests> {
   final beneficiaryController = TextEditingController();
   final justificationController = TextEditingController();
   final searchController = TextEditingController();
-
-  
 
   Future<void> getLeaveTypes() async {
     Uri url = Uri.parse('http://10.0.0.184:8015/requisition/leave/leavetypes');
@@ -185,7 +181,8 @@ class RequestsState extends State<Requests> {
   }
 
   Future<void> getUtlzDetails(String id) async {
-    Uri url = Uri.parse('http://10.0.0.184:8015/requisition/retrieveleaveUtlzdetails');
+    Uri url = Uri.parse(
+        'http://10.0.0.184:8015/requisition/retrieveleaveUtlzdetails');
     var token = {
       'br':
           "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
@@ -198,11 +195,11 @@ class RequestsState extends State<Requests> {
     };
     var body = {
       "xLeaveType": id.toString(),
-    "xLeaveOwner": widget.staff.userRef,
-    "xYear": DateTime.now().year.toString()
+      "xLeaveOwner": widget.staff.userRef,
+      "xYear": DateTime.now().year.toString()
     };
-    var response = await http.post(url,
-        headers: headers, body: jsonEncode(body));
+    var response =
+        await http.post(url, headers: headers, body: jsonEncode(body));
     // print(response.body);
     if (response.statusCode == 200) {
       var data =
@@ -258,8 +255,13 @@ class RequestsState extends State<Requests> {
         picked.compareTo(DateTime.now()) > 0 &&
         picked.weekday != DateTime.saturday &&
         picked.weekday != DateTime.sunday) {
-        activeSetup?["LvMaxDuration_Male"];
-      final trueEndDate = picked.add(Duration(days: widget.staff.gender == 'Male' ?  activeSetup!["LvMaxDuration_Male"] : widget.staff.gender == 'Female' ?  activeSetup!["LvMaxDuration_Female"] : null));
+      activeSetup?["LvMaxDuration_Male"];
+      final trueEndDate = picked.add(Duration(
+          days: widget.staff.gender == 'Male'
+              ? activeSetup!["LvMaxDuration_Male"]
+              : widget.staff.gender == 'Female'
+                  ? activeSetup!["LvMaxDuration_Female"]
+                  : null));
       setState(() {
         startDate = picked;
         endDate = trueEndDate;
@@ -325,10 +327,10 @@ class RequestsState extends State<Requests> {
         firstDate: DateTime(2015, 8),
         lastDate: DateTime(2101));
     if (picked != null &&
-        picked != endDate &&
-        picked.compareTo(DateTime.now()) > 0 &&
-        picked.weekday != DateTime.saturday &&
-        picked.weekday != DateTime.sunday
+            picked != endDate &&
+            picked.compareTo(DateTime.now()) > 0 &&
+            picked.weekday != DateTime.saturday &&
+            picked.weekday != DateTime.sunday
         // (widget.staff.gender == 'Male' && differenceInDays <= activeSetup?["LvMaxDuration_Male"] || widget.staff.gender == 'Female' && differenceInDays <= activeSetup?["LvMaxDuration_Female"])
         ) {
       setState(() {
@@ -351,7 +353,7 @@ class RequestsState extends State<Requests> {
       });
     }
     // else if (picked != null &&
-    //     picked != endDate 
+    //     picked != endDate
     //     // (widget.staff.gender == 'Male' && differenceInDays > activeSetup?["LvMaxDuration_Male"] || widget.staff.gender == 'Female' && differenceInDays > activeSetup?["LvMaxDuration_Female"])
     //     ) {
     //   setState(() {
@@ -385,7 +387,9 @@ class RequestsState extends State<Requests> {
       "xSelf": onBehalf == false ? 0 : 1,
       "xOnBehalf": onBehalf == false ? 0 : 1,
       "xLeaveOrigin": widget.staff.userRef.toString(),
-      "xLeaveOwner": onBehalf == false ? widget.staff.userRef.toString() : selectedBeneficiary?['ItemCode'],
+      "xLeaveOwner": onBehalf == false
+          ? widget.staff.userRef.toString()
+          : selectedBeneficiary?['ItemCode'],
       "xLTG": payLtg == false ? "0" : "1",
       "xBhalfReason": "9999",
       "xDepOfficer": depOfficer,
@@ -540,9 +544,8 @@ class RequestsState extends State<Requests> {
         const Padding(
           padding: EdgeInsets.only(left: 10, right: 20),
           child: Text('Who is this Requisition for',
-                              style: TextStyle(
-                                  color: Color(0xff88A59A),
-                                  fontWeight: FontWeight.bold)),
+              style: TextStyle(
+                  color: Color(0xff88A59A), fontWeight: FontWeight.bold)),
         ),
         Container(
             padding: const EdgeInsets.only(left: 80, right: 80),
@@ -642,7 +645,7 @@ class RequestsState extends State<Requests> {
                                     .where((elem) =>
                                         elem["lv_type_Id"].toString() == ref)
                                     .single);
-                                    getUtlzDetails(ref as String);
+                                getUtlzDetails(ref as String);
                                 // var error = _setup["isMaleValid"] != true && widget.staff.gender == 'Male' ? 'You are not eligible for this leave type' : '';
                                 // : _setup["isFemaleValid"] == true && widget.staff.gender != 'Female' ? 'You are not eligible for this leave type' : '';
                                 setState(() {
@@ -665,7 +668,6 @@ class RequestsState extends State<Requests> {
                                   leaveTypeError ?? '',
                                   style: const TextStyle(color: Colors.red),
                                 )),
-
                             Utilization(data: utilDetails)
                           ],
                         )),
@@ -676,111 +678,153 @@ class RequestsState extends State<Requests> {
                           : null,
                       padding: const EdgeInsets.only(left: 10, right: 20),
                       child: onBehalf == true
-                          ? Column(children: [
-                            TypeAheadFormField(
-                            textFieldConfiguration: TextFieldConfiguration(
-                                autofocus: false,
-                                style:
-                                    DefaultTextStyle.of(context).style.copyWith(
-                                          fontStyle: FontStyle.italic,
-                                          height: 2,
-                                          fontSize: 16
-                                        ),
-                                controller: beneficiaryController,
-                                cursorColor: Colors.black,
-                                decoration: const InputDecoration(
-                                  prefixIcon: Icon(Icons.person_search, color: Color(0xff15B77C), size: 30,),
-                                  border: OutlineInputBorder(),
-                                  filled: true,
-                                  focusColor: Color(0xffDFEEE9),
-                                  fillColor: Color(0xffDFEEE9),
-                                  focusedBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color(0xff15B77C),
-                                      width: 3.0,
+                          ? Column(
+                              children: [
+                                TypeAheadFormField(
+                                  textFieldConfiguration:
+                                      TextFieldConfiguration(
+                                          autofocus: false,
+                                          style: DefaultTextStyle.of(context)
+                                              .style
+                                              .copyWith(
+                                                  fontStyle: FontStyle.italic,
+                                                  height: 2,
+                                                  fontSize: 16),
+                                          controller: beneficiaryController,
+                                          cursorColor: Colors.black,
+                                          decoration: const InputDecoration(
+                                            prefixIcon: Icon(
+                                              Icons.person_search,
+                                              color: Color(0xff15B77C),
+                                              size: 30,
+                                            ),
+                                            border: OutlineInputBorder(),
+                                            filled: true,
+                                            focusColor: Color(0xffDFEEE9),
+                                            fillColor: Color(0xffDFEEE9),
+                                            focusedBorder: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                color: Color(0xff15B77C),
+                                                width: 3.0,
+                                              ),
+                                            ),
+                                            enabledBorder: UnderlineInputBorder(
+                                              borderSide: BorderSide(
+                                                color: Color(0xff15B77C),
+                                                width: 3.0,
+                                              ),
+                                            ),
+                                          )),
+                                  suggestionsCallback: (pattern) async {
+                                    return await search(pattern);
+                                  },
+                                  itemBuilder: (context, item) {
+                                    var data = item as Map<dynamic, dynamic>;
+                                    return Container(
+                                      height: 60,
+                                      padding: const EdgeInsets.all(10),
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              data['ItemName'],
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.only(top: 5),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      data['Item_Title_Desc'],
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    data['Bu'],
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  )
+                                                ],
+                                              ),
+                                            )
+                                          ]),
+                                    );
+                                  },
+                                  validator: ((value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter a beneficiary';
+                                    }
+                                    return null;
+                                  }),
+                                  onSuggestionSelected: (suggestion) {
+                                    var data =
+                                        suggestion as Map<dynamic, dynamic>;
+                                    beneficiaryController.value =
+                                        TextEditingValue(
+                                      text: data['ItemName'],
+                                      selection: TextSelection.fromPosition(
+                                        TextPosition(
+                                            offset: data['ItemName'].length),
+                                      ),
+                                    );
+                                    setState(() {
+                                      selectedBeneficiary = suggestion;
+                                    });
+                                  },
+                                ),
+                                Container(
+                                  child: Column(children: [
+                                    Container(
+                                      margin: const EdgeInsets.only(
+                                          top: 10, bottom: 20),
+                                      child: const Text(
+                                        'You can search by Employee name or Employee number.',
+                                      ),
                                     ),
-                                  ),
-                                  enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xff15B77C),
-                                    width: 3.0,
-                                  ),
-                                ),
-                                )),
-                            suggestionsCallback: (pattern) async {
-                              return await search(pattern);
-                            },
-                            itemBuilder: (context, item) {
-                              var data = item as Map<dynamic, dynamic>;
-                              return Container(
-                                  height: 60,
-                                  padding: const EdgeInsets.all(10),
-                                  child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,  
-                                  children: [
-                                  Text(data['ItemName'], overflow: TextOverflow.ellipsis,),
-                                  Container(
-                                  padding: const EdgeInsets.only(top: 5),
-                                  child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                  Expanded(child: Text(data['Item_Title_Desc'], overflow: TextOverflow.ellipsis,),),
-                                  Text(data['Bu'], overflow: TextOverflow.ellipsis,)
-                                ],),)
-                                ]),);
-                            },
-                            validator: ((value) {
-                              if (value == null || value.isEmpty) {
-      return 'Please enter a beneficiary';
-    }
-    return null;
-                            }),
-                            onSuggestionSelected: (suggestion) {
-                              var data = suggestion as Map<dynamic, dynamic>;
-                                beneficiaryController.value = TextEditingValue(
-                                text: data['ItemName'],
-                                selection: TextSelection.fromPosition(
-                                  TextPosition(offset: data['ItemName'].length),
-                                ),
-                              );
-                              setState(() {
-                                selectedBeneficiary=
-                                    suggestion;
-                              });
-                            },
-                          ),
-                          Container(
-                            child: Column(children: [
-                
-                            Container(
-                               margin: const EdgeInsets.only(top: 10, bottom: 20),
-                              child: const Text('You can search by Employee name or Employee number.',),),
-                            Container(
-                              alignment: Alignment.centerLeft,child: const Text('Reason', style: TextStyle(
-                                  color: Color(0xff88A59A),
-                                  fontWeight: FontWeight.bold)),),
-                            Container(child: Column(children: [
-                              RadioListTile(value: 1,
-                                activeColor: const Color(0xff15B77C),
-                                groupValue: reason,
-                                title: const Text('Sick'),
-                                onChanged: ((value) {
-                                  setState(() {
-                                    reason = value!;
-                                  });
-                                }),),
-                              RadioListTile(value: 2,
-                                activeColor: const Color(0xff15B77C),
-                                groupValue: reason,
-                                title: const Text('Mandated'),
-                                onChanged: ((value) {
-                                  setState(() {
-                                    reason = value!;
-                                  });
-                                }),)
-                            ]),)
-                          ]),)
-                          ],)
+                                    Container(
+                                      alignment: Alignment.centerLeft,
+                                      child: const Text('Reason',
+                                          style: TextStyle(
+                                              color: Color(0xff88A59A),
+                                              fontWeight: FontWeight.bold)),
+                                    ),
+                                    Container(
+                                      child: Column(children: [
+                                        RadioListTile(
+                                          value: 1,
+                                          activeColor: const Color(0xff15B77C),
+                                          groupValue: reason,
+                                          title: const Text('Sick'),
+                                          onChanged: ((value) {
+                                            setState(() {
+                                              reason = value!;
+                                            });
+                                          }),
+                                        ),
+                                        RadioListTile(
+                                          value: 2,
+                                          activeColor: const Color(0xff15B77C),
+                                          groupValue: reason,
+                                          title: const Text('Mandated'),
+                                          onChanged: ((value) {
+                                            setState(() {
+                                              reason = value!;
+                                            });
+                                          }),
+                                        )
+                                      ]),
+                                    )
+                                  ]),
+                                )
+                              ],
+                            )
                           : null),
                   Padding(
                     padding: const EdgeInsets.only(
@@ -810,16 +854,16 @@ class RequestsState extends State<Requests> {
                                     child: Switch(
                                       value: payLtg,
                                       onChanged: (bool value) {
-                                        if(activeSetup?["hasLTG"]) {
+                                        if (activeSetup?["hasLTG"]) {
                                           setState(() {
-                                          payLtg = !payLtg;
-                                        });
-                                        }
-                                        else {
-                                          setState(() {
-                                            ltgError = 'You are not entitled to LTG for this leave type';
+                                            payLtg = !payLtg;
                                           });
-                                        }                                        
+                                        } else {
+                                          setState(() {
+                                            ltgError =
+                                                'You are not entitled to LTG for this leave type';
+                                          });
+                                        }
                                       },
                                       activeColor: const Color(0xff15B77C),
                                       activeTrackColor: const Color(0xffD6EBE3),
@@ -833,7 +877,12 @@ class RequestsState extends State<Requests> {
                           ],
                         ),
                         Container(
-                          child: ltgError != null ? Text(ltgError ?? '', style: const TextStyle(color: Colors.red),) : null,
+                          child: ltgError != null
+                              ? Text(
+                                  ltgError ?? '',
+                                  style: const TextStyle(color: Colors.red),
+                                )
+                              : null,
                         ),
                         Container(
                           margin: const EdgeInsets.only(bottom: 10, top: 10),
@@ -844,21 +893,24 @@ class RequestsState extends State<Requests> {
                         ),
                         Container(
                           margin: const EdgeInsets.only(top: 10, bottom: 10),
-  
                           width: MediaQuery.of(context).size.width,
                           child: TypeAheadFormField(
                             textFieldConfiguration: TextFieldConfiguration(
                                 autofocus: false,
-                                style:
-                                    DefaultTextStyle.of(context).style.copyWith(
-                                          fontStyle: FontStyle.italic,
-                                          height: 2,
-                                          fontSize: 16
-                                        ),
+                                style: DefaultTextStyle.of(context)
+                                    .style
+                                    .copyWith(
+                                        fontStyle: FontStyle.italic,
+                                        height: 2,
+                                        fontSize: 16),
                                 controller: searchController,
                                 cursorColor: Colors.black,
                                 decoration: const InputDecoration(
-                                  prefixIcon: Icon(Icons.person_search, color: Color(0xff15B77C), size: 30,),
+                                  prefixIcon: Icon(
+                                    Icons.person_search,
+                                    color: Color(0xff15B77C),
+                                    size: 30,
+                                  ),
                                   border: OutlineInputBorder(),
                                   filled: true,
                                   focusColor: Color(0xffDFEEE9),
@@ -870,11 +922,11 @@ class RequestsState extends State<Requests> {
                                     ),
                                   ),
                                   enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xff15B77C),
-                                    width: 3.0,
+                                    borderSide: BorderSide(
+                                      color: Color(0xff15B77C),
+                                      width: 3.0,
+                                    ),
                                   ),
-                                ),
                                 )),
                             suggestionsCallback: (pattern) async {
                               return await search(pattern);
@@ -882,27 +934,39 @@ class RequestsState extends State<Requests> {
                             itemBuilder: (context, item) {
                               var data = item as Map<dynamic, dynamic>;
                               return Container(
-                                  height: 60,
-                                  padding: const EdgeInsets.all(10),
-                                  child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,  
-                                  children: [
-                                  Text(data['ItemName']),
-                                  Container(
-                                  padding: const EdgeInsets.only(top: 5),
-                                  child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                  Expanded(child: Text(data['Item_Title_Desc'], overflow: TextOverflow.ellipsis,)),
-                                  Text(data['Bu'], overflow: TextOverflow.ellipsis,),
-                                ],),)
-                                ]),);
+                                height: 60,
+                                padding: const EdgeInsets.all(10),
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(data['ItemName']),
+                                      Container(
+                                        padding: const EdgeInsets.only(top: 5),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                                child: Text(
+                                              data['Item_Title_Desc'],
+                                              overflow: TextOverflow.ellipsis,
+                                            )),
+                                            Text(
+                                              data['Bu'],
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    ]),
+                              );
                             },
                             validator: ((value) {
                               if (value == null || value.isEmpty) {
-      return 'Please enter a deputizing officer';
-    }
-    return null;
+                                return 'Please enter a deputizing officer';
+                              }
+                              return null;
                             }),
                             onSuggestionSelected: (suggestion) {
                               var data = suggestion as Map<dynamic, dynamic>;
@@ -913,8 +977,7 @@ class RequestsState extends State<Requests> {
                                 ),
                               );
                               setState(() {
-                                selectedOfficer =
-                                    suggestion;
+                                selectedOfficer = suggestion;
                               });
                             },
                           ),
@@ -1071,17 +1134,19 @@ class RequestsState extends State<Requests> {
                                     : Text('Resumption Date')
                               ],
                             )),
-
                         Container(
-                          margin: onBehalf == true ? const EdgeInsets.only(top: 20) : null,
-                          child: onBehalf == true ? CustomInputField(
-                          controller: justificationController,
-                          hintText: 'Leave Justification',
-                          minLines: 2,
-                          maxLines: 5,
-                          validation: validateJustification,
-                        ) : null
-                        ),
+                            margin: onBehalf == true
+                                ? const EdgeInsets.only(top: 20)
+                                : null,
+                            child: onBehalf == true
+                                ? CustomInputField(
+                                    controller: justificationController,
+                                    hintText: 'Leave Justification',
+                                    minLines: 2,
+                                    maxLines: 5,
+                                    validation: validateJustification,
+                                  )
+                                : null),
                         Container(
                           margin: const EdgeInsets.only(bottom: 10, top: 15),
                           child: const Divider(
@@ -1148,7 +1213,7 @@ class RequestsState extends State<Requests> {
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold),
                         )
-                      : CircularProgressIndicator(
+                      : const CircularProgressIndicator(
                           color: Colors.white,
                           strokeWidth: 5,
                         )),

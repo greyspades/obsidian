@@ -42,6 +42,22 @@ class Management extends HookWidget {
       currentStep.value = step;
     }
 
+    handleDrag(int index, int value) {
+      switch(index) {
+        case 1:
+        valueOne.value = value;
+        break;
+
+        case 2:
+        valueTwo.value = value;
+        break;
+
+        case 3:
+        valueThree.value = value;
+        break;
+      }
+    }
+
     return Container(
       alignment: Alignment.center,
       padding: const EdgeInsets.only(left: 10, right: 10),
@@ -77,10 +93,11 @@ class Management extends HookWidget {
                       primarySwatch: colorCustom,
                       colorScheme: ColorScheme.light(primary: colorCustom)),
                   child: Stepper(
+                      physics: const ClampingScrollPhysics(),
                       controlsBuilder: ((context, details) {
                         return Container(
                             padding: const EdgeInsets.only(
-                                left: 120, right: 10, top: 5),
+                                left: 100, right: 10, top: 5),
                             child: currentStep.value != 5
                                 ? Row(
                                     mainAxisAlignment:
@@ -125,11 +142,11 @@ class Management extends HookWidget {
                       onStepTapped: (int step) => setStep(step),
                       steps: <Step>[
                         Step(
-                          title: const Text(
-                            '',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                          title: Container(
+                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
+                            padding: const EdgeInsets.all(10),
+                            // width: 200,
+                            child: const Text("Integrity", style: TextStyle(color: Color(0xff15B77C)),)),
                           content: Container(
                             // color: Colors.grey[200],
                             child: Column(
@@ -151,11 +168,16 @@ class Management extends HookWidget {
                               : StepState.disabled,
                         ),
                         Step(
-                          title: const Text(
-                            '',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                          // title: const Text(
+                          //   '',
+                          //   style: TextStyle(
+                          //       fontSize: 16, fontWeight: FontWeight.bold),
+                          // ),
+                          title: Container(
+                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
+                            padding: const EdgeInsets.all(10),
+                            // width: 200,
+                            child: const Text("Effective Communication/Courtious relationship with others", style: TextStyle(color: Color(0xff15B77C)),)),
                           content: Container(
                             // color: Colors.grey[200],
                             child: Column(
@@ -178,11 +200,11 @@ class Management extends HookWidget {
                               : StepState.disabled,
                         ),
                         Step(
-                          title: const Text(
-                            '',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                          title: Container(
+                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
+                            padding: const EdgeInsets.all(10),
+                            // width: 200,
+                            child: const Text("Cost Mgt./Turn- Arround Time with Customers", style: TextStyle(color: Color(0xff15B77C)),)),
                           content: Container(
                             // color: Colors.grey[200],
                             child: Column(
@@ -191,11 +213,10 @@ class Management extends HookWidget {
                                     name:
                                         "Cost Mgt./Turn- Arround Time with Customers",
                                     value: valueThree.value.toDouble(),
-                                    onChange: (value) {
-                                      valueThree.value = value.toInt();
-                                    },
+                                    onChange: handleDrag,
                                     prev: () {},
-                                    next: () {})
+                                    next: () {},
+                                    )
                               ],
                             ),
                           ),
@@ -205,11 +226,11 @@ class Management extends HookWidget {
                               : StepState.disabled,
                         ),
                         Step(
-                          title: const Text(
-                            '',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                          title: Container(
+                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
+                            padding: const EdgeInsets.all(10),
+                            // width: 200,
+                            child: const Text("Decision Making /Initiative", style: TextStyle(color: Color(0xff15B77C)),)),
                           content: Container(
                             // color: Colors.grey[200],
                             child: Column(
@@ -231,11 +252,11 @@ class Management extends HookWidget {
                               : StepState.disabled,
                         ),
                         Step(
-                          title: const Text(
-                            '',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                          title: Container(
+                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
+                            padding: const EdgeInsets.all(10),
+                            // width: 200,
+                            child: const Text("Innovative Orientation", style: TextStyle(color: Color(0xff15B77C)),)),
                           content: Container(
                             // color: Colors.grey[200],
                             child: Column(
@@ -257,11 +278,11 @@ class Management extends HookWidget {
                               : StepState.disabled,
                         ),
                         Step(
-                          title: const Text(
-                            '',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                          title: Container(
+                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
+                            padding: const EdgeInsets.all(10),
+                            // width: 200,
+                            child: const Text("Submit Appraisal Request", style: TextStyle(color: Color(0xff15B77C)),)),
                           content: Container(
                             child: Column(
                               children: <Widget>[

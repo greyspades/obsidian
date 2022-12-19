@@ -80,6 +80,17 @@ class Login extends HookWidget {
       );
     }
 
+    String getTime() {
+      var hour = DateTime.now().hour;
+      if (hour < 12) {
+    return 'Morning';
+  }
+  if (hour < 17) {
+    return 'Afternoon';
+  }
+  return 'Evening';
+    }
+
     void login() async {
       loading.value = true;
       Uri url =
@@ -235,8 +246,8 @@ class Login extends HookWidget {
           Container(
             padding: const EdgeInsets.only(bottom: 20),
             alignment: Alignment.center,
-            child: const Text(
-              'Hey there!',
+            child: Text(
+              "$getTime() Boss",
               style: TextStyle(fontWeight: FontWeight.w800, fontSize: 32),
             ),
           ),
