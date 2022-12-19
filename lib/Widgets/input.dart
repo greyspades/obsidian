@@ -39,8 +39,7 @@ class CustomInput extends HookWidget {
           .style
           .copyWith(fontStyle: FontStyle.italic, height: 2, fontSize: 16),
       keyboardType: textType,
-      // minLines: minLines,
-      // maxLines: maxLines,
+      cursorColor: Colors.black,
       obscureText: isPassword == true ? !passwordVissible.value : false,
       onTap: () => focussed.value = true,
       controller: controller,
@@ -84,3 +83,83 @@ class CustomInput extends HookWidget {
     );
   }
 }
+
+class CustomInputField extends HookWidget {
+  TextEditingController controller;
+  String? hintText;
+  String? labelText;
+  final Function(String)? validation;
+  dynamic suffixIcon;
+  dynamic prefixIcon;
+  int? minLines;
+  int? maxLines;
+
+  CustomInputField(
+      {super.key,
+      required this.controller,
+      this.hintText,
+      this.labelText,
+      this.validation,
+      this.suffixIcon,
+      this.prefixIcon,
+      this.minLines,
+      this.maxLines
+      });
+
+  @override
+  Widget build(BuildContext context) {
+    final focussed = useState<bool>(false);
+    final passwordVissible = useState<bool>(false);
+
+    // return         TextFormField(
+    //               minLines: 2,
+    //               maxLines: 5,
+    //               keyboardType: TextInputType.multiline,
+    //               decoration: InputDecoration(
+    //                 hintText: 'description',
+    //                 hintStyle: TextStyle(
+    //                   color: Colors.grey
+    //                 ),
+    //                 border: OutlineInputBorder(
+    //                   borderRadius: BorderRadius.all(Radius.circular(20.0)),
+    //                 ),
+    //               ),
+    //             );
+
+    return TextFormField(
+      style: DefaultTextStyle.of(context)
+          .style
+          .copyWith(fontStyle: FontStyle.italic, height: 2, fontSize: 16),
+      keyboardType: TextInputType.multiline,
+      minLines: minLines,
+      maxLines: maxLines,
+      onTap: () => focussed.value = true,
+      controller: controller,
+      cursorColor: Colors.black,
+      decoration: InputDecoration(
+        filled: true,
+        prefixIcon: prefixIcon,
+        fillColor:
+            focussed.value ? const Color(0xffDFEEE9) : const Color(0xffDFEEE9),
+        hintText: hintText,
+        labelText: labelText,
+        labelStyle: const TextStyle(color: Colors.black),
+        focusColor: const Color(0xffDFEEE9),
+        enabledBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: Color(0xff15B77C),
+            width: 3.0,
+          ),
+        ),
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: Color(0xff15B77C),
+            width: 3.0,
+          ),
+        ),
+      ),
+      validator: ((value) => validation!(value ?? '')),
+    );
+  }
+}
+

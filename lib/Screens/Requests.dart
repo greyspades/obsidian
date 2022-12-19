@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'package:e_360/Widgets/input.dart';
 import 'package:e_360/Models/DepOfficer.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:e_360/Widgets/leaveUtilization.dart';
+
 
 class Requests extends StatefulWidget {
   final Staff staff;
@@ -23,7 +25,7 @@ class RequestsState extends State<Requests> {
   // final Map<String, dynamic> info;
   // Requests({super.key, required this.staff, required this.info});
 
-  String? leaveType;
+  String leaveType = '100';
 
   List<dynamic>? leaveTypes;
 
@@ -49,6 +51,8 @@ class RequestsState extends State<Requests> {
 
   String? resumptionDateError;
 
+  String? ltgError;
+
   String? leaveTypeError;
 
   List<dynamic>? setups;
@@ -61,13 +65,18 @@ class RequestsState extends State<Requests> {
 
   Map<dynamic, dynamic>? selectedOfficer;
 
+  Map<dynamic, dynamic>? utilDetails;
+
   Map<dynamic, dynamic>? selectedBeneficiary;
+
+  int dayDifference = 0;
 
   bool sick = false;
 
   bool mandated = false;
 
   int reason = -1;
+
 
   final _deputizingOfficerController = TextEditingController();
   final _startDateController = TextEditingController();
@@ -79,6 +88,8 @@ class RequestsState extends State<Requests> {
   final beneficiaryController = TextEditingController();
   final justificationController = TextEditingController();
   final searchController = TextEditingController();
+
+  
 
   Future<void> getLeaveTypes() async {
     Uri url = Uri.parse('http://10.0.0.184:8015/requisition/leave/leavetypes');
@@ -173,6 +184,35 @@ class RequestsState extends State<Requests> {
     }
   }
 
+  Future<void> getUtlzDetails(String id) async {
+    Uri url = Uri.parse('http://10.0.0.184:8015/requisition/retrieveleaveUtlzdetails');
+    var token = {
+      'br':
+          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+      'us': widget.staff.userRef,
+      'rl': widget.staff.uRole
+    };
+    var headers = {
+      'x-lapo-eve-proc': jsonEncode(token),
+      'Content-type': 'text/json',
+    };
+    var body = {
+      "xLeaveType": id.toString(),
+    "xLeaveOwner": widget.staff.userRef,
+    "xYear": DateTime.now().year.toString()
+    };
+    var response = await http.post(url,
+        headers: headers, body: jsonEncode(body));
+    // print(response.body);
+    if (response.statusCode == 200) {
+      var data =
+          Map<dynamic, dynamic>.from(jsonDecode(response.body)['data'][0]);
+      setState(() {
+        utilDetails = data;
+      });
+    }
+  }
+
   Future<dynamic> search(String item) async {
     Uri url = Uri.parse('http://10.0.0.184:8015/userservices/searchemployees');
     var token = {
@@ -218,7 +258,8 @@ class RequestsState extends State<Requests> {
         picked.compareTo(DateTime.now()) > 0 &&
         picked.weekday != DateTime.saturday &&
         picked.weekday != DateTime.sunday) {
-      final trueEndDate = picked.add(const Duration(days: 10));
+        activeSetup?["LvMaxDuration_Male"];
+      final trueEndDate = picked.add(Duration(days: widget.staff.gender == 'Male' ?  activeSetup!["LvMaxDuration_Male"] : widget.staff.gender == 'Female' ?  activeSetup!["LvMaxDuration_Female"] : null));
       setState(() {
         startDate = picked;
         endDate = trueEndDate;
@@ -274,6 +315,10 @@ class RequestsState extends State<Requests> {
   }
 
   Future<void> _selectEndDate(BuildContext context) async {
+    DateTime start = DateTime.parse(startDate.toString());
+    DateTime end = DateTime.parse(endDate.toString());
+    var differenceInDays = end.difference(start).inDays;
+
     final DateTime? picked = await showDatePicker(
         context: context,
         initialDate: endDate,
@@ -283,7 +328,9 @@ class RequestsState extends State<Requests> {
         picked != endDate &&
         picked.compareTo(DateTime.now()) > 0 &&
         picked.weekday != DateTime.saturday &&
-        picked.weekday != DateTime.sunday) {
+        picked.weekday != DateTime.sunday
+        // (widget.staff.gender == 'Male' && differenceInDays <= activeSetup?["LvMaxDuration_Male"] || widget.staff.gender == 'Female' && differenceInDays <= activeSetup?["LvMaxDuration_Female"])
+        ) {
       setState(() {
         endDate = picked;
         endDateError = null;
@@ -303,6 +350,18 @@ class RequestsState extends State<Requests> {
         endDateError = 'Can only select weekdays';
       });
     }
+    // else if (picked != null &&
+    //     picked != endDate 
+    //     // (widget.staff.gender == 'Male' && differenceInDays > activeSetup?["LvMaxDuration_Male"] || widget.staff.gender == 'Female' && differenceInDays > activeSetup?["LvMaxDuration_Female"])
+    //     ) {
+    //   setState(() {
+    //     endDateError = 'eror';
+    //     // endDateError = widget.staff.gender == "Female" ? 'You are entitled to a maximum of ${activeSetup?["LvMaxDuration_Female"]}' : widget.staff.gender == "Male" ? 'You are entitled to a maximum of ${activeSetup?["LvMaxDuration_Male"]}' : null;
+    //   });
+    // }
+    // print(activeSetup?["LvMaxDuration_Male"]);
+    // print(differenceInDays);
+    // print(startDate);
   }
 
   void createLeave() async {
@@ -323,21 +382,21 @@ class RequestsState extends State<Requests> {
     };
     var body = {
       "xLeaveType": leaveType.toString(),
-      "xSelf": 0,
-      "xOnBehalf": 0,
+      "xSelf": onBehalf == false ? 0 : 1,
+      "xOnBehalf": onBehalf == false ? 0 : 1,
       "xLeaveOrigin": widget.staff.userRef.toString(),
-      "xLeaveOwner": widget.staff.userRef.toString(),
-      "xLTG": "0",
+      "xLeaveOwner": onBehalf == false ? widget.staff.userRef.toString() : selectedBeneficiary?['ItemCode'],
+      "xLTG": payLtg == false ? "0" : "1",
       "xBhalfReason": "9999",
       "xDepOfficer": depOfficer,
       "xStart_Date": startDate.toString(),
       "xEnd_Date": endDate.toString(),
       "xRsm_Date": resumptionDate.toString(),
-      "xYear": "2022",
+      "xYear": DateTime.now().year.toString(),
       "xHasDoc": "0",
       "xDuration": differenceInDays.toString(),
       "xisJustifiable": 0,
-      "xJustify": "",
+      "xJustify": justificationController.text,
       "xMobile": _mobileController.text.toString(),
       "xEmail": _emailController.text.toString(),
       "xAddress": _addressController.text.toString(),
@@ -358,6 +417,20 @@ class RequestsState extends State<Requests> {
   validateField(String value) {
     if (value == null || value.isEmpty) {
       return 'Please enter a username';
+    }
+    return null;
+  }
+
+  validateJustification(String value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a justification for the leave';
+    }
+    return null;
+  }
+
+  validateBeneficiary(String value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a beneficiary';
     }
     return null;
   }
@@ -428,6 +501,7 @@ class RequestsState extends State<Requests> {
     getDeputizingOfficer();
     getLeaveSetup();
     getDivision();
+    getUtlzDetails(leaveType);
   }
 
   @override
@@ -465,7 +539,7 @@ class RequestsState extends State<Requests> {
 
         const Padding(
           padding: EdgeInsets.only(left: 10, right: 20),
-          child: Text('Leave transport grant',
+          child: Text('Who is this Requisition for',
                               style: TextStyle(
                                   color: Color(0xff88A59A),
                                   fontWeight: FontWeight.bold)),
@@ -530,11 +604,11 @@ class RequestsState extends State<Requests> {
                 children: [
                   Container(
                     width: MediaQuery.of(context).size.width,
-                    height: 150,
+                    height: 270,
                     color: const Color(0xffD6EBE3),
                     child: Container(
                         margin: const EdgeInsets.only(
-                            top: 40, left: 20, bottom: 20, right: 70),
+                            top: 40, left: 20, bottom: 20, right: 20),
                         width: 100,
                         height: 40,
                         child: Column(
@@ -568,10 +642,11 @@ class RequestsState extends State<Requests> {
                                     .where((elem) =>
                                         elem["lv_type_Id"].toString() == ref)
                                     .single);
+                                    getUtlzDetails(ref as String);
                                 // var error = _setup["isMaleValid"] != true && widget.staff.gender == 'Male' ? 'You are not eligible for this leave type' : '';
                                 // : _setup["isFemaleValid"] == true && widget.staff.gender != 'Female' ? 'You are not eligible for this leave type' : '';
                                 setState(() {
-                                  leaveType = ref;
+                                  leaveType = ref as String;
                                   activeSetup = _setup;
                                   startDateError = null;
                                   endDateError = null;
@@ -579,7 +654,8 @@ class RequestsState extends State<Requests> {
                                   startDate = DateTime.now();
                                   endDate = DateTime.now();
                                   resumptionDate = DateTime.now();
-                                  // leaveTypeError = error;
+                                  payLtg = false;
+                                  ltgError = null;
                                 });
                               },
                             ),
@@ -588,7 +664,9 @@ class RequestsState extends State<Requests> {
                                 child: Text(
                                   leaveTypeError ?? '',
                                   style: const TextStyle(color: Colors.red),
-                                ))
+                                )),
+
+                            Utilization(data: utilDetails)
                           ],
                         )),
                   ),
@@ -640,17 +718,23 @@ class RequestsState extends State<Requests> {
                                   child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,  
                                   children: [
-                                  Text(data['ItemName']),
+                                  Text(data['ItemName'], overflow: TextOverflow.ellipsis,),
                                   Container(
                                   padding: const EdgeInsets.only(top: 5),
                                   child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                  Text(data['Item_Title_Desc']),
-                                  Text(data['Bu'])
+                                  Expanded(child: Text(data['Item_Title_Desc'], overflow: TextOverflow.ellipsis,),),
+                                  Text(data['Bu'], overflow: TextOverflow.ellipsis,)
                                 ],),)
                                 ]),);
                             },
+                            validator: ((value) {
+                              if (value == null || value.isEmpty) {
+      return 'Please enter a beneficiary';
+    }
+    return null;
+                            }),
                             onSuggestionSelected: (suggestion) {
                               var data = suggestion as Map<dynamic, dynamic>;
                                 beneficiaryController.value = TextEditingValue(
@@ -726,9 +810,16 @@ class RequestsState extends State<Requests> {
                                     child: Switch(
                                       value: payLtg,
                                       onChanged: (bool value) {
-                                        setState(() {
+                                        if(activeSetup?["hasLTG"]) {
+                                          setState(() {
                                           payLtg = !payLtg;
                                         });
+                                        }
+                                        else {
+                                          setState(() {
+                                            ltgError = 'You are not entitled to LTG for this leave type';
+                                          });
+                                        }                                        
                                       },
                                       activeColor: const Color(0xff15B77C),
                                       activeTrackColor: const Color(0xffD6EBE3),
@@ -742,6 +833,9 @@ class RequestsState extends State<Requests> {
                           ],
                         ),
                         Container(
+                          child: ltgError != null ? Text(ltgError ?? '', style: const TextStyle(color: Colors.red),) : null,
+                        ),
+                        Container(
                           margin: const EdgeInsets.only(bottom: 10, top: 10),
                           child: const Divider(
                               color: Color(0xffD6EBE3),
@@ -750,10 +844,9 @@ class RequestsState extends State<Requests> {
                         ),
                         Container(
                           margin: const EdgeInsets.only(top: 10, bottom: 10),
-                          // child: depOfficer.value != null ? Text('fer') : null,
+  
                           width: MediaQuery.of(context).size.width,
                           child: TypeAheadFormField(
-                            // initialValue: 'ndlkw;nfe',
                             textFieldConfiguration: TextFieldConfiguration(
                                 autofocus: false,
                                 style:
@@ -800,11 +893,17 @@ class RequestsState extends State<Requests> {
                                   child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                  Text(data['Item_Title_Desc']),
-                                  Text(data['Bu'])
+                                  Expanded(child: Text(data['Item_Title_Desc'], overflow: TextOverflow.ellipsis,)),
+                                  Text(data['Bu'], overflow: TextOverflow.ellipsis,),
                                 ],),)
                                 ]),);
                             },
+                            validator: ((value) {
+                              if (value == null || value.isEmpty) {
+      return 'Please enter a deputizing officer';
+    }
+    return null;
+                            }),
                             onSuggestionSelected: (suggestion) {
                               var data = suggestion as Map<dynamic, dynamic>;
                               searchController.value = TextEditingValue(
@@ -973,12 +1072,16 @@ class RequestsState extends State<Requests> {
                               ],
                             )),
 
-                        // Container(child: CustomInput(
-                        //   controller: justificationController,
-                        //   hintText: 'Leave Justification',
-                        //   minLines: 3,
-                        //   maxLines: 3,
-                        // ),),
+                        Container(
+                          margin: onBehalf == true ? const EdgeInsets.only(top: 20) : null,
+                          child: onBehalf == true ? CustomInputField(
+                          controller: justificationController,
+                          hintText: 'Leave Justification',
+                          minLines: 2,
+                          maxLines: 5,
+                          validation: validateJustification,
+                        ) : null
+                        ),
                         Container(
                           margin: const EdgeInsets.only(bottom: 10, top: 15),
                           child: const Divider(
@@ -1032,17 +1135,18 @@ class RequestsState extends State<Requests> {
                     backgroundColor: const Color(0xff15B77C),
                   ),
                   onPressed: () {
-                    // if (_formKey.currentState!.validate()) {
-                    //   createLeave();
-                    // }
-                    print(leaveTypeError);
-                    print(activeSetup);
+                    if (_formKey.currentState!.validate()) {
+                      createLeave();
+                    }
+                    // createLeave();
+                    // print(leaveTypeError);
+                    // print(activeSetup);
                   },
                   child: setLoading != true
                       ? const Text(
                           'Submit',
                           style: TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold),
+                              fontSize: 16, fontWeight: FontWeight.bold),
                         )
                       : CircularProgressIndicator(
                           color: Colors.white,

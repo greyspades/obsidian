@@ -11,6 +11,7 @@ import 'package:e_360/Screens/Requests.dart';
 import 'package:e_360/Screens/Home.dart';
 import 'package:e_360/Screens/Payslip.dart';
 import 'package:e_360/Screens/Settings.dart';
+import 'package:e_360/Screens/Management.dart';
 
 class Frame extends HookWidget {
   final Staff staff;
@@ -83,7 +84,8 @@ class Frame extends HookWidget {
         staff: staff,
         info: userData.value
       ),
-      Settings(staff: staff, info: userData.value)
+      Management(staff: staff, info: userData.value),
+      Settings(staff: staff, info: userData.value),
     ];
 
     return Scaffold(
@@ -157,14 +159,15 @@ class Frame extends HookWidget {
                       children: [
                         IconButton(
                             onPressed: () {},
-                            icon: const Icon(
+                            icon:Icon(
                               Icons.notifications,
-                              color: Color(0xff15B77C),
+                              color: Colors.grey[600],
                             )),
                         IconButton(
                             onPressed: () => Scaffold.of(context).openDrawer(),
-                            icon: const Icon(Icons.menu,
-                                color: Color(0xff15B77C)))
+                            icon:Icon(Icons.menu,
+                                color: Colors.grey[600]
+                                ))
                       ],
                     ),
                   );
@@ -326,9 +329,33 @@ class Frame extends HookWidget {
                   currentIndex.value = 4;
                 },
               ),
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
+                  child: const Icon(
+                  Icons.exit_to_app,
+                  color: Color(0xff15B77C),
+                ),),
+                title: const Text('Sign Out', style: TextStyle(color: Colors.black)),
+                onTap: () {
+                   Navigator.push(context,
+            MaterialPageRoute(builder: (context) => Login(title: '')));
+                },
+              ),
             ],
           )),
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: Theme(
+        
+        data: Theme.of(context).copyWith(
+              // canvasColor: const Color(0xffD6EBE3),
+              canvasColor: const Color(0xff15B77C),
+              textTheme: Theme.of(context)
+                  .textTheme
+                  .copyWith(caption: const TextStyle(color: Colors.black54))),child: BottomNavigationBar(
+        // fixedColor: const Color(0xffD6EBE3),
+        backgroundColor: const Color(0xffD6EBE3),
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
@@ -336,15 +363,19 @@ class Frame extends HookWidget {
               icon: Icon(Icons.note_add), label: 'Requests'),
           BottomNavigationBarItem(icon: Icon(Icons.receipt), label: 'Pay Slip'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Settings')
+              icon: Icon(Icons.manage_accounts), label: 'Appraisals'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Settings'),
         ],
         currentIndex: currentIndex.value,
         onTap: (int index) {
           currentIndex.value = index;
         },
-        selectedItemColor: const Color(0xff15B77C),
-        unselectedItemColor: const Color(0xff939393),
-      ),
+        selectedItemColor: Colors.white,
+        unselectedItemColor:Colors.grey[200],
+        unselectedFontSize: 12,
+        selectedFontSize: 16,
+      ),)
     );
   }
 }

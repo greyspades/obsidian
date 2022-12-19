@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:e_360/Widgets/input.dart';
 import 'package:e_360/Models/DepOfficer.dart';
-// import 'package:image_form_field/image_form_field.dart';
+import 'package:image_form_field/image_form_field.dart';
 // import 'package:e_360/Models/ImageInputAdapter.dart';
 import 'dart:io';
 
@@ -83,6 +83,27 @@ class SettingsItem extends HookWidget {
     }
 
     Future<void> updatePhone() async {
+      loading.value = true;
+      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/updatemobile');
+      var token = {
+        'br':
+            "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300"
+      };
+      var headers = {
+        'x-lapo-eve-proc': jsonEncode(token),
+        'Content-type': 'text/json',
+      };
+      var body = {
+        "employee_No": staff.employeeNo,
+        "phone_Number": _mobileController.text,
+        "phone_Type_Id": "string"
+      };
+      final result = http
+          .post(url, headers: headers, body: jsonEncode(body))
+          .then((result) => {print(result.body)});
+    }
+
+    Future<void> updateEmail() async {
       loading.value = true;
       Uri url = Uri.parse('http://10.0.0.184:8015/userservices/updatemobile');
       var token = {
@@ -199,33 +220,33 @@ class SettingsItem extends HookWidget {
               //               ImageInputAdapter(file: file),        
               //             )
               //         : null),
-              // Container(
-              //   margin: const EdgeInsets.only(top: 40),
-              //   width: 300,
-              //   child: currentItem.isNotEmpty
-              //       ? SizedBox(
-              //           height: 60,
-              //           child: ElevatedButton(
-              //               style: ElevatedButton.styleFrom(
-              //                 backgroundColor: const Color(0xff15B77C),
-              //               ),
-              //               onPressed: () {
-              //                 // if (_formKey.currentState!.validate()) {
+              Container(
+                margin: const EdgeInsets.only(top: 40),
+                width: 300,
+                child: currentItem.isNotEmpty
+                    ? SizedBox(
+                        height: 60,
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xff15B77C),
+                            ),
+                            onPressed: () {
+                              // if (_formKey.currentState!.validate()) {
 
-              //                 // }
-              //                 switch (currentItem) {
-              //                   case '300':
-              //                     resetPassword();
-              //                     break;
+                              // }
+                              switch (currentItem) {
+                                case '300':
+                                  resetPassword();
+                                  break;
 
-              //                   case '200':
-              //                     print('other');
-              //                 }
-              //               },
-              //               child: Text('Update')),
-              //         )
-              //       : null,
-              // )
+                                case '200':
+                                  print('other');
+                              }
+                            },
+                            child: Text('Update')),
+                      )
+                    : null,
+              )
             ],
           ),
         ));
