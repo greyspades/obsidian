@@ -12,18 +12,20 @@ class Home extends HookWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 10, right: 10),
+      padding: const EdgeInsets.only(),
       child: ListView(children: [
         Container(
           padding: const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
           height: 134,
           decoration: const BoxDecoration(color: Color(0xffF9D5B5),
-          borderRadius: BorderRadius.all(Radius.circular(5))
+          borderRadius: BorderRadius.vertical(top: Radius.circular(60))
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-            Column(
+            Container(
+              padding: EdgeInsets.only(left: 10, right: 5, top: 10),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -40,6 +42,7 @@ class Home extends HookWidget {
                 ),),
                 )
               ],
+            ),
             ),
             Container(
               child: SvgPicture.asset('images/onboarding.svg', width: 110, height: 120),
@@ -80,12 +83,15 @@ class Home extends HookWidget {
         Container(
           margin: const EdgeInsets.only(top: 10),
                   child: Column(children: [
-                    Row(
+                    Container(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                       const Text('Recent Activities', style: TextStyle(fontWeight: FontWeight.bold),),
                       TextButton(onPressed: (){}, child: const Text('See all')),
                     ],),
+                    ),
                     Container(
                       padding: const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
                       height: 72,
@@ -115,7 +121,7 @@ class Home extends HookWidget {
                 Container(
                   margin: const EdgeInsets.only(top: 20),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start,children: [
-                  const Text('Upcoming Events',style: TextStyle(fontWeight: FontWeight.bold),),
+                  const Padding(padding: EdgeInsets.only(left: 10), child: Text('Upcoming Events',style: TextStyle(fontWeight: FontWeight.bold),),),
                   Container(
                     margin: const EdgeInsets.only(top: 14),
                     height: 148,

@@ -83,12 +83,12 @@ class Login extends HookWidget {
     String getTime() {
       var hour = DateTime.now().hour;
       if (hour < 12) {
-    return 'Morning';
-  }
-  if (hour < 17) {
-    return 'Afternoon';
-  }
-  return 'Evening';
+        return 'Morning';
+      }
+      if (hour < 17) {
+        return 'Afternoon';
+      }
+      return 'Evening';
     }
 
     void login() async {
@@ -103,18 +103,21 @@ class Login extends HookWidget {
         'x-lapo-eve-proc': jsonEncode(token),
         'Content-type': 'text/json',
       };
-      final result = await http.post(url,
-          headers: headers,
-          body: jsonEncode({
-            // 'UsN': _usernameController.text,
-            // 'Pwd': _passwordController.text,
-            'UsN': 'SN11536',
-            'Pwd': 'Password6\$1',
-            'xAppSource': "AS-IN-D659B-e3M"
-          })).timeout(Duration(seconds: 10)).catchError((err) => {
-            loading.value = false,
-            connectionError.value = 'Check your internet connection'
-          });
+      final result = await http
+          .post(url,
+              headers: headers,
+              body: jsonEncode({
+                // 'UsN': _usernameController.text,
+                // 'Pwd': _passwordController.text,
+                'UsN': 'SN11536',
+                'Pwd': 'Password6\$1',
+                'xAppSource': "AS-IN-D659B-e3M"
+              }))
+          .timeout(Duration(seconds: 10))
+          .catchError((err) => {
+                loading.value = false,
+                connectionError.value = 'Check your internet connection'
+              });
       if (result.statusCode == 200) {
         if (jsonDecode(result.body)?['status'] == false) {
           _showMyDialog(jsonDecode(result.body));
@@ -130,8 +133,7 @@ class Login extends HookWidget {
 
     Future<void> resetPassword() async {
       loading.value = true;
-      Uri url =
-          Uri.parse('http://10.0.0.184:8015/userservices/passreset');
+      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/passreset');
       var token = {
         'br':
             "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300"
@@ -142,16 +144,15 @@ class Login extends HookWidget {
       };
       var body = {
         "rUsN": "SN11536",
-  "rOldPwd": "Password6\$",
-  "rNewPwd": _newPasswordController.value,
-  "rONewPwdVrfy": _confirmPasswordController,
-  "xAppSource": "AS-IN-D659B-e3M"
+        "rOldPwd": "Password6\$",
+        "rNewPwd": _newPasswordController.value,
+        "rONewPwdVrfy": _confirmPasswordController,
+        "xAppSource": "AS-IN-D659B-e3M"
       };
 
-      final result = http.post(url, headers: headers, body: body)
-      .then((result) => {
-        print(result)
-      });
+      final result = http
+          .post(url, headers: headers, body: body)
+          .then((result) => {print(result)});
     }
 
     void checkForUpdate() async {
@@ -187,17 +188,18 @@ class Login extends HookWidget {
       //   print(data);
       // }
 
-      await http.get(url)
-      .then((value) => print(value.body))
-      .catchError((err) => print(err));
+      await http
+          .get(url)
+          .then((value) => print(value.body))
+          .catchError((err) => print(err));
     }
 
-      Future<void> tryOtaUpdate() async {
+    Future<void> tryOtaUpdate() async {
       try {
         //LINK CONTAINS APK OF FLUTTER HELLO WORLD FROM FLUTTER SDK EXAMPLES
         OtaUpdate()
             .execute(
-              'http://10.0.0.94:5000/apk/E360_alpha.apk',
+          'http://10.0.0.94:5000/apk/E360_alpha.apk',
           // 'https://internal1.4q.sk/flutter_hello_world.apk',
           destinationFilename: 'E360_alpha.apk',
           //FOR NOW ANDROID ONLY - ABILITY TO VALIDATE CHECKSUM OF FILE:
@@ -244,13 +246,32 @@ class Login extends HookWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.only(bottom: 20),
-            alignment: Alignment.center,
-            child: Text(
-              "$getTime() Boss",
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 32),
-            ),
-          ),
+              padding: const EdgeInsets.only(bottom: 20, left: 30),
+              alignment: Alignment.center,
+              child: Row(
+                children: [
+                  Text('Good',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 32,
+                          fontFamily: 'Ubuntu-light')),
+                  Text('  '),
+                  Text(
+                    getTime() + ',',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 32,
+                        fontFamily: 'Ubuntu-light'),
+                  ),
+                  Text('  '),
+                  Text('Boss',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 32,
+                          color: const Color(0xff15B77C),
+                          fontFamily: 'Ubuntu-regular'))
+                ],
+              )),
           Form(
               key: _formKey,
               child: Column(
@@ -260,6 +281,7 @@ class Login extends HookWidget {
                     padding: const EdgeInsets.all(20),
                     child: SizedBox(
                         width: 330,
+                        height: 60,
                         child: CustomInput(
                           controller: _usernameController,
                           hintText: 'your username',
@@ -273,6 +295,7 @@ class Login extends HookWidget {
                     child: forgottenPassword.value == false
                         ? SizedBox(
                             width: 330,
+                            height: 60,
                             child: CustomInput(
                               controller: _passwordController,
                               hintText: 'your password',
@@ -282,6 +305,7 @@ class Login extends HookWidget {
                             ))
                         : SizedBox(
                             width: 330,
+                            height: 60,
                             child: CustomInput(
                               controller: _passwordController,
                               hintText: 'Enter Old Password',
@@ -291,14 +315,17 @@ class Login extends HookWidget {
                             )),
                   ),
                   Container(
-                    margin: forgottenPassword.value == true ? const EdgeInsets.only(top: 20) : null,
-                    height: forgottenPassword.value == true ? 160 : null,
+                      margin: forgottenPassword.value == true
+                          ? const EdgeInsets.only(top: 20)
+                          : null,
+                      height: forgottenPassword.value == true ? 160 : null,
                       child: forgottenPassword.value == true
                           ? Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 SizedBox(
                                     width: 330,
+                                    height: 60,
                                     child: CustomInput(
                                       controller: _newPasswordController,
                                       hintText: 'Enter New Password',
@@ -308,6 +335,7 @@ class Login extends HookWidget {
                                     )),
                                 SizedBox(
                                     width: 330,
+                                    height: 60,
                                     child: CustomInput(
                                       controller: _confirmPasswordController,
                                       hintText: 'Confirm New Password',
@@ -369,20 +397,37 @@ class Login extends HookWidget {
                         onPressed: () {
                           forgottenPassword.value = !forgottenPassword.value;
                         },
-                        child: forgottenPassword.value == true ? const Text('Cancel Password Reset',
-                            style: TextStyle(color: Color(0xff15B77C))) : const Text('Forgot Password',
-                            style: TextStyle(color: Color(0xff15B77C)))
-                            ),
+                        child: forgottenPassword.value == true
+                            ? const Text('Cancel Password Reset',
+                                style: TextStyle(color: Color(0xff15B77C)))
+                            : const Text('Forgot Password',
+                                style: TextStyle(color: Color(0xff15B77C)))),
                   ),
-                  Container(child: connectionError.value != null ? Column(children: [
-                    Container(
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.signal_wifi_connected_no_internet_4, color: Color(0xffEF9545),size: 80),
-                  ),
-                   Padding(padding: const EdgeInsets.only(top: 20), child: Text(connectionError.value ?? '', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),),)
-                  ],) : null,)
-                 
-                 
+                  Container(
+                    child: connectionError.value != null
+                        ? Column(
+                            children: [
+                              Container(
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                    Icons.signal_wifi_connected_no_internet_4,
+                                    color: Color(0xffEF9545),
+                                    size: 80),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 20),
+                                child: Text(
+                                  connectionError.value ?? '',
+                                  style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              )
+                            ],
+                          )
+                        : null,
+                  )
+
                   // Container(
                   //   child: Text('OTA status: ${updateState.value?.status} : ${updateState.value?.value} \n'),
                   // )

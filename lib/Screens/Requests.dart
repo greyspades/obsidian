@@ -246,6 +246,17 @@ class RequestsState extends State<Requests> {
 
   Future<void> _selectStartDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
+        builder: (BuildContext context, Widget? child) {
+      return Theme(
+        data: ThemeData(
+          colorScheme: const ColorScheme.light(
+              primary: Color(0xff15B77C),
+              ),
+              dialogBackgroundColor: Colors.white,
+        ),
+        child: child ?? const Text(""),
+      );
+    },
         context: context,
         initialDate: startDate,
         firstDate: DateTime(2015, 8),
@@ -286,6 +297,17 @@ class RequestsState extends State<Requests> {
 
   Future<void> _selectResumptiontDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
+       builder: (BuildContext context, Widget? child) {
+      return Theme(
+        data: ThemeData(
+          colorScheme: const ColorScheme.light(
+              primary: Color(0xff15B77C),
+              ),
+              dialogBackgroundColor: Colors.white,
+        ),
+        child: child ?? const Text(""),
+      );
+    },
         context: context,
         initialDate: resumptionDate,
         firstDate: DateTime(2015, 8),
@@ -322,6 +344,17 @@ class RequestsState extends State<Requests> {
     var differenceInDays = end.difference(start).inDays;
 
     final DateTime? picked = await showDatePicker(
+       builder: (BuildContext context, Widget? child) {
+      return Theme(
+        data: ThemeData(
+          colorScheme: const ColorScheme.light(
+              primary: Color(0xff15B77C),
+              ),
+              dialogBackgroundColor: Colors.white,
+        ),
+        child: child ?? const Text(""),
+      );
+    },
         context: context,
         initialDate: endDate,
         firstDate: DateTime(2015, 8),
@@ -530,7 +563,9 @@ class RequestsState extends State<Requests> {
       setLoading = !setLoading;
     }
 
-    return Container(
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Container(
       color: Colors.white,
       child: ListView(children: [
         Container(
@@ -892,6 +927,7 @@ class RequestsState extends State<Requests> {
                               thickness: 2),
                         ),
                         Container(
+                          height: 80,
                           margin: const EdgeInsets.only(top: 10, bottom: 10),
                           width: MediaQuery.of(context).size.width,
                           child: TypeAheadFormField(
@@ -1175,6 +1211,7 @@ class RequestsState extends State<Requests> {
                                   hintText: 'Email during leave',
                                   prefixIcon: const Icon(Icons.email,
                                       color: Color(0xff15B77C)),
+                                  textType: TextInputType.emailAddress,
                                 ),
                                 CustomInput(
                                   controller: _addressController,
@@ -1182,6 +1219,7 @@ class RequestsState extends State<Requests> {
                                   hintText: 'Address during leave',
                                   prefixIcon: const Icon(Icons.home,
                                       color: Color(0xff15B77C)),
+                                  textType: TextInputType.text,
                                 ),
                               ]),
                         )
@@ -1219,6 +1257,7 @@ class RequestsState extends State<Requests> {
                         )),
             ))
       ]),
+    ),
     );
   }
 }

@@ -14,6 +14,7 @@ class CustomInput extends HookWidget {
   TextInputType? textType = TextInputType.text;
   int? minLines;
   int? maxLines;
+  bool? isEnabled = true;
 
   CustomInput(
       {super.key,
@@ -26,7 +27,8 @@ class CustomInput extends HookWidget {
       this.isPassword,
       this.textType,
       this.minLines,
-      this.maxLines
+      this.maxLines,
+      this.isEnabled
       });
 
   @override
@@ -35,9 +37,10 @@ class CustomInput extends HookWidget {
     final passwordVissible = useState<bool>(false);
 
     return TextFormField(
+      enabled: isEnabled,
       style: DefaultTextStyle.of(context)
           .style
-          .copyWith(fontStyle: FontStyle.italic, height: 2, fontSize: 16),
+          .copyWith(fontStyle: FontStyle.italic, height: 1.5, fontSize: 14),
       keyboardType: textType,
       cursorColor: Colors.black,
       obscureText: isPassword == true ? !passwordVissible.value : false,
@@ -110,21 +113,6 @@ class CustomInputField extends HookWidget {
   Widget build(BuildContext context) {
     final focussed = useState<bool>(false);
     final passwordVissible = useState<bool>(false);
-
-    // return         TextFormField(
-    //               minLines: 2,
-    //               maxLines: 5,
-    //               keyboardType: TextInputType.multiline,
-    //               decoration: InputDecoration(
-    //                 hintText: 'description',
-    //                 hintStyle: TextStyle(
-    //                   color: Colors.grey
-    //                 ),
-    //                 border: OutlineInputBorder(
-    //                   borderRadius: BorderRadius.all(Radius.circular(20.0)),
-    //                 ),
-    //               ),
-    //             );
 
     return TextFormField(
       style: DefaultTextStyle.of(context)

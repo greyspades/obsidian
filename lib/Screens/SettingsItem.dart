@@ -19,7 +19,7 @@ class SettingsItem extends HookWidget {
       required this.staff,
       required this.info,
       required this.currentItem});
-  static final _formKey = GlobalKey<FormState>(debugLabel: '');
+  static final _settingsFormKey = GlobalKey<FormState>(debugLabel: '');
 
   validateEmail(String value) {
     if (value == null || value.isEmpty) {
@@ -112,7 +112,7 @@ class SettingsItem extends HookWidget {
       Uri url = Uri.parse('http://10.0.0.184:8015/userservices/updatemobile');
       var token = {
         'br':
-            "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300"
+            "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
       };
       var headers = {
         'x-lapo-eve-proc': jsonEncode(token),
@@ -123,7 +123,7 @@ class SettingsItem extends HookWidget {
         "phone_Number": _mobileController.text,
         "phone_Type_Id": "string"
       };
-      final result = http
+      final result = await http
           .post(url, headers: headers, body: jsonEncode(body))
           .then((result) => {print(result.body)});
     }
@@ -149,6 +149,50 @@ class SettingsItem extends HookWidget {
           .then((result) => {print(result.body)});
     }
 
+    Future<String> getEmail() async {
+      loading.value = true;
+      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/retrieveuseremails/${staff.employeeNo}/retrieveuseremails');
+      var token = {
+        'br':
+            "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+            'us': staff.userRef,
+      'rl': staff.uRole
+      };
+      var headers = {
+        'x-lapo-eve-proc': jsonEncode(token),
+        'Content-type': 'text/json',
+      };
+      final result = await http
+          .get(url, headers: headers);
+          if(result.statusCode == 200) {
+            var data = jsonDecode(result.body)['data']?[0]['Item'];
+            return data;
+          }
+          return '';
+    }
+
+    Future<String> getNumber() async {
+      loading.value = true;
+      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/retrieveusermobilenumbers/${staff.employeeNo}/retrieveusermobilenumbers');
+      var token = {
+        'br':
+            "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+        'us': staff.userRef,
+        'rl': staff.uRole
+      };
+      var headers = {
+        'x-lapo-eve-proc': jsonEncode(token),
+        'Content-type': 'text/json',
+      };
+      final result = await http
+          .get(url, headers: headers);
+          if(result.statusCode == 200) {
+            var data = jsonDecode(result.body)['data']?[0]['Item'];
+            return data;
+          }
+          return '';
+    }
+
     Future getImage(String source) async {
     final pickedFile = await picker.value.getImage(source: source == 'gallery' ? ImageSource.gallery : ImageSource.camera);
 
@@ -159,15 +203,43 @@ class SettingsItem extends HookWidget {
       }
   }
 
-    return Container(
-        padding: const EdgeInsets.only(top: 40),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(
+    color: Colors.black
+  ),
+      ),
+      body: Container(
+        padding: const EdgeInsets.only(top: 30),
+        // height: 300,
         child: Form(
-          key: _formKey,
+          key: _settingsFormKey,
           child: Column(
             children: [
               Container(
+                height: currentItem == '100' ? 140 : null,
+                padding: const EdgeInsets.only(left: 10, right: 10),
                 child: currentItem == '100'
-                    ? Column(children: [
+                    ? Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                      FutureBuilder(
+                        future: getEmail(),
+                        builder: ((context, snapshot) {
+                          if(snapshot.hasData) {
+                            return CustomInput(
+                          isEnabled: false,
+                          controller: _emailController,
+                          validation: validateEmail,
+                          hintText: '',
+                          labelText: snapshot.data,
+                          prefixIcon:
+                              const Icon(Icons.email, color: Color(0xff15B77C)),
+                        );
+                          }
+                          return Text('Loading');
+                      })),
                         CustomInput(
                           controller: _emailController,
                           validation: validateEmail,
@@ -179,22 +251,45 @@ class SettingsItem extends HookWidget {
                       ])
                     : null,
               ),
+              
               Container(
+                height: currentItem == '200' ? 140 : null,
+                padding: const EdgeInsets.only(left: 10, right: 10),
                 child: currentItem == '200'
-                    ? Column(children: [
+                    ? Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                      FutureBuilder(
+                        future: getNumber(),
+                        builder: ((context, snapshot) {
+                          if(snapshot.hasData) {
+                            return CustomInput(
+                          isEnabled: false,
+                          controller: _mobileController,
+                          validation: validatePhone,
+                          hintText: '',
+                          labelText: snapshot.data,
+                          prefixIcon:
+                              const Icon(Icons.phone, color: Color(0xff15B77C)),
+                        );
+                          }
+                          return Text('Loading');
+                      })),
                         CustomInput(
                           controller: _mobileController,
                           validation: validatePhone,
-                          hintText: 'New Phone Number',
-                          labelText: 'New Phone Number',
+                          hintText: 'New Mobile Number',
+                          labelText: 'New Mobile Number',
                           prefixIcon:
                               const Icon(Icons.phone, color: Color(0xff15B77C)),
                         ),
                       ])
                     : null,
               ),
+
               Container(
                 height: currentItem == '300' ? 250 : null,
+                padding: const EdgeInsets.only(left: 10, right: 10),
                 child: currentItem == '300'
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -263,14 +358,15 @@ class SettingsItem extends HookWidget {
                               // if (_formKey.currentState!.validate()) {
 
                               // }
-                              switch (currentItem) {
-                                case '300':
-                                  resetPassword();
-                                  break;
+                              getEmail();
+                              // switch (currentItem) {
+                              //   case '300':
+                              //     resetPassword();
+                              //     break;
 
-                                case '200':
-                                  print('other');
-                              }
+                              //   case '200':
+                              //     print('other');
+                              // }
                             },
                             child: Text('Update')),
                       )
@@ -278,6 +374,7 @@ class SettingsItem extends HookWidget {
               )
             ],
           ),
-        ));
+        )),
+    );
   }
 }

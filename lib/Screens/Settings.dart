@@ -27,11 +27,13 @@ class Settings extends HookWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
               ElevatedButton(child: Text('Update Email', style: TextStyle(color: Colors.black),), onPressed: () {
-                currentItem.value = '100';
+                Navigator.push(context,
+                MaterialPageRoute(builder: (context) => SettingsItem(staff: staff, info: info, currentItem: '100')));
             }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
 
             ElevatedButton(child: Text('Update Phone Number', style: TextStyle(color: Colors.black),), onPressed: () {
-              currentItem.value = '200';
+              Navigator.push(context,
+                MaterialPageRoute(builder: (context) => SettingsItem(staff: staff, info: info, currentItem: '200')));
             }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
             ],)
           ),
@@ -43,11 +45,13 @@ class Settings extends HookWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
               ElevatedButton(child: Text('Update Password', style: TextStyle(color: Colors.black),), onPressed: () {
-                currentItem.value = '300';
+                Navigator.push(context,
+                MaterialPageRoute(builder: (context) => SettingsItem(staff: staff, info: info, currentItem: '300')));
             }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
 
             ElevatedButton(child: Text('Update Profile Photo', style: TextStyle(color: Colors.black),), onPressed: () {
-              currentItem.value = '400';
+              Navigator.push(context,
+                MaterialPageRoute(builder: (context) => SettingsItem(staff: staff, info: info, currentItem: '400')));
             }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
             ],)
           ),

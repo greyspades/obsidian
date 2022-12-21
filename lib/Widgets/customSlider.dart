@@ -28,7 +28,7 @@ class CustomSlider extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rangeValue = useState<double>(2);
+    final rangeValue = useState<double>(1);
 
     return Container(
       // height: 190,
@@ -96,46 +96,6 @@ class CustomSlider extends HookWidget {
               )]
           )]),
                 )
-
-                // Row(
-                //   crossAxisAlignment: CrossAxisAlignment.center,
-                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //   children: [
-                //     const Text(
-                //       '1',
-                //       style:
-                //           TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                //     ),
-                //     SizedBox(
-                //       width: 200,
-                //       child: Slider(
-                //         thumbColor: const Color.fromRGBO(21, 183, 124, 1),
-                //         activeColor: const Color(0xffD6EBE3),
-                //         divisions: 3,
-                //         inactiveColor: Colors.grey[300],
-                //         value: value,
-                //         onChanged: (value) => onChange(value),
-                //         min: 0,
-                //         max: 10,
-                //       ),
-                //     ),
-                //     const Text(
-                //       '10',
-                //       style:
-                //           TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                //     ),
-                //   ],
-                // ),
-                // Container(
-                //   height: 40,
-                //   child: Padding(child: Row(
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //   children: [
-                //   ElevatedButton(style:ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),onPressed: () =>next(), child: const Text('Prev', style: TextStyle(fontSize: 14, color: Colors.black),)),
-                //   ElevatedButton(style:ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),onPressed: () =>next(), child: const Text('Next', style: TextStyle(fontSize: 14, color: Colors.black),))
-                // ],),
-                // padding: const EdgeInsets.only(left: 100, right: 5, top: 10),
-                // ),)
               ],
             ),
           )),

@@ -70,6 +70,33 @@ class Frame extends HookWidget {
       'Content-type': 'text/json',
     };
 
+    Future<void> _showMyDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Are you sure you want to sign out?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Sign out'),
+              onPressed: () {
+                Navigator.push(context,
+                MaterialPageRoute(builder: (context) => Login(title: '')));
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
     List<Widget> screens = <Widget>[
       Home(),
       Profile(
@@ -89,80 +116,104 @@ class Frame extends HookWidget {
     ];
 
     return Scaffold(
+      backgroundColor: const Color(0xffD6EBE3),
       key: _scaffoldKey,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        backgroundColor: const Color(0xffD6EBE3),
         elevation: 0,
         toolbarHeight: 170,
+        flexibleSpace: Container(
+      decoration: const BoxDecoration(
+//         gradient: LinearGradient(
+// colors: [ Color(0xff55BE88), Colors.white],
+// begin: Alignment.bottomCenter,
+// end: Alignment.topCenter,
+// // stops: [0.4, 0.7],
+// tileMode: TileMode.repeated),
+      ),
+    ),
+        leading: Container(
+                child: IconButton(
+                            onPressed: () {},
+                            icon:Icon(
+                              Icons.notifications,
+                              color: Colors.grey[600],
+                            )),
+              ),
         actions: [
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(
+          Row(
+            
+            crossAxisAlignment: CrossAxisAlignment.center, children: [
+              
+             Container(
+              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              margin: const EdgeInsets.only(right: 10),
+              child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  margin: EdgeInsets.only(top: 20, right: 5),
+                  alignment: Alignment.centerRight,
+                  // margin: EdgeInsets.only(top: 10, right: 20),
                   child: CircleAvatar(
                     radius: 40,
-                    // backgroundImage: NetworkImage(
-                    //   'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
-                    //   headers: headers,
-                    // ),
-                    backgroundImage: AssetImage('images/ebele.png'),
+                    backgroundImage: NetworkImage(
+                      'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
+                      headers: headers,
+                    ),
+                    // backgroundImage: AssetImage('images/ebele.png'),
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.only(right: 20, top: 10),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                          margin: EdgeInsets.only(top: 20),
-                          child: const Text(
-                            'Welcome!',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black),
-                          )),
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 10, top: 5),
-                        width: 120,
+
+                  Container(
+                    alignment: Alignment.center,
+                        // margin: const EdgeInsets.only(bottom: 10, top: 5, left: 60),
+                        // width: 120,
                         child: Row(
                           children: [
-                            Padding(
-                              padding: EdgeInsets.only(right: 10),
-                              child: Text(
-                                'Ebele',
-                                // (staff.firstName as String),
+                            Text(
+                                // 'Ebele',
+                                (staff.firstName as String),
                                 style: TextStyle(color: Colors.black),
                               ),
-                            ),
+                              Text(' '),
                             Text(
-                              // (staff.lastName as String),
-                              '',
-                              // style: TextStyle(color: Colors.black),
+                              (staff.lastName as String),
+                              // '',
+                              style: TextStyle(color: Colors.black),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                Builder(builder: (BuildContext context) {
+                    Container(
+                      padding: EdgeInsets.all(5),
+                      width: 200,
+                      height: 27,
+                      decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(10))),
+                      child: Text(
+                        userData.value['JobTitle'] ?? '',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            color: Color(0xff55BE88),
+                            fontSize: 14,
+                            fontStyle: FontStyle.normal,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    )
+              ],
+             ),
+             ),
+
+                       Builder(builder: (BuildContext context) {
                   return Padding(
                     padding: const EdgeInsets.only(left: 10, right: 10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        IconButton(
-                            onPressed: () {},
-                            icon:Icon(
-                              Icons.notifications,
-                              color: Colors.grey[600],
-                            )),
+                        
                         IconButton(
                             onPressed: () => Scaffold.of(context).openDrawer(),
                             icon:Icon(Icons.menu,
@@ -172,41 +223,18 @@ class Frame extends HookWidget {
                     ),
                   );
                 })
-              ],
-            ),
-            Container(
-              margin: EdgeInsets.only(bottom: 15),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.only(right: 10),
-                    alignment: Alignment.centerLeft,
-                    // width: 160,
-                    decoration: const BoxDecoration(
-                        color: Color.fromARGB(255, 237, 236, 236),
-                        borderRadius: BorderRadius.only(
-                            bottomRight: Radius.circular(10),
-                            topRight: Radius.circular(10))),
-                    margin: const EdgeInsets.only(top: 20),
-                    child: Row(children: [
-                      const Icon(Icons.business, color: Color(0xff55BE88)),
-                      Text(
-                        userData.value['JobTitle'] ?? '',
-                        style: const TextStyle(
-                            color: Color(0xff55BE88),
-                            fontSize: 10,
-                            fontStyle: FontStyle.normal,
-                            fontWeight: FontWeight.bold),
-                      )
-                    ]),
-                  ),
-                ],
-              ),
-            ),
           ])
         ],
       ),
-      body: screens.elementAt(currentIndex.value),
+      body: Container(
+        padding: currentIndex.value != 0 ? const EdgeInsets.only(top: 30) : null,
+        clipBehavior: Clip.hardEdge,
+        // margin: EdgeInsets.only(bottom: 80),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top:Radius.circular(60))
+          ),
+        child: screens.elementAt(currentIndex.value),),
       drawer: Drawer(
           // backgroundColor: Color(0xff15B77C),
           backgroundColor: const Color(0xffD6EBE3),
@@ -223,11 +251,11 @@ class Frame extends HookWidget {
                           margin: const EdgeInsets.only(top: 30),
                           child: CircleAvatar(
                           radius: 50,
-                          // backgroundImage: NetworkImage(
-                          //   'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
-                          //   headers: headers,
-                          // ),
-                          backgroundImage: AssetImage('images/ebele.png'),
+                          backgroundImage: NetworkImage(
+                            'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
+                            headers: headers,
+                          ),
+                          // backgroundImage: AssetImage('images/ebele.png'),  
                         ),
                         ),
                         Container(
@@ -238,14 +266,14 @@ class Frame extends HookWidget {
                               Padding(
                                 padding: const EdgeInsets.only(right: 10),
                                 child: Text(
-                                  // (staff.firstName as String),
-                                  'Ebele',
+                                  (staff.firstName as String),
+                                  // 'Ebele',
                                   style: const TextStyle(color: Colors.black),
                                 ),
                               ),
                               Text(
-                                // (staff.lastName as String),
-                                '',
+                                (staff.lastName as String),
+                                // '',
                                 style: const TextStyle(color: Colors.black),
                               ),
                             ],
@@ -340,8 +368,7 @@ class Frame extends HookWidget {
                 ),),
                 title: const Text('Sign Out', style: TextStyle(color: Colors.black)),
                 onTap: () {
-                   Navigator.push(context,
-            MaterialPageRoute(builder: (context) => Login(title: '')));
+                  _showMyDialog();
                 },
               ),
             ],
