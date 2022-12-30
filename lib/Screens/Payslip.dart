@@ -91,8 +91,6 @@ class Payslip extends HookWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 10, right: 10, top: 20),
       child: Container(
-        // height: 300,
-        // color: Colors.red,
         child: ListView(children: [
         Container(
           height: 80,
@@ -100,24 +98,24 @@ class Payslip extends HookWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
             Row(children: [
-              const Text('Name:',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),),
+              const Text('Name:',style: TextStyle(fontSize: 14),),
               const Text(' '),
               Row(children: [Text(staff.firstName  ?? '',style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),),const Text(' '), Text(staff.lastName ?? '',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)],)
             ],),
 
             Row(children: [
-              const Text('Dept/Group:',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),),
+              const Text('Dept/Group:',style: TextStyle(fontSize: 14),),
               const Text(' '),
               Text(staff.buName ?? '',style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
             ],),
 
             Row(children: [
-              const Text('Employee No:',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),),
+              const Text('Employee No:',style: TextStyle(fontSize: 14),),
               const Text(' '),
               Text(staff.employeeNo ?? '',style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
             ],),
             Row(children: [
-              const Text('Designation:',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),),
+              const Text('Designation:',style: TextStyle(fontSize: 14),),
               const Text(' '),
               Text(info['JobTitle'] ,style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),)
             ],)

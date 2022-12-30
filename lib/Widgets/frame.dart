@@ -1,3 +1,4 @@
+import 'package:e_360/Screens/LineManager.dart';
 import 'package:e_360/Screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -44,7 +45,6 @@ class Frame extends HookWidget {
 
         if (response.statusCode == 200) {
           userData.value = jsonDecode(response.body)['data'];
-          // return response.body;
         }
       }
 
@@ -113,6 +113,7 @@ class Frame extends HookWidget {
       ),
       Management(staff: staff, info: userData.value),
       Settings(staff: staff, info: userData.value),
+      LineManager(staff: staff, info: userData.value)
     ];
 
     return Scaffold(
@@ -134,6 +135,7 @@ class Frame extends HookWidget {
 // tileMode: TileMode.repeated),
       ),
     ),
+
         leading: Container(
                 child: IconButton(
                             onPressed: () {},
@@ -149,14 +151,14 @@ class Frame extends HookWidget {
               
              Container(
               padding: const EdgeInsets.only(top: 10, bottom: 10),
-              margin: const EdgeInsets.only(right: 10),
+              margin: const EdgeInsets.only(right: 20),
+              alignment: Alignment.center,
               child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
                   alignment: Alignment.centerRight,
-                  // margin: EdgeInsets.only(top: 10, right: 20),
                   child: CircleAvatar(
                     radius: 40,
                     backgroundImage: NetworkImage(
@@ -188,8 +190,8 @@ class Frame extends HookWidget {
                         ),
                       ),
                     Container(
-                      padding: EdgeInsets.all(5),
-                      width: 200,
+                      padding: const EdgeInsets.all(5),
+                      // width: 200,
                       height: 27,
                       decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(10))),
                       child: Text(
@@ -348,13 +350,28 @@ class Frame extends HookWidget {
                   height: 40,
                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
                   child: const Icon(
+                  Icons.manage_accounts,
+                  color: Color(0xff15B77C),
+                ),),
+                title: const Text('Appraisals', style: TextStyle(color: Colors.black)),
+                onTap: () {
+                  Navigator.pop(context);
+                  currentIndex.value = 4;
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
+                  child: const Icon(
                   Icons.settings,
                   color: Color(0xff15B77C),
                 ),),
                 title: const Text('Settings', style: TextStyle(color: Colors.black)),
                 onTap: () {
                   Navigator.pop(context);
-                  currentIndex.value = 4;
+                  currentIndex.value = 5;
                 },
               ),
               ListTile(
@@ -392,6 +409,10 @@ class Frame extends HookWidget {
           BottomNavigationBarItem(
               icon: Icon(Icons.manage_accounts), label: 'Appraisals'),
           BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Settings'),
+
+              
+              BottomNavigationBarItem(
               icon: Icon(Icons.settings), label: 'Settings'),
         ],
         currentIndex: currentIndex.value,

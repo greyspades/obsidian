@@ -281,7 +281,7 @@ class Login extends HookWidget {
                     padding: const EdgeInsets.all(20),
                     child: SizedBox(
                         width: 330,
-                        height: 60,
+                        // height: 60,
                         child: CustomInput(
                           controller: _usernameController,
                           hintText: 'your username',
@@ -295,7 +295,7 @@ class Login extends HookWidget {
                     child: forgottenPassword.value == false
                         ? SizedBox(
                             width: 330,
-                            height: 60,
+                            // height: 60,
                             child: CustomInput(
                               controller: _passwordController,
                               hintText: 'your password',

@@ -40,7 +40,7 @@ class CustomInput extends HookWidget {
       enabled: isEnabled,
       style: DefaultTextStyle.of(context)
           .style
-          .copyWith(fontStyle: FontStyle.italic, height: 1.5, fontSize: 14),
+          .copyWith(fontStyle: FontStyle.italic, height: 2, fontSize: 14,),
       keyboardType: textType,
       cursorColor: Colors.black,
       obscureText: isPassword == true ? !passwordVissible.value : false,
@@ -67,6 +67,7 @@ class CustomInput extends HookWidget {
             focussed.value ? const Color(0xffDFEEE9) : const Color(0xffDFEEE9),
         hintText: hintText,
         labelText: labelText,
+        contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
         labelStyle: const TextStyle(color: Colors.black),
         focusColor: const Color(0xffDFEEE9),
         enabledBorder: const UnderlineInputBorder(

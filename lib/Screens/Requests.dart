@@ -245,6 +245,8 @@ class RequestsState extends State<Requests> {
   }
 
   Future<void> _selectStartDate(BuildContext context) async {
+    var interval = 0;
+
     final DateTime? picked = await showDatePicker(
         builder: (BuildContext context, Widget? child) {
       return Theme(
@@ -269,14 +271,16 @@ class RequestsState extends State<Requests> {
       activeSetup?["LvMaxDuration_Male"];
       final trueEndDate = picked.add(Duration(
           days: widget.staff.gender == 'Male'
-              ? activeSetup!["LvMaxDuration_Male"]
-              : widget.staff.gender == 'Female'
-                  ? activeSetup!["LvMaxDuration_Female"]
+              // ? activeSetup!["LvMaxDuration_Male"]-1
+              ? utilDetails!["LvRemain"]
+              // : widget.staff.gender == 'Female'
+              //     ? activeSetup!["LvMaxDuration_Female"]-1
                   : null));
       setState(() {
         startDate = picked;
         endDate = trueEndDate;
         startDateError = null;
+        resumptionDate = trueEndDate.weekday == DateTime.friday ? trueEndDate.add(Duration(days: 3)) : trueEndDate.weekday == DateTime.saturday ? trueEndDate.add(Duration(days: 2)) : trueEndDate.add(Duration(days: 1));
       });
     } else if (picked != null &&
         picked != startDate &&
@@ -532,7 +536,6 @@ class RequestsState extends State<Requests> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     getLeaveTypes();
     getDeputizingOfficer();
@@ -611,30 +614,6 @@ class RequestsState extends State<Requests> {
                 const Text('On Behalf')
               ],
             )),
-        // Container(
-        //   padding: EdgeInsets.only(left: 120, right: 120),
-
-        //   alignment: Alignment.center,
-        //   width: 200,
-        //   child:  Row(
-        //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        //     children: [
-        //     SizedBox(
-        //       child: Checkbox(value: self, onChanged: (bool? value) {
-        //         setState(() {
-        //           self = value!;
-        //         });
-        //       },)
-        //     ),
-        //     SizedBox(
-        //       child: Checkbox(value: self, onChanged: (bool? value) {
-        //         setState(() {
-        //           self = value!;
-        //         });
-        //       },)
-        //     )
-        //   ],)
-        // ),
         Container(
           child: Form(
               key: _formKey,
@@ -718,16 +697,19 @@ class RequestsState extends State<Requests> {
                                 TypeAheadFormField(
                                   textFieldConfiguration:
                                       TextFieldConfiguration(
+
                                           autofocus: false,
                                           style: DefaultTextStyle.of(context)
                                               .style
                                               .copyWith(
                                                   fontStyle: FontStyle.italic,
-                                                  height: 2,
-                                                  fontSize: 16),
+                                                  height: 1.5,
+                                                  fontSize: 14),
                                           controller: beneficiaryController,
                                           cursorColor: Colors.black,
                                           decoration: const InputDecoration(
+                                            labelText: 'Who is this requisition for?',
+                                            labelStyle: TextStyle(color: Colors.black),
                                             prefixIcon: Icon(
                                               Icons.person_search,
                                               color: Color(0xff15B77C),
@@ -937,11 +919,13 @@ class RequestsState extends State<Requests> {
                                     .style
                                     .copyWith(
                                         fontStyle: FontStyle.italic,
-                                        height: 2,
-                                        fontSize: 16),
+                                        height: 1.5,
+                                        fontSize: 14),
                                 controller: searchController,
                                 cursorColor: Colors.black,
                                 decoration: const InputDecoration(
+                                  labelText: 'Select a Deputizing Officer',
+                                   labelStyle: TextStyle(color: Colors.black),
                                   prefixIcon: Icon(
                                     Icons.person_search,
                                     color: Color(0xff15B77C),
@@ -1157,8 +1141,8 @@ class RequestsState extends State<Requests> {
                                                 .split(" ")[0],
                                             style:
                                                 const TextStyle(fontSize: 14)),
-                                        onTap: () =>
-                                            _selectResumptiontDate(context),
+                                        // onTap: () =>
+                                        //     _selectResumptiontDate(context),
                                       ),
                                     )),
                                 resumptionDateError != null
@@ -1171,10 +1155,10 @@ class RequestsState extends State<Requests> {
                               ],
                             )),
                         Container(
-                            margin: onBehalf == true
+                            margin: onBehalf == true || leaveType == "300" || leaveType == "500" || leaveType == "600" || leaveType == "900"
                                 ? const EdgeInsets.only(top: 20)
                                 : null,
-                            child: onBehalf == true
+                            child: onBehalf == true || leaveType == "300" || leaveType == "500" || leaveType == "600" || leaveType == "900"
                                 ? CustomInputField(
                                     controller: justificationController,
                                     hintText: 'Leave Justification',

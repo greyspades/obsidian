@@ -21,26 +21,26 @@ class Settings extends HookWidget {
       margin: const EdgeInsets.only(top: 30),
       padding: const EdgeInsets.only(left: 10, right: 10),
       child: ListView(children: [
-          Container(
-            alignment: Alignment.centerLeft,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-              ElevatedButton(child: Text('Update Email', style: TextStyle(color: Colors.black),), onPressed: () {
-                Navigator.push(context,
-                MaterialPageRoute(builder: (context) => SettingsItem(staff: staff, info: info, currentItem: '100')));
-            }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
+          // Container(
+          //   alignment: Alignment.centerLeft,
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //     children: [
+          //     ElevatedButton(child: Text('Update Email', style: TextStyle(color: Colors.black),), onPressed: () {
+          //       Navigator.push(context,
+          //       MaterialPageRoute(builder: (context) => SettingsItem(staff: staff, info: info, currentItem: '100')));
+          //   }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
 
-            ElevatedButton(child: Text('Update Phone Number', style: TextStyle(color: Colors.black),), onPressed: () {
-              Navigator.push(context,
-                MaterialPageRoute(builder: (context) => SettingsItem(staff: staff, info: info, currentItem: '200')));
-            }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
-            ],)
-          ),
+          //   ElevatedButton(child: Text('Update Phone Number', style: TextStyle(color: Colors.black),), onPressed: () {
+          //     Navigator.push(context,
+          //       MaterialPageRoute(builder: (context) => SettingsItem(staff: staff, info: info, currentItem: '200')));
+          //   }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
+          //   ],)
+          // ),
 
           Container(
             margin: const EdgeInsets.only(top: 20),
-            alignment: Alignment.centerLeft,
+            alignment: Alignment.center,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -49,10 +49,10 @@ class Settings extends HookWidget {
                 MaterialPageRoute(builder: (context) => SettingsItem(staff: staff, info: info, currentItem: '300')));
             }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
 
-            ElevatedButton(child: Text('Update Profile Photo', style: TextStyle(color: Colors.black),), onPressed: () {
-              Navigator.push(context,
-                MaterialPageRoute(builder: (context) => SettingsItem(staff: staff, info: info, currentItem: '400')));
-            }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
+            // ElevatedButton(child: Text('Update Profile Photo', style: TextStyle(color: Colors.black),), onPressed: () {
+            //   Navigator.push(context,
+            //     MaterialPageRoute(builder: (context) => SettingsItem(staff: staff, info: info, currentItem: '400')));
+            // }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffD6EBE3)),),
             ],)
           ),
 

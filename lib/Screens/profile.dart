@@ -60,14 +60,9 @@ class Profile extends HookWidget {
         'icon': Icons.numbers
       },
       {
-        'title': 'Email Address',
-        'value': info?['Email'] ?? 'null',
-        'icon': Icons.mail
-      },
-      {
-        'title': 'Phone Number',
-        'value': info?['Mobile'] ?? 'null',
-        'icon': Icons.local_phone
+        'title': 'Business Unit Name',
+        'value': staff.buName,
+        'icon': Icons.business
       },
       {
         'title': 'Gender',
@@ -93,7 +88,17 @@ class Profile extends HookWidget {
         'title': 'Marital Status',
         'value': info?['maritalStatus'] ?? 'null',
         'icon': Icons.group
-      }
+      },
+      {
+        'title': 'Email Address',
+        'value': info?['Email'] ?? 'null',
+        'icon': Icons.mail
+      },
+      {
+        'title': 'Phone Number',
+        'value': info?['Mobile'] ?? 'null',
+        'icon': Icons.local_phone
+      },
     ];
 
     List<Widget> listInfo() {
