@@ -113,7 +113,7 @@ class Frame extends HookWidget {
       ),
       Management(staff: staff, info: userData.value),
       Settings(staff: staff, info: userData.value),
-      LineManager(staff: staff, info: userData.value)
+      // LineManager(staff: staff, info: userData.value)
     ];
 
     return Scaffold(
@@ -412,8 +412,8 @@ class Frame extends HookWidget {
               icon: Icon(Icons.settings), label: 'Settings'),
 
               
-              BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Settings'),
+              // BottomNavigationBarItem(
+              // icon: Icon(Icons.settings), label: 'Settings'),
         ],
         currentIndex: currentIndex.value,
         onTap: (int index) {

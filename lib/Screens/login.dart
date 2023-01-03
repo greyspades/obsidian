@@ -26,9 +26,10 @@ class Login extends HookWidget {
     final focussed = useState<bool>(false);
     final inputState = useState<String>('');
     final loading = useState<bool>(false);
-    final updateState = useState<dynamic>('');
+    final updateState = useState<OtaEvent?>(null);
     final forgottenPassword = useState<bool>(false);
     final connectionError = useState<String?>(null);
+    final animController = useState<AnimationController?>(null);
     // final isValid = useState<bool>(_formKey.currentState!.validate());
 
     useEffect(() {
@@ -107,10 +108,10 @@ class Login extends HookWidget {
           .post(url,
               headers: headers,
               body: jsonEncode({
-                // 'UsN': _usernameController.text,
-                // 'Pwd': _passwordController.text,
-                'UsN': 'SN11536',
-                'Pwd': 'Password6\$1',
+                'UsN': _usernameController.text,
+                'Pwd': _passwordController.text,
+                // 'UsN': 'SN11536',
+                // 'Pwd': 'Password6\$1',
                 'xAppSource': "AS-IN-D659B-e3M"
               }))
           .timeout(Duration(seconds: 10))
@@ -218,10 +219,10 @@ class Login extends HookWidget {
       }
     }
 
-    // useEffect(() {
-    //   tryOtaUpdate();
-    //   // checkForUpdate();
-    // }, []);
+    useEffect(() {
+      // tryOtaUpdate();
+      // checkForUpdate();
+    }, []);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -357,13 +358,14 @@ class Login extends HookWidget {
                         textColor: Colors.white,
                         disabledColor: const Color(0xffA6D2C2),
                         onPressed: () {
-                          // if (_formKey.currentState!.validate() && forgottenPassword.value == false) {
-                          //   login();
-                          // }
+                          if (_formKey.currentState!.validate() &&
+                              forgottenPassword.value == false) {
+                            login();
+                          }
                           // else if(_formKey.currentState!.validate() && forgottenPassword.value == true) {
                           //    resetPassword();
                           // }
-                          login();
+                          // login();
                         },
                         splashColor: Colors.redAccent,
                         child: loading.value == false &&
@@ -395,7 +397,7 @@ class Login extends HookWidget {
                     padding: const EdgeInsets.only(top: 20),
                     child: TextButton(
                         onPressed: () {
-                          forgottenPassword.value = !forgottenPassword.value;
+                          // forgottenPassword.value = !forgottenPassword.value;
                         },
                         child: forgottenPassword.value == true
                             ? const Text('Cancel Password Reset',
@@ -403,6 +405,23 @@ class Login extends HookWidget {
                             : const Text('Forgot Password',
                                 style: TextStyle(color: Color(0xff15B77C)))),
                   ),
+                  Container(
+                    height: 50,
+                    child: updateState.value?.status.toString() == 'OtaStatus.DOWNLOADING' ? Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                      Text(updateState.value?.status.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                      LinearProgressIndicator(
+                      backgroundColor: Colors.grey[200],
+                      color: const Color(0xff15B77C),
+                      value: double.parse(updateState.value?.value ?? '0.0')/100,
+                    ),
+
+                    Text('${updateState.value?.value}%', style: const TextStyle(color: Color(0xff15B77C), fontSize: 16, fontWeight: FontWeight.bold),)
+                    ],) : null
+                  ),
+
                   Container(
                     child: connectionError.value != null
                         ? Column(

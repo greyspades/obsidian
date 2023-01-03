@@ -15,13 +15,28 @@ class SearchField extends HookWidget {
   Staff staff;
   Map<dynamic, dynamic> info;
   ValueNotifier<Map<dynamic, dynamic>> downline;
-  SearchField({super.key, required this.staff, required this.info, required this.downline});
+  String label;
+
+  SearchField({super.key, required this.staff, required this.info, required this.downline, required this.label});
+
+  static final _formKey = GlobalKey<FormState>(debugLabel: '');  
+
+  @override 
+
+  Widget build(BuildContext context) {
+  
+  final searchController = useTextEditingController();
 
   final selectedDownline = useState({});
 
   final division = useState<Map<dynamic, dynamic>>({});
 
     Future<dynamic> search(String item) async {
+
+      print(item);
+      print(division.value['DivisionName']);
+      print(division.value['DivisionCode']);
+      
     Uri url = Uri.parse('http://10.0.0.184:8015/userservices/searchemployees');
     var token = {
       'br':
@@ -50,7 +65,7 @@ class SearchField extends HookWidget {
     if (response.statusCode == 200) {
       var result =
           List<Map<dynamic, dynamic>>.from(jsonDecode(response.body)['data']);
-
+          print(result);
       return result;
     }
   }
@@ -72,19 +87,22 @@ class SearchField extends HookWidget {
     if (response.statusCode == 200) {
       var divisionResponse =
           Map<dynamic, dynamic>.from(jsonDecode(response.body)['data']);
+          print(divisionResponse);
+
       division.value = divisionResponse;
     }
   }
 
-  @override 
+  useEffect(() {
+    getDivision();
+  }, []);
 
-  Widget build(BuildContext context) {
-  
-  final searchController = useTextEditingController();
-
-    return Container(
+    return SingleChildScrollView(
+      child: Container(
               margin: const EdgeInsets.only(top: 30),
-              child: TypeAheadFormField(
+              child: Form(
+                key: _formKey,
+                child: TypeAheadFormField(
                                   textFieldConfiguration:
                                       TextFieldConfiguration(
 
@@ -97,10 +115,10 @@ class SearchField extends HookWidget {
                                                   fontSize: 14),
                                           controller: searchController,
                                           cursorColor: Colors.black,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Who is this requisition for?',
-                                            labelStyle: TextStyle(color: Colors.black),
-                                            prefixIcon: Icon(
+                                          decoration: InputDecoration(
+                                            labelText: label,
+                                            labelStyle: const TextStyle(color: Colors.black),
+                                            prefixIcon: const Icon(
                                               Icons.person_search,
                                               color: Color(0xff15B77C),
                                               size: 30,
@@ -128,7 +146,8 @@ class SearchField extends HookWidget {
                                   itemBuilder: (context, item) {
                                     var data = item as Map<dynamic, dynamic>;
                                     return Container(
-                                      height: 60,
+                                      height: 100,
+                                      color: Colors.red,
                                       padding: const EdgeInsets.all(10),
                                       child: Column(
                                           crossAxisAlignment:
@@ -173,7 +192,8 @@ class SearchField extends HookWidget {
                                   onSuggestionSelected: (suggestion) {
                                     var data =
                                         suggestion as Map<dynamic, dynamic>;
-                                    downline.value =
+                                        downline.value = data['ItemName'];
+                                    // downline.value =
                                     //     TextEditingValue(
                                     //   text: data['ItemName'],
                                     //   selection: TextSelection.fromPosition(
@@ -183,8 +203,9 @@ class SearchField extends HookWidget {
                                     // );
                                     selectedDownline.value = suggestion;
                                   },
-                                ),
-            );
+                                ),)
+            ),
+    );
   }
   
 }
