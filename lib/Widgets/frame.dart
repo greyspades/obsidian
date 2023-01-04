@@ -13,6 +13,9 @@ import 'package:e_360/Screens/Home.dart';
 import 'package:e_360/Screens/Payslip.dart';
 import 'package:e_360/Screens/Settings.dart';
 import 'package:e_360/Screens/Management.dart';
+import 'package:e_360/Screens/Transactions.dart';
+import 'package:e_360/Models/Transaction.dart';
+
 
 class Frame extends HookWidget {
   final Staff staff;
@@ -26,6 +29,42 @@ class Frame extends HookWidget {
   Widget build(BuildContext context) {
     final currentIndex = useState<int>(0);
     final userData = useState<Map<String, dynamic>>({});
+    final transactions = useState<List<Transaction>?>(null);
+
+    Future<void> getTransactions() async {
+    Uri url = Uri.parse(
+        'http://10.0.0.184:8015/userservices/listtransactions');
+    var token = {
+      'br':
+          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+      'us': staff.userRef,
+      'rl': staff.uRole
+    };
+    var headers = {
+      'x-lapo-eve-proc': jsonEncode(token),
+      'Content-type': 'text/json',
+    };
+    var body = {
+      "xParam": "",
+  "xBuCode": "",
+  "xScope": "all",
+  "xScopeRef": "",
+  "xRowCount": 1,
+  "xFromDate": "",
+  "xToDate": "",
+  "xApp": "100",
+  "xPageIndex": 1,
+  "xPageSize": 1
+    };
+    var response =
+        await http.post(url, headers: headers, body: jsonEncode(body));
+    if (response.statusCode == 200) {
+      final data =
+          List.from(jsonDecode(response.body)['data']);
+      final dataList = data.map((e) => Transaction.fromJson(e),).toList();
+     transactions.value = dataList;
+    }
+  }
 
     useEffect(() {
       void getData() async {
@@ -49,6 +88,7 @@ class Frame extends HookWidget {
       }
 
       getData();
+      getTransactions();
     }, []);
 
     // useEffect(() {
@@ -112,8 +152,8 @@ class Frame extends HookWidget {
         info: userData.value
       ),
       Management(staff: staff, info: userData.value),
+      Transactions(staff: staff, info: userData.value, transactions: transactions.value,),
       Settings(staff: staff, info: userData.value),
-      // LineManager(staff: staff, info: userData.value)
     ];
 
     return Scaffold(
@@ -122,17 +162,12 @@ class Frame extends HookWidget {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,
+
         backgroundColor: const Color(0xffD6EBE3),
         elevation: 0,
         toolbarHeight: 170,
         flexibleSpace: Container(
       decoration: const BoxDecoration(
-//         gradient: LinearGradient(
-// colors: [ Color(0xff55BE88), Colors.white],
-// begin: Alignment.bottomCenter,
-// end: Alignment.topCenter,
-// // stops: [0.4, 0.7],
-// tileMode: TileMode.repeated),
       ),
     ),
 
@@ -146,9 +181,7 @@ class Frame extends HookWidget {
               ),
         actions: [
           Row(
-            
             crossAxisAlignment: CrossAxisAlignment.center, children: [
-              
              Container(
               padding: const EdgeInsets.only(top: 10, bottom: 10),
               margin: const EdgeInsets.only(right: 20),
@@ -335,7 +368,7 @@ class Frame extends HookWidget {
                   height: 40,
                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
                   child: const Icon(
-                  Icons.receipt,
+                  Icons.request_quote,
                   color: Color(0xff15B77C),
                 ),),
                 title: const Text('Payslip', style: TextStyle(color: Colors.black)),
@@ -365,13 +398,28 @@ class Frame extends HookWidget {
                   height: 40,
                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
                   child: const Icon(
+                  Icons.receipt,
+                  color: Color(0xff15B77C),
+                ),),
+                title: const Text('Transactions', style: TextStyle(color: Colors.black)),
+                onTap: () {
+                  Navigator.pop(context);
+                  currentIndex.value = 5;
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
+                  child: const Icon(
                   Icons.settings,
                   color: Color(0xff15B77C),
                 ),),
                 title: const Text('Settings', style: TextStyle(color: Colors.black)),
                 onTap: () {
                   Navigator.pop(context);
-                  currentIndex.value = 5;
+                  currentIndex.value = 6;
                 },
               ),
               ListTile(
@@ -405,9 +453,11 @@ class Frame extends HookWidget {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           BottomNavigationBarItem(
               icon: Icon(Icons.note_add), label: 'Requests'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt), label: 'Pay Slip'),
+          BottomNavigationBarItem(icon: Icon(Icons.request_quote), label: 'Pay Slip'),
           BottomNavigationBarItem(
               icon: Icon(Icons.manage_accounts), label: 'Appraisals'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.receipt), label: 'Transactions'),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings), label: 'Settings'),
 
