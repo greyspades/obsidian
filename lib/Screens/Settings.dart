@@ -1,4 +1,4 @@
-import 'package:e_360/Screens/LineManager.dart';
+import 'package:e_360/Screens/Downline.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:e_360/Models/Staff.dart';

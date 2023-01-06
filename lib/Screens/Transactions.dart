@@ -26,23 +26,13 @@ class TransactionState extends State<Transactions> {
   @override 
   Widget build(BuildContext context) {
 
-    // final transactions = useState<List<Transaction>?>(null);
-
-    // final test = useState<bool>(false);
-    // final expands = useState<List>([{'val': false}, {'val': false}, {'val': false}]);
-
-    
-
-// useEffect(() {
-//   getTransactions();
-// }, []);
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      child: ListView(children: [
-        Container(
+    return SingleChildScrollView(
+      child: Container(
           // width: MediaQuery.of(context).size.width,
           // height: 800,
-          child: widget.transactions != null ? ExpansionPanelList(
+          child: widget.transactions != null ? Expanded(child: Column(children: [
+            Container(
+              child: ExpansionPanelList(
             expansionCallback: (int index, bool isExpanded) {
             setState(() {
               widget.transactions?[index].isExpanded = !isExpanded;
@@ -100,9 +90,10 @@ class TransactionState extends State<Transactions> {
               isExpanded: trans.isExpanded as bool
               );
             }).toList(),
-            ) : null
-        )
-      ]),
+            ),
+            )
+          ],)) : null
+        ),
     );
   }
 }

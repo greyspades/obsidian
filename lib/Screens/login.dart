@@ -108,10 +108,10 @@ class Login extends HookWidget {
           .post(url,
               headers: headers,
               body: jsonEncode({
-                // 'UsN': _usernameController.text,
-                // 'Pwd': _passwordController.text,
-                'UsN': 'SN11536',
-                'Pwd': 'Password6\$1',
+                'UsN': _usernameController.text,
+                'Pwd': _passwordController.text,
+                // 'UsN': 'SN11536',
+                // 'Pwd': 'Password6\$1',
                 'xAppSource': "AS-IN-D659B-e3M"
               }))
           .timeout(Duration(seconds: 10))
@@ -156,51 +156,12 @@ class Login extends HookWidget {
           .then((result) => {print(result)});
     }
 
-    void checkForUpdate() async {
-      PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      String version = packageInfo.version;
-      String code = packageInfo.buildNumber;
-
-      Uri url = Uri.parse('http://10.0.0.94:5000/get_latest_version');
-      // Uri url =
-      //     Uri.parse('http://10.0.0.184:8015/updates/checkappversiondetails');
-
-      // var token = {
-      //   'br':
-      //       "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300"
-      // };
-      // var headers = {
-      //   'x-lapo-eve-proc': jsonEncode(token),
-      //   'Content-type': 'text/json',
-      // };
-      // final result = await http.post(url,
-      //     headers: headers,
-      //     body: jsonEncode({
-      //       "xTransRef": "string",
-      //       "xTransScope": "129dekekddkffmf2sv25",
-      //       "xAppTransScope": "9e9efefech009eee",
-      //       "xAppSource": "AS-IN-D659B-e3M"
-      //     }));
-      // print(result.body);
-
-      // if (result.statusCode == 200) {
-      //   var data = jsonDecode(result.body);
-      //   print('was successful');
-      //   print(data);
-      // }
-
-      await http
-          .get(url)
-          .then((value) => print(value.body))
-          .catchError((err) => print(err));
-    }
-
     Future<void> tryOtaUpdate() async {
       try {
         //LINK CONTAINS APK OF FLUTTER HELLO WORLD FROM FLUTTER SDK EXAMPLES
         OtaUpdate()
             .execute(
-          'http://10.0.0.94:5000/apk/E360_alpha.apk',
+          'http://10.0.0.94:5000/apk/E360.apk',
           // 'https://internal1.4q.sk/flutter_hello_world.apk',
           destinationFilename: 'E360_alpha.apk',
           //FOR NOW ANDROID ONLY - ABILITY TO VALIDATE CHECKSUM OF FILE:
@@ -219,9 +180,31 @@ class Login extends HookWidget {
       }
     }
 
+    void checkForUpdate() async {
+
+      Uri url = Uri.parse('http://10.0.0.94:5000/get_latest_version');
+      final result = await http.get(url);
+      print(result.body);
+      if(result.statusCode == 200) {
+        
+        var currentVersion = double.parse(result.body);
+        PackageInfo packageInfo = await PackageInfo.fromPlatform();
+        String version = packageInfo.version;
+        String code = packageInfo.buildNumber;
+        // var appVersion = double.parse(version);
+        if(currentVersion > 1.0) {
+          tryOtaUpdate();
+        }
+        else {
+          print('Already using most recent version');
+        }
+      }
+
+    }
+
     useEffect(() {
       // tryOtaUpdate();
-      // checkForUpdate();
+      checkForUpdate();
     }, []);
 
     return Scaffold(
@@ -358,14 +341,18 @@ class Login extends HookWidget {
                         textColor: Colors.white,
                         disabledColor: const Color(0xffA6D2C2),
                         onPressed: () {
-                          // if (_formKey.currentState!.validate() &&
-                          //     forgottenPassword.value == false) {
-                          //   login();
-                          // }
+                          if (_formKey.currentState!.validate() &&
+                              forgottenPassword.value == false
+                              && updateState.value?.status.toString() != 'OtaStatus.DOWNLOADING'
+                              ) {
+                            login();
+                          }
+
                           // else if(_formKey.currentState!.validate() && forgottenPassword.value == true) {
                           //    resetPassword();
                           // }
-                          login();
+                          // login();
+
                         },
                         splashColor: Colors.redAccent,
                         child: loading.value == false &&
@@ -411,7 +398,7 @@ class Login extends HookWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                      Text(updateState.value?.status.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                      Text(updateState.value?.status.toString().split('.')[1] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
                       LinearProgressIndicator(
                       backgroundColor: Colors.grey[200],
                       color: const Color(0xff15B77C),

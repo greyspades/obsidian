@@ -1225,9 +1225,6 @@ class RequestsState extends State<Requests> {
                     if (_formKey.currentState!.validate()) {
                       createLeave();
                     }
-                    // createLeave();
-                    // print(leaveTypeError);
-                    // print(activeSetup);
                   },
                   child: setLoading != true
                       ? const Text(

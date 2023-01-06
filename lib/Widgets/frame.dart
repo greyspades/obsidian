@@ -1,4 +1,4 @@
-import 'package:e_360/Screens/LineManager.dart';
+import 'package:e_360/Screens/Downline.dart';
 import 'package:e_360/Screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -472,7 +472,7 @@ class Frame extends HookWidget {
         selectedItemColor: const Color(0xff15B77C),
         unselectedItemColor:Colors.grey[400],
         unselectedFontSize: 12,
-        selectedFontSize: 16,
+        selectedFontSize: 14,
       ),)
     );
   }
