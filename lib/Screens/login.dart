@@ -234,21 +234,21 @@ class Login extends HookWidget {
               alignment: Alignment.center,
               child: Row(
                 children: [
-                  Text('Good',
+                  const Text('Good',
                       style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 32,
                           fontFamily: 'Ubuntu-light')),
-                  Text('  '),
+                  const Text('  '),
                   Text(
                     getTime() + ',',
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 32,
                         fontFamily: 'Ubuntu-light'),
                   ),
-                  Text('  '),
-                  Text('Boss',
+                  const Text('  '),
+                  const Text('Boss',
                       style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 32,
@@ -265,7 +265,6 @@ class Login extends HookWidget {
                     padding: const EdgeInsets.all(20),
                     child: SizedBox(
                         width: 330,
-                        // height: 60,
                         child: CustomInput(
                           controller: _usernameController,
                           hintText: 'your username',
@@ -279,7 +278,6 @@ class Login extends HookWidget {
                     child: forgottenPassword.value == false
                         ? SizedBox(
                             width: 330,
-                            // height: 60,
                             child: CustomInput(
                               controller: _passwordController,
                               hintText: 'your password',
@@ -352,7 +350,6 @@ class Login extends HookWidget {
                           //    resetPassword();
                           // }
                           // login();
-
                         },
                         splashColor: Colors.redAccent,
                         child: loading.value == false &&

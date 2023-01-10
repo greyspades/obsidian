@@ -69,7 +69,7 @@ class Frame extends HookWidget {
     useEffect(() {
       void getData() async {
         Uri url = Uri.parse(
-            'http://10.0.0.184:8015/userservices/primaryrecord/11536/primaryrecord');
+            'http://10.0.0.184:8015/userservices/primaryrecord/${staff.employeeNo}/primaryrecord');
         var token = {
           'br':
               "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
