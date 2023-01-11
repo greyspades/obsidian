@@ -20,25 +20,6 @@ class Transaction {
   final String? expandedValue;
 
   bool? isExpanded;
-  
-  // "ItemCode": "TRFLVE79KJAFB7AI",
-  //     "ItemName": "createleave",
-  //     "proc_Ref": "1fe90191-e958-41d7-81f3-b3ebaf6b594b",
-  //     "Item_Title_Desc": "Post Leave Input",
-  //     "Module": "HR",
-  //     "CreatedBy": "PETER UGBOMA",
-  //     "FullName": "PETER UGBOMA",
-  //     "Bu_Name": "ANNEX OFFICE",
-  //     "xStageNo": 1,
-  //     "xStageStatus": "Stage Review",
-  //     "xApprovalStatus": "Submitted for approvals",
-  //     "Appvl_Sts_Id": 100,
-  //     "xTransStatus": "Pending",
-  //     "xRecordState": "New",
-  //     "Trans_TimeStamp": "2022-12-09T23:43:46.32",
-  //     "tReviewer": null,
-  //     "xOriginRef": "b789d895-f05e-4d8e-88e2-d475040b1e60",
-  //     "xAssignTo": "OMORAGBON   NATHANIEL"
 
   Transaction(
       {required this.itemCode,

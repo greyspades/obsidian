@@ -165,9 +165,14 @@ class Profile extends HookWidget {
       'Content-type': 'text/json',
     };
 
-    return Padding(
-      padding: const EdgeInsets.all(10),
-      child: Container(
+    return (
+      // padding: const EdgeInsets.all(10),
+      Container(
+        padding: const EdgeInsets.only(left: 10, right: 10),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top:Radius.circular(60))
+          ),
             child: ListView(
               children: listInfo(),
             )

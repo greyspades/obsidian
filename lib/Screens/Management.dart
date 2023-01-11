@@ -59,6 +59,10 @@ class Management extends HookWidget {
     }
 
     return Container(
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top:Radius.circular(60))
+          ),
       alignment: Alignment.center,
       padding: const EdgeInsets.only(left: 10, right: 10),
       child: active.value == false

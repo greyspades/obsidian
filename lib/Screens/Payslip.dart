@@ -88,9 +88,14 @@ class Payslip extends HookWidget {
           .toList();
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 10, right: 10, top: 20),
-      child: Container(
+    return 
+      // padding: const EdgeInsets.only(left: 10, right: 10, top: 20),
+      Container(
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top:Radius.circular(60))
+          ),
         child: ListView(children: [
         Container(
           height: 80,
@@ -210,7 +215,6 @@ class Payslip extends HookWidget {
             ],)
           ]),
         )
-      ],),)
-    );
+      ],),);
   }
 }

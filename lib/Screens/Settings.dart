@@ -19,6 +19,10 @@ class Settings extends HookWidget {
     final currentItem = useState<String>('');
 
     return Container(
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top:Radius.circular(60))
+          ),
       margin: const EdgeInsets.only(top: 30),
       padding: const EdgeInsets.only(left: 10, right: 10),
       child: ListView(children: [
@@ -40,7 +44,7 @@ class Settings extends HookWidget {
           // ),
 
           Container(
-            margin: const EdgeInsets.only(top: 20),
+            // margin: const EdgeInsets.only(top: 20),
             alignment: Alignment.center,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

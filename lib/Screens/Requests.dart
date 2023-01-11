@@ -76,6 +76,8 @@ class RequestsState extends State<Requests> {
 
   int reason = -1;
 
+  String reasonValue = '9999';
+
   final _deputizingOfficerController = TextEditingController();
   final _startDateController = TextEditingController();
   final _endDateController = TextEditingController();
@@ -372,6 +374,7 @@ class RequestsState extends State<Requests> {
         ) {
       setState(() {
         endDate = picked;
+        resumptionDate = picked.weekday == DateTime.friday ? picked.add(Duration(days: 3)) : picked.weekday == DateTime.saturday ? picked.add(Duration(days: 2)) : picked.add(Duration(days: 1));
         endDateError = null;
       });
     } else if (picked != null &&
@@ -428,7 +431,7 @@ class RequestsState extends State<Requests> {
           ? widget.staff.userRef.toString()
           : selectedBeneficiary?['ItemCode'],
       "xLTG": payLtg == false ? "0" : "1",
-      "xBhalfReason": "9999",
+      "xBhalfReason": reasonValue,
       "xDepOfficer": depOfficer,
       "xStart_Date": startDate.toString(),
       "xEnd_Date": endDate.toString(),
@@ -569,7 +572,10 @@ class RequestsState extends State<Requests> {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Container(
-      color: Colors.white,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top:Radius.circular(60))
+          ),
       child: ListView(children: [
         Container(
           margin: const EdgeInsets.only(top: 5, bottom: 20, left: 20),
@@ -586,7 +592,7 @@ class RequestsState extends State<Requests> {
                   color: Color(0xff88A59A), fontWeight: FontWeight.bold)),
         ),
         Container(
-            padding: const EdgeInsets.only(left: 80, right: 80),
+            padding: const EdgeInsets.only(left: 40, right: 40),
             width: 200,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -611,7 +617,7 @@ class RequestsState extends State<Requests> {
                     ),
                   ),
                 ),
-                const Text('On Behalf')
+                const Text('On Behalf Of Another', style: TextStyle(overflow: TextOverflow.ellipsis))
               ],
             )),
         Container(
@@ -822,6 +828,7 @@ class RequestsState extends State<Requests> {
                                           onChanged: ((value) {
                                             setState(() {
                                               reason = value!;
+                                              reasonValue = '10';
                                             });
                                           }),
                                         ),
@@ -833,6 +840,7 @@ class RequestsState extends State<Requests> {
                                           onChanged: ((value) {
                                             setState(() {
                                               reason = value!;
+                                              reasonValue = '11';
                                             });
                                           }),
                                         )
@@ -997,7 +1005,7 @@ class RequestsState extends State<Requests> {
                                 ),
                               );
                               setState(() {
-                                selectedOfficer = suggestion;
+                                depOfficer = data['ItemCode'];
                               });
                             },
                           ),

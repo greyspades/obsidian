@@ -94,6 +94,7 @@ class Login extends HookWidget {
 
     void login() async {
       loading.value = true;
+      connectionError.value = null;
       Uri url =
           Uri.parse('http://10.0.0.184:8015/userservices/mobile/authenticatem');
       var token = {
@@ -108,10 +109,10 @@ class Login extends HookWidget {
           .post(url,
               headers: headers,
               body: jsonEncode({
-                'UsN': _usernameController.text,
-                'Pwd': _passwordController.text,
-                // 'UsN': 'SN11536',
-                // 'Pwd': 'Password6\$1',
+                // 'UsN': _usernameController.text,
+                // 'Pwd': _passwordController.text,
+                'UsN': 'SN11536',
+                'Pwd': 'Password6\$1',
                 'xAppSource': "AS-IN-D659B-e3M"
               }))
           .timeout(Duration(seconds: 10))
@@ -339,17 +340,17 @@ class Login extends HookWidget {
                         textColor: Colors.white,
                         disabledColor: const Color(0xffA6D2C2),
                         onPressed: () {
-                          if (_formKey.currentState!.validate() &&
-                              forgottenPassword.value == false
-                              && updateState.value?.status.toString() != 'OtaStatus.DOWNLOADING'
-                              ) {
-                            login();
-                          }
+                          // if (_formKey.currentState!.validate() &&
+                          //     forgottenPassword.value == false
+                          //     && updateState.value?.status.toString() != 'OtaStatus.DOWNLOADING'
+                          //     ) {
+                          //   login();
+                          // }
 
                           // else if(_formKey.currentState!.validate() && forgottenPassword.value == true) {
                           //    resetPassword();
                           // }
-                          // login();
+                          login();
                         },
                         splashColor: Colors.redAccent,
                         child: loading.value == false &&

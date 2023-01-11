@@ -11,8 +11,10 @@ class Home extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+      color: Colors.white,
       padding: const EdgeInsets.only(),
+      // margin: const EdgeInsets.only(bottom: 30),
       child: ListView(children: [
         Container(
           padding: const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
@@ -24,7 +26,7 @@ class Home extends HookWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
             Container(
-              padding: EdgeInsets.only(left: 10, right: 5, top: 10),
+              padding: const EdgeInsets.only(left: 10, right: 5, top: 10),
               child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

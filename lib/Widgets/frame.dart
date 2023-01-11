@@ -156,37 +156,32 @@ class Frame extends HookWidget {
       Settings(staff: staff, info: userData.value),
     ];
 
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+
       backgroundColor: const Color(0xffD6EBE3),
       key: _scaffoldKey,
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-
-        backgroundColor: const Color(0xffD6EBE3),
-        elevation: 0,
-        toolbarHeight: 170,
-        flexibleSpace: Container(
-      decoration: const BoxDecoration(
-      ),
-    ),
-
-        leading: Container(
-                child: IconButton(
+      body: Container(
+        padding: const EdgeInsets.only(top: 20),
+        child: Column(
+          children: [
+          Container(
+            height: 150,
+            margin: const EdgeInsets.only(top: 10, bottom: 20),
+            color: const Color(0xffD6EBE3),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+              IconButton(
                             onPressed: () {},
                             icon:Icon(
                               Icons.notifications,
                               color: Colors.grey[600],
                             )),
-              ),
-        actions: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center, children: [
-             Container(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
-              margin: const EdgeInsets.only(right: 20),
-              alignment: Alignment.center,
-              child: Column(
+
+              Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -239,41 +234,34 @@ class Frame extends HookWidget {
                     )
               ],
              ),
-             ),
 
-                       Builder(builder: (BuildContext context) {
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 10, right: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        
-                        IconButton(
+             Builder(builder: (BuildContext context) {
+                  return IconButton(
                             onPressed: () => Scaffold.of(context).openDrawer(),
                             icon:Icon(Icons.menu,
                                 color: Colors.grey[600]
-                                ))
-                      ],
-                    ),
-                  );
+                                ));
                 })
-          ])
-        ],
-      ),
-      body: Container(
-        padding: currentIndex.value != 0 ? const EdgeInsets.only(top: 30) : null,
-        clipBehavior: Clip.hardEdge,
-        // margin: EdgeInsets.only(bottom: 80),
+          ]),),
+
+          Expanded(
+            child: Container(
+          //  margin: const EdgeInsets.only(bottom: 20),
+            // height: 700,
+            // padding: currentIndex.value != 0 ? const EdgeInsets.only(top: 20) : null,
+            clipBehavior: Clip.hardEdge,
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: Color(0xffD6EBE3),
+          // color: Colors.white
+          // color: Colors.red,
           borderRadius: BorderRadius.vertical(top:Radius.circular(60))
           ),
-        child: screens.elementAt(currentIndex.value),),
+            child: screens.elementAt(currentIndex.value),)
+            )
+        ],)
+          ),
       drawer: Drawer(
-          // backgroundColor: Color(0xff15B77C),
           backgroundColor: const Color(0xffD6EBE3),
-          // backgroundColor: Colors.grey[200],
           child: ListView(
             children: [
               SizedBox(
@@ -474,6 +462,6 @@ class Frame extends HookWidget {
         unselectedFontSize: 12,
         selectedFontSize: 14,
       ),)
-    );
+    ));
   }
 }
