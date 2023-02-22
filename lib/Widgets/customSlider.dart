@@ -47,22 +47,6 @@ class CustomSlider extends HookWidget {
                           fontWeight: FontWeight.bold,
                           height: 1.5),
                     )),
-                // Container(
-                //   width: 60,
-                //   decoration: const BoxDecoration(
-                //       borderRadius: BorderRadius.all(Radius.circular(10)),
-                //       color: Color(0xff15B77C)),
-                //   alignment: Alignment.center,
-                //   margin: const EdgeInsets.all(20),
-                //   child: Text(
-                //     value.toString(),
-                //     style: const TextStyle(
-                //         color: Colors.white,
-                //         fontSize: 18,
-                //         fontWeight: FontWeight.bold),
-                //   ),
-                // ),
-
                 Container(
                   height: 200,
                   child: SfRadialGauge(
@@ -77,7 +61,7 @@ class CustomSlider extends HookWidget {
               GaugeRange(startValue: 7,endValue: 11,color: const Color(0xff15B77C),startWidth: 0.06, sizeUnit: GaugeSizeUnit.factor,
               endWidth: 0.06)],
             pointers: <GaugePointer>[
-              MarkerPointer(value: rangeValue.value,
+              MarkerPointer(value: value,
               color: const Color(0xffFEB388),
               enableAnimation: true,
               enableDragging: true,
@@ -87,11 +71,11 @@ class CustomSlider extends HookWidget {
               borderColor: Color.fromARGB(126, 221, 133, 2,),
               borderWidth: 1,
               overlayRadius: 5,
-              onValueChanged: (value) => rangeValue.value = value,
+              onValueChanged: onChange
               )],
             annotations: <GaugeAnnotation>[
               GaugeAnnotation(widget: Container(child: 
-                 Text(rangeValue.value.toInt().toString(),style: const TextStyle(fontSize: 25,fontWeight: FontWeight.bold))),
+                 Text(value.toInt().toString(),style: const TextStyle(fontSize: 25,fontWeight: FontWeight.bold))),
                  angle: 90, positionFactor: 0.5
               )]
           )]),

@@ -1,3 +1,4 @@
+import 'package:e_360/helpers/aes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:e_360/Models/Staff.dart';
@@ -7,11 +8,16 @@ import 'package:e_360/Widgets/input.dart';
 import 'package:e_360/Models/DepOfficer.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:e_360/Widgets/leaveUtilization.dart';
+import 'package:e_360/helpers/contract.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:convert/convert.dart';
+
 
 class Requests extends StatefulWidget {
   final Staff staff;
   final Map<String, dynamic> info;
-  Requests({super.key, required this.staff, required this.info});
+  final Auth? auth;
+  const Requests({super.key, required this.staff, required this.info, required this.auth});
 
   @override
   State<Requests> createState() => RequestsState();
@@ -90,70 +96,75 @@ class RequestsState extends State<Requests> {
   final searchController = TextEditingController();
 
   Future<void> getLeaveTypes() async {
-    Uri url = Uri.parse('http://10.0.0.184:8015/requisition/leave/leavetypes');
-    var token = {
-      'br':
-          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+    Uri url = Uri.parse('http://10.0.0.184:8015/requisition/leave/leavetypes/lv_req/leavetypes');
+    var token = jsonEncode({
+      'tk': widget.auth?.token,
       'us': widget.staff.userRef,
-      'rl': widget.staff.uRole
-    };
+      'rl': widget.staff.uRole,
+      'src': "AS-IN-D659B-e3M"
+    });
     var headers = {
-      'x-lapo-eve-proc': jsonEncode(token),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')) + (widget.auth?.token ?? ''),
       'Content-type': 'text/json',
     };
     var response = await http.get(url, headers: headers);
-
     if (response.statusCode == 200) {
+      var data = jsonDecode(response.body)['data'];
+      
       setState(() {
-        leaveTypes = jsonDecode(response.body)['data'];
-        leaveType = jsonDecode(response.body)['data'][0]['Code'].toString();
+        leaveTypes = jsonDecode(decryption(base64.encode(hex.decode(data)), widget.auth?.aesKey ?? '', widget.auth?.iv ?? ''));
+        leaveType = jsonDecode(decryption(base64.encode(hex.decode(data)), widget.auth?.aesKey ?? '', widget.auth?.iv ?? ''))[0]['Code'].toString();
       });
     }
   }
 
-  Future<void> getDeputizingOfficer() async {
+  Future<void> getLineManager() async {
     Uri url = Uri.parse('http://10.0.0.184:8015/userservices/mylinemanager');
-    var token = {
-      'br':
-          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+    var token = jsonEncode({
+      'tk': widget.auth?.token,
       'us': widget.staff.userRef,
-      'rl': widget.staff.uRole
-    };
+      'rl': widget.staff.uRole,
+      'src': "AS-IN-D659B-e3M"
+    });
     var headers = {
-      'x-lapo-eve-proc': jsonEncode(token),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')) + (widget.auth?.token ?? ''),
       'Content-type': 'text/json',
     };
     var response = await http.get(url, headers: headers);
-
+    print(response.body);
     if (response.statusCode == 200) {
+      var data = jsonDecode(response.body)['data'];
+      print(jsonDecode(decryption(base64.encode(hex.decode(data)), widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')));
       setState(() {
-        depOfficers = jsonDecode(response.body)['data'];
-        depOfficer = jsonDecode(response.body)['data'][0]['ItemCode'];
+        depOfficers = jsonDecode(decryption(base64.encode(hex.decode(data)), widget.auth?.aesKey ?? '', widget.auth?.iv ?? ''));
+        depOfficer = jsonDecode(decryption(base64.encode(hex.decode(data)), widget.auth?.aesKey ?? '', widget.auth?.iv ?? ''))[0]['ItemCode'];
       });
     }
   }
 
   Future<void> getLeaveSetup() async {
     Uri url = Uri.parse('http://10.0.0.184:8015/requisition/leave/leavesetup');
-    var token = {
-      'br':
-          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+    var token = jsonEncode({
+      'tk': widget.auth?.token,
       'us': widget.staff.userRef,
-      'rl': widget.staff.uRole
-    };
+      'rl': widget.staff.uRole,
+      'src': "AS-IN-D659B-e3M"
+    });
     var headers = {
-      'x-lapo-eve-proc': jsonEncode(token),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')) + (widget.auth?.token ?? ''),
       'Content-type': 'text/json',
     };
     var response = await http.get(url, headers: headers);
     if (response.statusCode == 200) {
-      var activeData = List<dynamic>.from(jsonDecode(response.body)['data'])
+      var data = jsonDecode(response.body)['data'];
+      var xdata = decryption(base64.encode(hex.decode(data)), widget.auth?.aesKey ?? '', widget.auth?.iv ?? '');
+      var activeData = List<dynamic>.from(jsonDecode(xdata))
           .toList()
           .where((element) => element['lv_type_Id'].toString() == leaveType)
           .single;
       var activeMap = Map<dynamic, dynamic>.from(activeData);
       setState(() {
-        setups = jsonDecode(response.body)['data'];
+        setups = jsonDecode(xdata);
         activeSetup = activeMap;
       });
     }
@@ -161,21 +172,36 @@ class RequestsState extends State<Requests> {
 
   Future<void> getDivision() async {
     Uri url = Uri.parse('http://10.0.0.184:8015/userservices/divisionbyempNo');
-    var token = {
-      'br':
-          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+    
+    var token = jsonEncode({
+      'tk': widget.auth?.token,
       'us': widget.staff.userRef,
-      'rl': widget.staff.uRole
-    };
+      'rl': widget.staff.uRole,
+      'src': "AS-IN-D659B-e3M"
+    });
     var headers = {
-      'x-lapo-eve-proc': jsonEncode(token),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')) + (widget.auth?.token ?? ''),
       'Content-type': 'text/json',
     };
+    var body = jsonEncode({
+      "xParam": widget.staff.userRef,
+      "xBuCode": "",
+      "xScope": division?['DivisionName'],
+      "xScopeRef": division?['DivisionCode'],
+      "xRowCount": 1,
+      "xFromDate": "",
+      "xToDate": "",
+      "xApp": "AS-IN-D659B-e3M",
+      "xPageIndex": 1,
+      "xPageSize": 1
+    });
     var response = await http.post(url,
-        headers: headers, body: jsonEncode({"xParam": widget.staff.userRef}));
+        headers: headers, body: base64ToHex(encryption(body, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')));
     if (response.statusCode == 200) {
+      var data = jsonDecode(response.body)['data'];
+      var xdata = decryption(base64.encode(hex.decode(data)), widget.auth?.aesKey ?? '', widget.auth?.iv ?? '');
       var divisionResponse =
-          Map<dynamic, dynamic>.from(jsonDecode(response.body)['data']);
+          Map<dynamic, dynamic>.from(jsonDecode(xdata));
       setState(() {
         division = divisionResponse;
       });
@@ -185,27 +211,28 @@ class RequestsState extends State<Requests> {
   Future<void> getUtlzDetails(String id) async {
     Uri url = Uri.parse(
         'http://10.0.0.184:8015/requisition/retrieveleaveUtlzdetails');
-    var token = {
-      'br':
-          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+    var token = jsonEncode({
+      'tk': widget.auth?.token,
       'us': widget.staff.userRef,
-      'rl': widget.staff.uRole
-    };
+      'rl': widget.staff.uRole,
+      'src': "AS-IN-D659B-e3M"
+    });
     var headers = {
-      'x-lapo-eve-proc': jsonEncode(token),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')) + (widget.auth?.token ?? ''),
       'Content-type': 'text/json',
     };
-    var body = {
+    var body = jsonEncode({
       "xLeaveType": id.toString(),
       "xLeaveOwner": widget.staff.userRef,
       "xYear": DateTime.now().year.toString()
-    };
+    });
     var response =
-        await http.post(url, headers: headers, body: jsonEncode(body));
-    // print(response.body);
+        await http.post(url, headers: headers, body: base64ToHex(encryption(body, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')));
+    
     if (response.statusCode == 200) {
+      var xdata = decryption(base64.encode(hex.decode(jsonDecode(response.body)['data'])), widget.auth?.aesKey ?? '', widget.auth?.iv ?? '');
       var data =
-          Map<dynamic, dynamic>.from(jsonDecode(response.body)['data'][0]);
+          Map<dynamic, dynamic>.from(jsonDecode(xdata));
       setState(() {
         utilDetails = data;
       });
@@ -214,17 +241,18 @@ class RequestsState extends State<Requests> {
 
   Future<dynamic> search(String item) async {
     Uri url = Uri.parse('http://10.0.0.184:8015/userservices/searchemployees');
-    var token = {
-      'br':
-          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+    var token = jsonEncode({
+      'tk': widget.auth?.token,
       'us': widget.staff.userRef,
-      'rl': widget.staff.uRole
-    };
+      'rl': widget.staff.uRole,
+      'src': "AS-IN-D659B-e3M"
+    });
     var headers = {
-      'x-lapo-eve-proc': jsonEncode(token),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')) + (widget.auth?.token ?? ''),
       'Content-type': 'text/json',
     };
-    var body = {
+
+    var body = jsonEncode({
       "xParam": item,
       "xBuCode": "",
       "xScope": division?['DivisionName'],
@@ -235,12 +263,15 @@ class RequestsState extends State<Requests> {
       "xApp": "AS-IN-D659B-e3M",
       "xPageIndex": 1,
       "xPageSize": 1
-    };
+    });
     var response =
-        await http.post(url, headers: headers, body: jsonEncode(body));
+        await http.post(url, headers: headers, body: base64ToHex(encryption(body, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')));
     if (response.statusCode == 200) {
+      // print(jsonDecode(response.body)['data']);
+      var xdata = decryption(base64.encode(hex.decode(jsonDecode(response.body)['data'])), widget.auth?.aesKey ?? '', widget.auth?.iv ?? '');
+      // print(xdata);
       var result =
-          List<Map<dynamic, dynamic>>.from(jsonDecode(response.body)['data']);
+          List<Map<dynamic, dynamic>>.from(jsonDecode(xdata));
 
       return result;
     }
@@ -269,14 +300,12 @@ class RequestsState extends State<Requests> {
         picked != startDate &&
         picked.compareTo(DateTime.now()) > 0 &&
         picked.weekday != DateTime.saturday &&
+        picked.day != DateTime.now().day &&
         picked.weekday != DateTime.sunday) {
       activeSetup?["LvMaxDuration_Male"];
       final trueEndDate = picked.add(Duration(
           days: widget.staff.gender == 'Male'
-              // ? activeSetup!["LvMaxDuration_Male"]-1
               ? utilDetails!["LvRemain"]
-              // : widget.staff.gender == 'Female'
-              //     ? activeSetup!["LvMaxDuration_Female"]-1
                   : null));
       setState(() {
         startDate = picked;
@@ -284,9 +313,13 @@ class RequestsState extends State<Requests> {
         startDateError = null;
         resumptionDate = trueEndDate.weekday == DateTime.friday ? trueEndDate.add(Duration(days: 3)) : trueEndDate.weekday == DateTime.saturday ? trueEndDate.add(Duration(days: 2)) : trueEndDate.add(Duration(days: 1));
       });
-    } else if (picked != null &&
+    } else if ((picked != null &&
         picked != startDate &&
-        picked.compareTo(DateTime.now()) < 0) {
+        picked.compareTo(DateTime.now()) < 0)
+        ||
+        (picked != null && picked.day == DateTime.now().day)
+        
+        ) {
       setState(() {
         startDateError = 'Only enter future dates';
       });
@@ -377,9 +410,10 @@ class RequestsState extends State<Requests> {
         resumptionDate = picked.weekday == DateTime.friday ? picked.add(Duration(days: 3)) : picked.weekday == DateTime.saturday ? picked.add(Duration(days: 2)) : picked.add(Duration(days: 1));
         endDateError = null;
       });
-    } else if (picked != null &&
+    } else if ((picked != null &&
         picked != endDate &&
-        picked.compareTo(DateTime.now()) < 0) {
+        picked.compareTo(DateTime.now()) < 0)
+        ) {
       setState(() {
         endDateError = 'Only enter future dates';
       });
@@ -392,6 +426,11 @@ class RequestsState extends State<Requests> {
         endDateError = 'Can only select weekdays';
       });
     }
+    // if(startDate.toString().split(" ")[0] == DateTime.now().toString().split(" ")[0]) {
+    //   setState(() {
+    //     startDateError = 'Only enter future dates';
+    //   });
+    // }
     // else if (picked != null &&
     //     picked != endDate
     //     // (widget.staff.gender == 'Male' && differenceInDays > activeSetup?["LvMaxDuration_Male"] || widget.staff.gender == 'Female' && differenceInDays > activeSetup?["LvMaxDuration_Female"])
@@ -412,17 +451,18 @@ class RequestsState extends State<Requests> {
     final differenceInDays = end.difference(start).inDays;
 
     Uri url = Uri.parse('http://10.0.0.184:8015/requisition/createleave');
-    var token = {
-      'br':
-          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+
+    var token = jsonEncode({
+      'tk': widget.auth?.token,
       'us': widget.staff.userRef,
-      'rl': widget.staff.uRole
-    };
+      'rl': widget.staff.uRole,
+      'src': "AS-IN-D659B-e3M"
+    });
     var headers = {
-      'x-lapo-eve-proc': jsonEncode(token),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')) + (widget.auth?.token ?? ''),
       'Content-type': 'text/json',
     };
-    var body = {
+    var body = jsonEncode({
       "xLeaveType": leaveType.toString(),
       "xSelf": onBehalf == false ? 0 : 1,
       "xOnBehalf": onBehalf == false ? 0 : 1,
@@ -438,7 +478,7 @@ class RequestsState extends State<Requests> {
       "xRsm_Date": resumptionDate.toString(),
       "xYear": DateTime.now().year.toString(),
       "xHasDoc": "0",
-      "xDuration": differenceInDays.toString(),
+      "xDuration": differenceInDays < 2 ? (differenceInDays + 1).toString() : differenceInDays.toString(),
       "xisJustifiable": 0,
       "xJustify": justificationController.text,
       "xMobile": _mobileController.text.toString(),
@@ -450,11 +490,12 @@ class RequestsState extends State<Requests> {
         "xAppTransScope": "9e9efefech009eee",
         "xAppSource": "AS-IN-D659B-e3M"
       }
-    };
+    });
     var response =
-        await http.post(url, headers: headers, body: jsonEncode(body));
+        await http.post(url, headers: headers, body: base64ToHex(encryption(body, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')));
     if (response.statusCode == 200) {
-      _showMyDialog(jsonDecode(response.body));
+      var xdata = decryption(base64.encode(hex.decode(jsonDecode(response.body))), widget.auth?.aesKey ?? '', widget.auth?.iv ?? '');
+      _showMyDialog(jsonDecode(xdata));
     }
   }
 
@@ -541,7 +582,7 @@ class RequestsState extends State<Requests> {
   void initState() {
     super.initState();
     getLeaveTypes();
-    getDeputizingOfficer();
+    // getLineManager();
     getLeaveSetup();
     getDivision();
     getUtlzDetails(leaveType);
@@ -585,41 +626,41 @@ class RequestsState extends State<Requests> {
           ),
         ),
 
-        const Padding(
-          padding: EdgeInsets.only(left: 10, right: 20),
-          child: Text('Who is this Requisition for',
-              style: TextStyle(
-                  color: Color(0xff88A59A), fontWeight: FontWeight.bold)),
-        ),
-        Container(
-            padding: const EdgeInsets.only(left: 40, right: 40),
-            width: 200,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Self'),
-                SizedBox(
-                  width: 90,
-                  height: 70,
-                  child: FittedBox(
-                    fit: BoxFit.fill,
-                    child: Switch(
-                      value: onBehalf,
-                      onChanged: (bool value) {
-                        setState(() {
-                          onBehalf = value;
-                        });
-                      },
-                      activeColor: const Color(0xff15B77C),
-                      activeTrackColor: const Color(0xffD6EBE3),
-                      inactiveThumbColor: const Color(0xffD6EBE3),
-                      inactiveTrackColor: const Color(0xffD9D9D9),
-                    ),
-                  ),
-                ),
-                const Text('On Behalf Of Another', style: TextStyle(overflow: TextOverflow.ellipsis))
-              ],
-            )),
+        // const Padding(
+        //   padding: EdgeInsets.only(left: 10, right: 20),
+        //   child: Text('Who is this Requisition for',
+        //       style: TextStyle(
+        //           color: Color(0xff88A59A), fontWeight: FontWeight.bold)),
+        // ),
+        // Container(
+        //     padding: const EdgeInsets.only(left: 40, right: 40),
+        //     width: 200,
+        //     child: Row(
+        //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //       children: [
+        //         const Text('Self'),
+        //         SizedBox(
+        //           width: 90,
+        //           height: 70,
+        //           child: FittedBox(
+        //             fit: BoxFit.fill,
+        //             child: Switch(
+        //               value: onBehalf,
+        //               onChanged: (bool value) {
+        //                 setState(() {
+        //                   onBehalf = value;
+        //                 });
+        //               },
+        //               activeColor: const Color(0xff15B77C),
+        //               activeTrackColor: const Color(0xffD6EBE3),
+        //               inactiveThumbColor: const Color(0xffD6EBE3),
+        //               inactiveTrackColor: const Color(0xffD9D9D9),
+        //             ),
+        //           ),
+        //         ),
+        //         const Text('On Behalf Of Another', style: TextStyle(overflow: TextOverflow.ellipsis))
+        //       ],
+        //     )),
         Container(
           child: Form(
               key: _formKey,

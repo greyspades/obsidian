@@ -49,6 +49,10 @@ dependencies:
   expandable: ^5.0.1
   dependencies:
   expandable_group: ^0.0.8
+  encrypt: ^5.0.1
+  hex: ^0.2.0
+  convert: ^3.1.1
+  # aes_crypt: ^0.1.1
 
 dev_dependencies:
   flutter_test:

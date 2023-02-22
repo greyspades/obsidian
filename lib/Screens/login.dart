@@ -1,5 +1,5 @@
 import 'package:http/http.dart' as http;
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Key;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:e_360/Widgets/input.dart';
 import 'dart:convert';
@@ -7,17 +7,28 @@ import 'package:e_360/Models/Staff.dart';
 import 'package:e_360/Widgets/frame.dart';
 import 'package:e_360/Screens/profile.dart';
 import 'package:ota_update/ota_update.dart';
-import 'dart:io' show Platform;
+// import 'dart:io' show Platform;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:encrypt/encrypt.dart';
+import "package:hex/hex.dart";
+import 'dart:math';
+import 'dart:typed_data';
+import 'package:e_360/helpers/aes.dart';
+import 'package:convert/convert.dart';
+import 'package:e_360/helpers/contract.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class Login extends HookWidget {
+
+class Login extends HookConsumerWidget {
   final String title;
   Login({super.key, required this.title});
 
   OtaEvent? event;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authProvider);
+
     final _formKey = GlobalKey<FormState>(debugLabel: '');
     final _usernameController = useTextEditingController();
     final _passwordController = useTextEditingController();
@@ -30,6 +41,10 @@ class Login extends HookWidget {
     final forgottenPassword = useState<bool>(false);
     final connectionError = useState<String?>(null);
     final animController = useState<AnimationController?>(null);
+    final token = useState<String?>(null);
+    final aesKey = useState<String?>(null);
+    final aesIv = useState<String?>(null);
+    final credentials = useState<List<String>?>(null);
     // final isValid = useState<bool>(_formKey.currentState!.validate());
 
     useEffect(() {
@@ -94,38 +109,61 @@ class Login extends HookWidget {
 
     void login() async {
       loading.value = true;
+      
       connectionError.value = null;
+
+      final auth = await makeContract();
+
+      if(auth?.isNotEmpty == true) ref.read(authProvider.notifier).state = Auth(token: auth?[0], aesKey: auth?[1], iv: auth?[2]);
+
       Uri url =
           Uri.parse('http://10.0.0.184:8015/userservices/mobile/authenticatem');
-      var token = {
-        'br':
-            "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300"
-      };
+
+      String base64ToHex(String source) =>
+    base64Decode(LineSplitter.split(source).join())
+        .map((e) => e.toRadixString(16).padLeft(2, '0'))
+        .join();
+
+      var token = jsonEncode({'tk': auth?[0], 'src': "AS-IN-D659B-e3M"});
+
+      var body = jsonEncode({
+        // 'UsN': _usernameController.text,
+        // 'Pwd': _passwordController.text,
+        'UsN': 'SN11536',
+        'Pwd': 'Password6\$',
+        'xAppSource': "AS-IN-D659B-e3M"
+      });
+
+      // final key = Key.fromUtf8(auth![1]);
+
+      // final iv = IV.fromUtf8(auth[2]);
+
+      final encryptedBody = encryption(body, auth![1], auth[2]);
+
+      final encryptedHeader = encryption(token, auth[1], auth[2]);
+
       var headers = {
-        'x-lapo-eve-proc': jsonEncode(token),
+        'x-lapo-eve-proc': base64ToHex(encryptedHeader) + auth[0],
         'Content-type': 'text/json',
       };
+      
       final result = await http
-          .post(url,
-              headers: headers,
-              body: jsonEncode({
-                // 'UsN': _usernameController.text,
-                // 'Pwd': _passwordController.text,
-                'UsN': 'SN11536',
-                'Pwd': 'Password6\$1',
-                'xAppSource': "AS-IN-D659B-e3M"
-              }))
-          .timeout(Duration(seconds: 10))
+          .post(url, headers: headers, body: base64ToHex(encryptedBody))
+          .timeout(const Duration(seconds: 10))
           .catchError((err) => {
                 loading.value = false,
                 connectionError.value = 'Check your internet connection'
               });
       if (result.statusCode == 200) {
-        if (jsonDecode(result.body)?['status'] == false) {
-          _showMyDialog(jsonDecode(result.body));
+        if (jsonDecode(result.body)?['status'] != 200) {
+          loading.value = false;
+          return _showMyDialog(jsonDecode(result.body));
         }
         loading.value = false;
-        final Staff data = Staff.fromJson(jsonDecode(result.body)['data']);
+        
+        var payload = decryption(base64.encode(hex.decode(jsonDecode(result.body)['data'])), auth[1], auth[2]);
+        
+        final Staff data = Staff.fromJson(jsonDecode(payload));
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => Frame(staff: data)));
       } else {
@@ -182,263 +220,288 @@ class Login extends HookWidget {
     }
 
     void checkForUpdate() async {
-
       Uri url = Uri.parse('http://10.0.0.94:5000/get_latest_version');
       final result = await http.get(url);
       print(result.body);
-      if(result.statusCode == 200) {
-        
+      if (result.statusCode == 200) {
         var currentVersion = double.parse(result.body);
         PackageInfo packageInfo = await PackageInfo.fromPlatform();
         String version = packageInfo.version;
         String code = packageInfo.buildNumber;
         // var appVersion = double.parse(version);
-        if(currentVersion > 1.0) {
+        if (currentVersion > 1.0) {
           tryOtaUpdate();
-        }
-        else {
+        } else {
           print('Already using most recent version');
         }
       }
-
     }
 
     useEffect(() {
       // tryOtaUpdate();
-      checkForUpdate();
+      // checkForUpdate();
     }, []);
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        actions: [
-          IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.help, color: Color(0xff15B77C)))
-        ],
-      ),
-      body: ListView(
-        // crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            alignment: Alignment.center,
-            child: Image.asset(
-              'images/lapo_360.png',
-              width: 200,
-              height: 150,
-            ),
-          ),
-          Container(
-              padding: const EdgeInsets.only(bottom: 20, left: 30),
-              alignment: Alignment.center,
-              child: Row(
-                children: [
-                  const Text('Good',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 32,
-                          fontFamily: 'Ubuntu-light')),
-                  const Text('  '),
-                  Text(
-                    getTime() + ',',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 32,
-                        fontFamily: 'Ubuntu-light'),
-                  ),
-                  const Text('  '),
-                  const Text('Boss',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 32,
-                          color: const Color(0xff15B77C),
-                          fontFamily: 'Ubuntu-regular'))
-                ],
-              )),
-          Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: SizedBox(
-                        width: 330,
-                        child: CustomInput(
-                          controller: _usernameController,
-                          hintText: 'your username',
-                          labelText: 'Username',
-                          validation: validateUsername,
-                          isPassword: false,
-                        )),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: forgottenPassword.value == false
-                        ? SizedBox(
-                            width: 330,
-                            child: CustomInput(
-                              controller: _passwordController,
-                              hintText: 'your password',
-                              labelText: 'Password',
-                              validation: validatePassword,
-                              isPassword: true,
-                            ))
-                        : SizedBox(
-                            width: 330,
-                            height: 60,
-                            child: CustomInput(
-                              controller: _passwordController,
-                              hintText: 'Enter Old Password',
-                              labelText: 'Enter Old Password',
-                              validation: validatePassword,
-                              isPassword: true,
-                            )),
-                  ),
-                  Container(
-                      margin: forgottenPassword.value == true
-                          ? const EdgeInsets.only(top: 20)
-                          : null,
-                      height: forgottenPassword.value == true ? 160 : null,
-                      child: forgottenPassword.value == true
-                          ? Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                    width: 330,
-                                    height: 60,
-                                    child: CustomInput(
-                                      controller: _newPasswordController,
-                                      hintText: 'Enter New Password',
-                                      labelText: 'Enter New Password',
-                                      validation: validatePassword,
-                                      isPassword: true,
-                                    )),
-                                SizedBox(
-                                    width: 330,
-                                    height: 60,
-                                    child: CustomInput(
-                                      controller: _confirmPasswordController,
-                                      hintText: 'Confirm New Password',
-                                      labelText: 'Confirm New Password',
-                                      validation: validatePassword,
-                                      isPassword: true,
-                                    )),
-                              ],
-                            )
-                          : null),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 30),
-                    child: MaterialButton(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                        height: 64.0,
-                        minWidth: 320.0,
-                        color: const Color(0xff15B77C),
-                        textColor: Colors.white,
-                        disabledColor: const Color(0xffA6D2C2),
-                        onPressed: () {
-                          // if (_formKey.currentState!.validate() &&
-                          //     forgottenPassword.value == false
-                          //     && updateState.value?.status.toString() != 'OtaStatus.DOWNLOADING'
-                          //     ) {
-                          //   login();
-                          // }
-
-                          // else if(_formKey.currentState!.validate() && forgottenPassword.value == true) {
-                          //    resetPassword();
-                          // }
-                          login();
-                        },
-                        splashColor: Colors.redAccent,
-                        child: loading.value == false &&
-                                forgottenPassword.value == false
-                            ? const Text("Sign in",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w400, fontSize: 22))
-                            : loading.value == true &&
-                                    forgottenPassword.value == false
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 5,
-                                  )
-                                : loading.value == false &&
-                                        forgottenPassword.value == true
-                                    ? const Text("Reset Password",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 22))
-                                    : loading.value == true &&
-                                            forgottenPassword.value == true
-                                        ? const CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 5,
-                                          )
-                                        : null),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: TextButton(
-                        onPressed: () {
-                          // forgottenPassword.value = !forgottenPassword.value;
-                        },
-                        child: forgottenPassword.value == true
-                            ? const Text('Cancel Password Reset',
-                                style: TextStyle(color: Color(0xff15B77C)))
-                            : const Text('Forgot Password',
-                                style: TextStyle(color: Color(0xff15B77C)))),
-                  ),
-                  Container(
-                    height: 50,
-                    child: updateState.value?.status.toString() == 'OtaStatus.DOWNLOADING' ? Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                      Text(updateState.value?.status.toString().split('.')[1] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
-                      LinearProgressIndicator(
-                      backgroundColor: Colors.grey[200],
-                      color: const Color(0xff15B77C),
-                      value: double.parse(updateState.value?.value ?? '0.0')/100,
-                    ),
-
-                    Text('${updateState.value?.value}%', style: const TextStyle(color: Color(0xff15B77C), fontSize: 16, fontWeight: FontWeight.bold),)
-                    ],) : null
-                  ),
-
-                  Container(
-                    child: connectionError.value != null
-                        ? Column(
-                            children: [
-                              Container(
-                                alignment: Alignment.center,
-                                child: const Icon(
-                                    Icons.signal_wifi_connected_no_internet_4,
-                                    color: Color(0xffEF9545),
-                                    size: 80),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(top: 20),
-                                child: Text(
-                                  connectionError.value ?? '',
-                                  style: const TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              )
-                            ],
-                          )
-                        : null,
+    return WillPopScope(
+        onWillPop: () async => false,
+        child: Scaffold(
+          resizeToAvoidBottomInset: false,
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.white,
+            actions: [
+              IconButton(
+                  onPressed: () {},
+                  icon: Icon(Icons.help, color: Colors.grey[500])
                   )
+            ],
+          ),
+          body: ListView(
+            // crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                alignment: Alignment.center,
+                child: Image.asset(
+                  'images/lapo_360.png',
+                  width: 200,
+                  height: 150,
+                ),
+              ),
+              Container(
+                  padding: const EdgeInsets.only(bottom: 20, left: 30),
+                  alignment: Alignment.center,
+                  child: Row(
+                    children: [
+                      const Text('Good',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 32,
+                              fontFamily: 'Ubuntu-light')),
+                      const Text('  '),
+                      Text(
+                        getTime() + ',',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 32,
+                            fontFamily: 'Ubuntu-light'),
+                      ),
+                      const Text('  '),
+                      const Text('Boss',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 32,
+                              color: Color(0xff15B77C),
+                              fontFamily: 'Ubuntu-regular'))
+                    ],
+                  )),
+              Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: SizedBox(
+                            width: 330,
+                            child: CustomInput(
+                              controller: _usernameController,
+                              hintText: 'your username',
+                              labelText: 'Username',
+                              validation: validateUsername,
+                              isPassword: false,
+                            )),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: forgottenPassword.value == false
+                            ? SizedBox(
+                                width: 330,
+                                child: CustomInput(
+                                  controller: _passwordController,
+                                  hintText: 'your password',
+                                  labelText: 'Password',
+                                  validation: validatePassword,
+                                  isPassword: true,
+                                ))
+                            : SizedBox(
+                                width: 330,
+                                height: 60,
+                                child: CustomInput(
+                                  controller: _passwordController,
+                                  hintText: 'Enter Old Password',
+                                  labelText: 'Enter Old Password',
+                                  validation: validatePassword,
+                                  isPassword: true,
+                                )),
+                      ),
+                      Container(
+                          margin: forgottenPassword.value == true
+                              ? const EdgeInsets.only(top: 20)
+                              : null,
+                          height: forgottenPassword.value == true ? 160 : null,
+                          child: forgottenPassword.value == true
+                              ? Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    SizedBox(
+                                        width: 330,
+                                        height: 60,
+                                        child: CustomInput(
+                                          controller: _newPasswordController,
+                                          hintText: 'Enter New Password',
+                                          labelText: 'Enter New Password',
+                                          validation: validatePassword,
+                                          isPassword: true,
+                                        )),
+                                    SizedBox(
+                                        width: 330,
+                                        height: 60,
+                                        child: CustomInput(
+                                          controller:
+                                              _confirmPasswordController,
+                                          hintText: 'Confirm New Password',
+                                          labelText: 'Confirm New Password',
+                                          validation: validatePassword,
+                                          isPassword: true,
+                                        )),
+                                  ],
+                                )
+                              : null),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 30),
+                        child: MaterialButton(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            height: 64.0,
+                            minWidth: 320.0,
+                            color: const Color(0xff15B77C),
+                            textColor: Colors.white,
+                            disabledColor: const Color(0xffA6D2C2),
+                            onPressed: () {
+                              // if (_formKey.currentState!.validate() &&
+                              //     forgottenPassword.value == false
+                              //     && updateState.value?.status.toString() != 'OtaStatus.DOWNLOADING'
+                              //     ) {
+                              //   login();
+                              // }
 
-                  // Container(
-                  //   child: Text('OTA status: ${updateState.value?.status} : ${updateState.value?.value} \n'),
-                  // )
-                ],
-              ))
-        ],
-      ),
-    );
+                              // else if(_formKey.currentState!.validate() && forgottenPassword.value == true) {
+                              //    resetPassword();
+                              // }
+                              login();
+                              // makeContract();
+                            },
+                            splashColor: Colors.redAccent,
+                            child: loading.value == false &&
+                                    forgottenPassword.value == false
+                                ? const Text("Sign in",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 22))
+                                : loading.value == true &&
+                                        forgottenPassword.value == false
+                                    ? const CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 5,
+                                      )
+                                    : loading.value == false &&
+                                            forgottenPassword.value == true
+                                        ? const Text("Reset Password",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w400,
+                                                fontSize: 22))
+                                        : loading.value == true &&
+                                                forgottenPassword.value == true
+                                            ? const CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 5,
+                                              )
+                                            : null),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: TextButton(
+                            onPressed: () {
+                              // forgottenPassword.value = !forgottenPassword.value;
+                            },
+                            child: forgottenPassword.value == true
+                                ? const Text('Cancel Password Reset',
+                                    style: TextStyle(color: Color(0xff15B77C)))
+                                : const Text('Forgot Password',
+                                    style:
+                                        TextStyle(color: Color(0xff15B77C)))),
+                      ),
+                      Container(
+                          height: 50,
+                          child: updateState.value?.status.toString() ==
+                                  'OtaStatus.DOWNLOADING'
+                              ? Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      updateState.value?.status
+                                              .toString()
+                                              .split('.')[1] ??
+                                          '',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),
+                                    ),
+                                    LinearProgressIndicator(
+                                      backgroundColor: Colors.grey[200],
+                                      color: const Color(0xff15B77C),
+                                      value: double.parse(
+                                              updateState.value?.value ??
+                                                  '0.0') /
+                                          100,
+                                    ),
+                                    Text(
+                                      '${updateState.value?.value}%',
+                                      style: const TextStyle(
+                                          color: Color(0xff15B77C),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    )
+                                  ],
+                                )
+                              : null),
+
+                      Container(
+                        child: connectionError.value != null
+                            ? Column(
+                                children: [
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child: const Icon(
+                                        Icons
+                                            .signal_wifi_connected_no_internet_4,
+                                        color: Color(0xffEF9545),
+                                        size: 80),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 20),
+                                    child: Text(
+                                      connectionError.value ?? '',
+                                      style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  )
+                                ],
+                              )
+                            : null,
+                      )
+
+                      // Container(
+                      //   child: Text('OTA status: ${updateState.value?.status} : ${updateState.value?.value} \n'),
+                      // )
+                    ],
+                  ))
+            ],
+          ),
+        ));
   }
 }

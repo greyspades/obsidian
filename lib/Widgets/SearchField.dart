@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:e_360/Models/Staff.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:e_360/Widgets/input.dart';
 import 'package:e_360/Models/DepOfficer.dart';
 import 'package:e_360/Screens/SettingsItem.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:convert/convert.dart';
+import 'package:e_360/helpers/contract.dart';
+import 'package:e_360/helpers/aes.dart';
 
 
-
-class SearchField extends HookWidget {
+class SearchField extends HookConsumerWidget {
 
   Staff staff;
   Map<dynamic, dynamic> info;
@@ -23,7 +26,9 @@ class SearchField extends HookWidget {
 
   @override 
 
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+  
+  final Auth auth = ref.watch(authProvider);
   
   final searchController = useTextEditingController();
 
@@ -32,23 +37,19 @@ class SearchField extends HookWidget {
   final division = useState<Map<dynamic, dynamic>>({});
 
     Future<dynamic> search(String item) async {
-
-      print(item);
-      print(division.value['DivisionName']);
-      print(division.value['DivisionCode']);
       
     Uri url = Uri.parse('http://10.0.0.184:8015/userservices/searchemployees');
-    var token = {
-      'br':
-          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+    var token = jsonEncode({
+      'tk': auth.token,
       'us': staff.userRef,
-      'rl': staff.uRole
-    };
+      'rl': staff.uRole,
+      'src': "AS-IN-D659B-e3M"
+    });
     var headers = {
-      'x-lapo-eve-proc': jsonEncode(token),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')),
       'Content-type': 'text/json',
     };
-    var body = {
+    var body = jsonEncode({
       "xParam": item,
       "xBuCode": "",
       "xScope": division.value['DivisionName'],
@@ -59,36 +60,45 @@ class SearchField extends HookWidget {
       "xApp": "AS-IN-D659B-e3M",
       "xPageIndex": 1,
       "xPageSize": 1
-    };
+    });
+
+    final xpayload = base64ToHex(encryption(body, auth.aesKey ?? '', auth.iv ?? ''));
     var response =
-        await http.post(url, headers: headers, body: jsonEncode(body));
+        await http.post(url, headers: headers, body: xpayload);
     if (response.statusCode == 200) {
+      var data = jsonDecode(response.body)["data"];
+    var xData = decryption(base64.encode(hex.decode(data)), auth.aesKey ?? '', auth.iv ?? '');
       var result =
-          List<Map<dynamic, dynamic>>.from(jsonDecode(response.body)['data']);
-          print(result);
+          List<Map<dynamic, dynamic>>.from(jsonDecode(xData));
+          
       return result;
     }
   }
 
   Future<void> getDivision() async {
     Uri url = Uri.parse('http://10.0.0.184:8015/userservices/divisionbyempNo');
-    var token = {
-      'br':
-          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+    var token = jsonEncode({
+      'tk': auth.token,
       'us': staff.userRef,
-      'rl': staff.uRole
-    };
+      'rl': staff.uRole,
+      'src': "AS-IN-D659B-e3M"
+    });
     var headers = {
-      'x-lapo-eve-proc': jsonEncode(token),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')),
       'Content-type': 'text/json',
     };
-    var response = await http.post(url,
-        headers: headers, body: jsonEncode({"xParam": staff.userRef}));
-    if (response.statusCode == 200) {
-      var divisionResponse =
-          Map<dynamic, dynamic>.from(jsonDecode(response.body)['data']);
-          print(divisionResponse);
 
+    var body = jsonEncode({"xParam": staff.userRef});
+
+    final xpayload = base64ToHex(encryption(body, auth.aesKey ?? '', auth.iv ?? ''));
+
+    var response = await http.post(url,
+        headers: headers, body: xpayload);
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body)["data"];
+    var xData = decryption(base64.encode(hex.decode(data)), auth.aesKey ?? '', auth.iv ?? '');
+      var divisionResponse =
+          Map<dynamic, dynamic>.from(jsonDecode(xData));
       division.value = divisionResponse;
     }
   }

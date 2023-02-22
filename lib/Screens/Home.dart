@@ -7,7 +7,9 @@ import 'package:e_360/Widgets/input.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class Home extends HookWidget {
-  Home({super.key});
+  dynamic switchTab;
+
+  Home({super.key, required this.switchTab});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +39,8 @@ class Home extends HookWidget {
                   height: 20,
                   width: 100,
                   child: Material(
-                  color: const Color(0xffEF9545),
+                  // color: const Color(0xffEF9545),
+                  color: Colors.grey[400],
                   borderRadius: BorderRadius.circular(10),
                   child: MaterialButton(
                     onPressed: (){}, child: const Text('Learn more', style: TextStyle(fontSize: 10, color: Colors.white),),
@@ -72,7 +75,8 @@ class Home extends HookWidget {
                   height: 20,
                   width: 100,
                   child: Material(
-                  color: const Color(0xff2BAD6A),
+                  // color: const Color(0xff2BAD6A),
+                  color: Colors.grey[400],
                   borderRadius: BorderRadius.circular(10),
                   child: MaterialButton(
                     onPressed: (){}, child: const Text('Learn more', style: TextStyle(fontSize: 10, color: Colors.white),),
@@ -91,7 +95,9 @@ class Home extends HookWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                       const Text('Recent Activities', style: TextStyle(fontWeight: FontWeight.bold),),
-                      TextButton(onPressed: (){}, child: const Text('See all')),
+                      TextButton(onPressed: (){
+                        switchTab(5);
+                      }, child: const Text('See all')),
                     ],),
                     ),
                     Container(
@@ -108,7 +114,9 @@ class Home extends HookWidget {
                   color: const Color(0xff2BAD6A),
                   borderRadius: BorderRadius.circular(10),
                   child: MaterialButton(
-                    onPressed: (){}, child: Row(
+                    onPressed: (){
+                      switchTab(5);
+                    }, child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: const[
                       Text('Check Leave Status', style: TextStyle(fontSize: 10, color: Colors.white),),
@@ -162,7 +170,7 @@ class Home extends HookWidget {
                         Container(
                           width: 100,
                           color: Colors.white,
-                          child: const Text('Christmas Caro', style: TextStyle(fontSize: 10),),
+                          child: const Text('Christmas Carol', style: TextStyle(fontSize: 10),),
                         )
                     ],),
 
@@ -191,7 +199,8 @@ class Home extends HookWidget {
                   height: 20,
                   width: 100,
                   child: Material(
-                  color: const Color(0xff2BAD6A),
+                  // color: const Color(0xff2BAD6A),
+                  color: Colors.grey[400],
                   borderRadius: BorderRadius.circular(10),
                   child: MaterialButton(
                     onPressed: (){}, child: Row(

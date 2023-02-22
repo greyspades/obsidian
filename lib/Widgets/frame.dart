@@ -1,5 +1,6 @@
 import 'package:e_360/Screens/Downline.dart';
 import 'package:e_360/Screens/login.dart';
+import 'package:e_360/helpers/aes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:e_360/Screens/profile.dart';
@@ -15,9 +16,14 @@ import 'package:e_360/Screens/Settings.dart';
 import 'package:e_360/Screens/Management.dart';
 import 'package:e_360/Screens/Transactions.dart';
 import 'package:e_360/Models/Transaction.dart';
+import 'package:e_360/Screens/Confirmation.dart';
+import 'package:e_360/helpers/contract.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:convert/convert.dart';
+ import 'dart:async';
 
 
-class Frame extends HookWidget {
+class Frame extends HookConsumerWidget {
   final Staff staff;
 
   final String? screen;
@@ -25,90 +31,78 @@ class Frame extends HookWidget {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  Timer? timer;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    Auth auth = ref.watch(authProvider);
+
     final currentIndex = useState<int>(0);
     final userData = useState<Map<String, dynamic>>({});
-    final transactions = useState<List<Transaction>?>(null);
 
-    Future<void> getTransactions() async {
-    Uri url = Uri.parse(
-        'http://10.0.0.184:8015/userservices/listtransactions');
-    var token = {
-      'br':
-          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
-      'us': staff.userRef,
-      'rl': staff.uRole
-    };
-    var headers = {
-      'x-lapo-eve-proc': jsonEncode(token),
-      'Content-type': 'text/json',
-    };
-    var body = {
-      "xParam": "",
-  "xBuCode": "",
-  "xScope": "all",
-  "xScopeRef": "",
-  "xRowCount": 1,
-  "xFromDate": "",
-  "xToDate": "",
-  "xApp": "100",
-  "xPageIndex": 1,
-  "xPageSize": 1
-    };
-    var response =
-        await http.post(url, headers: headers, body: jsonEncode(body));
-    if (response.statusCode == 200) {
-      final data =
-          List.from(jsonDecode(response.body)['data']);
-      final dataList = data.map((e) => Transaction.fromJson(e),).toList();
-     transactions.value = dataList;
-    }
+  void switchTab(int idx) {
+    currentIndex.value = idx;
   }
 
     useEffect(() {
       void getData() async {
         Uri url = Uri.parse(
             'http://10.0.0.184:8015/userservices/primaryrecord/${staff.employeeNo}/primaryrecord');
-        var token = {
-          'br':
-              "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+
+        var token = jsonEncode({
+          'tk': auth.token,
           'us': staff.userRef,
-          'rl': staff.uRole
-        };
+          'rl': staff.uRole,
+          'src': 'AS-IN-D659B-e3M'
+        });
+
+        var xheaders = encryption(token, auth.aesKey ?? '', auth.iv ?? '');
+
         var headers = {
-          'x-lapo-eve-proc': jsonEncode(token),
+          'x-lapo-eve-proc': base64ToHex(xheaders) + auth.token.toString(),
           'Content-type': 'text/json',
         };
+
         var response = await http.get(url, headers: headers);
 
         if (response.statusCode == 200) {
-          userData.value = jsonDecode(response.body)['data'];
+
+          final code = base64.encode(hex.decode(jsonDecode(response.body)['data']));
+
+          final payload = decryption(code, auth.aesKey ?? '', auth.iv ?? '');
+          
+          userData.value = jsonDecode(payload);
         }
       }
 
       getData();
-      getTransactions();
+      // getTransactions();
     }, []);
 
-    // useEffect(() {
-    //   switch (screen) {
-    //     case 'profile':
-    //       {}
-    //       break;
-    //   }
-    // }, []);
-
-    var token = {
-      'br':
-          "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+    var token = jsonEncode({
+      'tk': auth.token,
       'us': staff.userRef,
-      'rl': staff.uRole
-    };
+      'rl': staff.uRole,
+      'src': "AS-IN-D659B-e3M"
+    });
+
     var headers = {
-      'x-lapo-eve-proc': jsonEncode(token),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) + (auth.token ?? ''),
       'Content-type': 'text/json',
     };
+
+    useEffect(() {
+      Timer.periodic(const Duration(seconds: 250), (timer) async{
+        try {
+          var cred = await renewContract(headers);
+          ref.read(authProvider.notifier).state = Auth(token: cred?[0], aesKey: cred?[1], iv: cred?[2]);
+        }
+        catch(err) {
+          print(err);
+        }
+    });
+
+    },[auth]);
 
     Future<void> _showMyDialog() async {
     return showDialog<void>(
@@ -138,7 +132,9 @@ class Frame extends HookWidget {
   }
 
     List<Widget> screens = <Widget>[
-      Home(),
+      Home(
+        switchTab: switchTab,
+      ),
       Profile(
         staff: staff,
         info: userData.value,
@@ -146,14 +142,16 @@ class Frame extends HookWidget {
       Requests(
         staff: staff,
         info: userData.value,
+        auth: auth,
       ),
       Payslip(
         staff: staff,
         info: userData.value
       ),
       Management(staff: staff, info: userData.value),
-      Transactions(staff: staff, info: userData.value, transactions: transactions.value,),
+      Transactions(staff: staff, info: userData.value, auth: auth, ),
       Settings(staff: staff, info: userData.value),
+      // Confirmation(staff: staff, ref: 'TRFLVERL21IX67SN', trans: transactions.value![1])
     ];
 
     return WillPopScope(
