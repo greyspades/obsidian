@@ -1,3 +1,4 @@
+import 'package:e_360/Models/Transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:e_360/Models/Staff.dart';
@@ -15,7 +16,6 @@ import 'package:convert/convert.dart';
 import 'package:e_360/helpers/contract.dart';
 import 'package:e_360/helpers/aes.dart';
 
-
 Map<int, Color> color = {
   50: Color.fromRGBO(136, 14, 79, .1),
   100: Color.fromRGBO(136, 14, 79, .2),
@@ -32,20 +32,22 @@ Map<int, Color> color = {
 class Management extends HookConsumerWidget {
   Staff staff;
   Map<dynamic, dynamic> info;
-  Management({super.key, required this.staff, required this.info});
+  String appraiser;
+  String appraiserRef;
+  Transaction? trans;
+  Management(
+      {super.key,
+      required this.staff,
+      required this.info,
+      required this.appraiser,
+      required this.appraiserRef,
+      this.trans});
 
   bool isAppraiser = true;
+
   bool active = false;
 
   MaterialColor colorCustom = MaterialColor(0xff15B77C, color);
-
-  // final kp1 = TextEditingController();
-  // final kp2 = TextEditingController();
-  // final kp3 = TextEditingController();
-  // final kp4 = TextEditingController();
-  // final kp5 = TextEditingController();
-  // final kp6 = TextEditingController();
-  // final kp7 = TextEditingController();
 
   final re1 = TextEditingController();
   final re2 = TextEditingController();
@@ -61,7 +63,6 @@ class Management extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     final auth = ref.watch(authProvider);
 
     final active = useState<bool>(false);
@@ -71,54 +72,194 @@ class Management extends HookConsumerWidget {
     final valueThree = useState<int>(0);
     final valueFour = useState<int>(0);
     final valueFive = useState<int>(0);
-    final appraiser = useState<String?>(null);
+    // final appraiser = useState<String?>(null);
     final downlines = useState<List<dynamic>?>(null);
     final metricStep = useState<int?>(null);
-    final totalKpi = useState<int?>(null);
-    final totalBC = useState<int?>(null);
+    final totalKpi = useState<int>(0);
+    final totalBC = useState<int>(0);
 
     final kpi1 = useState<int>(0);
     final kpi2 = useState<int>(0);
     final kpi3 = useState<int>(0);
     final kpi4 = useState<int>(0);
     final kpi5 = useState<int>(0);
+
     final kpiStep = useState<int>(0);
+
+    final kpiVal = useState<int>(0);
+
+    final BCVal = useState<int>(0);
+
+    final bcStep = useState<int>(0);
+
+    final staffKpi = useState<List<Map<dynamic, dynamic>>?>(null);
+
+    final staffBC = useState<List<Map<dynamic, dynamic>>?>(null);
 
     final currentAppraiser = useState<String?>(null);
 
+    final selfDetails = useState<List<Map>?>(null);
+
+    final kpiJust = useTextEditingController();
+
+    final bcJust = useTextEditingController();
+
+    final kpiObj = useState<List<Map<dynamic, dynamic>>?>(null);
+
+    final bcObj = useState<List<Map<dynamic, dynamic>>?>(null);
+
     final _formKey = GlobalKey<FormState>(debugLabel: '');
 
-    Future<void> getKpi() async {
-    Uri url = Uri.parse(
-        'http://10.0.0.184:8015/perfomance/listappraisalkpis');
-    var token = jsonEncode({
-      'tk': auth.token,
-      'us': staff.userRef,
-      'rl': staff.uRole,
-      'src': "AS-IN-D659B-e3M"
-    });
-    var headers = {
-      'x-lapo-eve-proc': base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) + (auth.token ?? ''),
-      'Content-type': 'text/json',
-    };
-    var body = jsonEncode({
-      'tk': auth.token,
-      'us': staff.userRef,
-      'rl': staff.uRole,
-      'src': "AS-IN-D659B-e3M"
-    });
-    var response =
-        await http.post(url, headers: headers, body: base64ToHex(encryption(body, auth.aesKey ?? '', auth.iv ?? '')));
-    print(response.body);
-    if (response.statusCode == 200) {
-      var xdata = decryption(base64.encode(hex.decode(jsonDecode(response.body)['data'])), auth.aesKey ?? '', auth.iv ?? '');
-      var data =
-          Map<dynamic, dynamic>.from(jsonDecode(xdata));
-      // setState(() {
-      //   utilDetails = data;
-      // });
+    final appariserInfo = useState<Map?>(null);
+
+    void addKpiValue(int val) {
+      totalKpi.value += val;
     }
-  }
+
+    void addKpi(Map<dynamic, dynamic> val) {
+      kpiObj.value = [...?kpiObj.value, val];
+    }
+
+    void addBc(Map<dynamic, dynamic> val) {
+      bcObj.value = [...?bcObj.value, val];
+    }
+
+    void getData() async {
+      Uri url = Uri.parse(
+          'http://10.0.0.184:8015/userservices/primaryrecord/$appraiserRef/primaryrecord');
+
+      var token = jsonEncode({
+        'tk': auth.token,
+        'us': staff.userRef,
+        'rl': staff.uRole,
+        'src': 'AS-IN-D659B-e3M'
+      });
+
+      var xheaders = encryption(token, auth.aesKey ?? '', auth.iv ?? '');
+
+      var headers = {
+        'x-lapo-eve-proc': base64ToHex(xheaders) + auth.token.toString(),
+        'Content-type': 'text/json',
+      };
+
+      var response = await http.get(url, headers: headers);
+      print(response.body);
+      if (response.statusCode == 200) {
+        final code =
+            base64.encode(hex.decode(jsonDecode(response.body)['data']));
+
+        final payload = decryption(code, auth.aesKey ?? '', auth.iv ?? '');
+        print(payload);
+        appariserInfo.value = jsonDecode(payload);
+      }
+    }
+
+    // useEffect(() {
+    //   // getData();
+    //   // print(appraiserRef);
+    //   return null;
+    // }, []);
+
+    Future<void> getKpi() async {
+      Uri url =
+          Uri.parse('http://10.0.0.184:8015/perfomance/listappraisalkpis');
+      var token = jsonEncode({
+        'tk': auth.token,
+        'us': staff.userRef,
+        'rl': staff.uRole,
+        'src': "AS-IN-D659B-e3M"
+      });
+      var headers = {
+        'x-lapo-eve-proc':
+            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) +
+                (auth.token ?? ''),
+        'Content-type': 'text/json',
+      };
+      var body = jsonEncode({
+        'us': appraiserRef,
+      });
+      var response = await http.post(url,
+          headers: headers,
+          body:
+              base64ToHex(encryption(body, auth.aesKey ?? '', auth.iv ?? '')));
+      if (response.statusCode == 200) {
+        var xdata = decryption(
+            base64.encode(hex.decode(jsonDecode(response.body)['data'])),
+            auth.aesKey ?? '',
+            auth.iv ?? '');
+        var data = List<Map<dynamic, dynamic>>.from(jsonDecode(xdata));
+        staffKpi.value = data;
+      }
+    }
+
+      Future<void> getSelfEvaluation() async {
+      Uri url = Uri.parse(
+          'http://10.0.0.184:8015/perfomance/retrieveselfevaluation');
+      var token = jsonEncode({
+        'tk': auth.token,
+        'us': staff.userRef,
+        'rl': staff.uRole,
+        'src': "AS-IN-D659B-e3M"
+      });
+      var headers = {
+        'x-lapo-eve-proc':
+            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) +
+                (auth.token ?? ''),
+        'Content-type': 'text/json',
+      };
+      var body = jsonEncode({
+        "xTransRef": trans?.itemCode.toString(),
+        // 'TRFAPRSLR0V7LBH43VU5',
+  "xTransScope": "129dekekddkffmf2sv25",
+  "xAppTransScope": "9e9efefech009eee",
+  "xAppSource": "AS-IN-D659B-e3M",
+  "xRecTargetSection": "string"
+      });
+      var response = await http.post(url,
+          headers: headers,
+          body:
+              base64ToHex(encryption(body, auth.aesKey ?? '', auth.iv ?? '')));
+      if (response.statusCode == 200) {
+        var xdata = decryption(
+            base64.encode(hex.decode(jsonDecode(response.body)['data'])),
+            auth.aesKey ?? '',
+            auth.iv ?? '');
+        var data = List<Map<dynamic, dynamic>>.from(jsonDecode(xdata));
+        selfDetails.value = data;
+      }
+    }
+
+    Future<void> getBC() async {
+      Uri url = Uri.parse(
+          'http://10.0.0.184:8015/perfomance/listappraisalbehaviouralcomp');
+      var token = jsonEncode({
+        'tk': auth.token,
+        'us': staff.userRef,
+        'rl': staff.uRole,
+        'src': "AS-IN-D659B-e3M"
+      });
+      var headers = {
+        'x-lapo-eve-proc':
+            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) +
+                (auth.token ?? ''),
+        'Content-type': 'text/json',
+      };
+      var body = jsonEncode({
+        'us': appraiserRef,
+      });
+      var response = await http.post(url,
+          headers: headers,
+          body:
+              base64ToHex(encryption(body, auth.aesKey ?? '', auth.iv ?? '')));
+      if (response.statusCode == 200) {
+        var xdata = decryption(
+            base64.encode(hex.decode(jsonDecode(response.body)['data'])),
+            auth.aesKey ?? '',
+            auth.iv ?? '');
+        var data = List<Map<dynamic, dynamic>>.from(jsonDecode(xdata));
+        staffBC.value = data;
+      }
+    }
 
     Future<void> _showMyDialog(int nextStep, String title, int score) async {
       return showDialog<void>(
@@ -181,6 +322,56 @@ class Management extends HookConsumerWidget {
       );
     }
 
+    Future<void> _showResponse(Map<dynamic, dynamic> data) async {
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: data['status'] == 200 ? const Text(
+              'Successful',
+              style: TextStyle(
+                  color: Color(0xff15B77C),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
+            ) : const Text(
+              'Unsuccessful',
+              style: TextStyle(
+                  color: Color(0xff15B77C),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
+            ),
+            content: SingleChildScrollView(
+                child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  data['message_description'],
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                ),
+              ],
+            )),
+            actions: <Widget>[
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff15B77C)),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () {
+                  metricStep.value = null;
+                  Navigator.of(context).pop();
+                  active.value = false;
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     List<Map<String, String>> dummyDownlines = [
       {
         "name": "peter ojo",
@@ -208,60 +399,93 @@ class Management extends HookConsumerWidget {
       }
     ];
 
-    // void calculateKpiSum() {
-    //   var total = int.parse(kp1.text) +
-    //       int.parse(kp2.text) +
-    //       int.parse(kp3.text) +
-    //       int.parse(kp4.text) +
-    //       int.parse(kp5.text) +
-    //       int.parse(kp6.text) +
-    //       int.parse(kp7.text);
-    //   totalKpi.value = total;
-    //   _showMyDialog(1, 'Total KPI Score', totalKpi.value as int);
-    // }
-
     void calculateKpiSum() {
-      var sum = kpi1.value +
-          kpi2.value +
-          kpi3.value +
-          kpi4.value +
-          kpi5.value;
-      var total = sum * 0.10 * 2;
-      totalKpi.value = total.toInt();
-      _showMyDialog(
-          1, 'Total KPI Score', totalKpi.value as int);
+      // var sum = totalKpi.value * 0.10 * 2;
+      // totalKpi.value = sum.toInt();
+      _showMyDialog(1, 'Total KPI Score', totalKpi.value);
     }
 
     void calculateBCSum() {
-      var sum = valueOne.value +
-          valueTwo.value +
-          valueThree.value +
-          valueFour.value +
-          valueFive.value;
-      var total = sum * 0.10 * 2;
-      totalBC.value = total.toInt();
+      // var sum = totalBC.value * 0.10 * 2;
+      // totalBC.value = sum.toInt();
+      int nextStep = appraiser == 'Self' ? 3 : 2;
       _showMyDialog(
-          2, 'Total Behavioral Competencies Score', totalBC.value as int);
+          nextStep, 'Total Behavioral Competencies Score', totalBC.value);
+    }
+
+    void submitAppraisl() async {
+      Uri url = Uri.parse(
+          'http://10.0.0.184:8015/perfomance/poastappraisalevaluation');
+      var token = jsonEncode({
+        'tk': auth.token,
+        'us': staff.userRef,
+        'rl': staff.uRole,
+        'src': "AS-IN-D659B-e3M"
+      });
+      var headers = {
+        'x-lapo-eve-proc':
+            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) +
+                (auth.token ?? ''),
+        'Content-type': 'text/json',
+      };
+      var body = jsonEncode({
+        "xAppraisalEvaluationData": [...?bcObj.value, ...?kpiObj.value],
+        "xRecommendedForPromotion": re3.text,
+        "xAppraisalTrainingNeedsData": re2.text,
+        "xAreaOfImprovement": re1.text,
+        "xAppraisalComment": re4.text,
+        "xTrans": {
+          "xTransScope": "129dekekddkffmf2sv25",
+          "xAppTransScope": "9e9efefech009eee",
+          "xAppSource": "AS-IN-D659B-e3M",
+          "xTransRef": "",
+          "xRecTargetSection": ""
+        }
+      });
+      var response = await http.post(url,
+          headers: headers,
+          body:
+              base64ToHex(encryption(body, auth.aesKey ?? '', auth.iv ?? '')));
+      var data = jsonDecode(response.body);
+    
+        _showResponse(data);
+      if (response.statusCode == 200) {
+        // var data = jsonDecode(response.body);
+        // print('success yaza!!!!!');
+        // print(data);
+        // _showResponse(data);
+      }
     }
 
     void getDownline() async {
       Uri url = Uri.parse("http://10.0.0.184:8015/userservices/mydownline");
-      var token = {
-        'br':
-            "66006500390034006200650036003400390065006500630063006400380063006600330062003200300030006200630061003300330062003300640030006300",
+      var token = jsonEncode({
+        'tk': auth.token,
         'us': staff.userRef,
-        'rl': staff.uRole
-      };
+        'rl': staff.uRole,
+        'src': "AS-IN-D659B-e3M"
+      });
       var headers = {
-        'x-lapo-eve-proc': jsonEncode(token),
+        'x-lapo-eve-proc':
+            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) +
+                (auth.token ?? ''),
         'Content-type': 'text/json',
       };
-      var result = await http.get(url, headers: headers);
-      if (result.statusCode == 200) {
-        var data = jsonDecode(result.body)['data'];
-        List<dynamic> downlineData = List<dynamic>.from(data);
+      var body = jsonEncode({
+        "xPostValue": staff.userRef,
+      });
+      var response = await http.post(url,
+          headers: headers,
+          body:
+              base64ToHex(encryption(body, auth.aesKey ?? '', auth.iv ?? '')));
+      if (response.statusCode == 200) {
+        var xdata = decryption(
+            base64.encode(hex.decode(jsonDecode(response.body)['data'])),
+            auth.aesKey ?? '',
+            auth.iv ?? '');
+        var data = List<Map<dynamic, dynamic>>.from(jsonDecode(xdata));
         print(data);
-        downlines.value = downlineData;
+        downlines.value = data;
       }
     }
 
@@ -277,15 +501,24 @@ class Management extends HookConsumerWidget {
     }
 
     useEffect(() {
-      getDownline();
       getKpi();
+      getBC();
+      return null;
+    }, []);
+
+    useEffect(() {
+      if(trans != null) {
+        print(trans?.itemCode);
+        getSelfEvaluation();
+      }
+
+      return null;
     }, []);
 
     setStep(int step, String type) {
-      if(type == 'KPI') {
+      if (type == 'KPI') {
         kpiStep.value = step;
-      }
-      else {
+      } else {
         currentStep.value = step;
       }
     }
@@ -306,219 +539,241 @@ class Management extends HookConsumerWidget {
       }
     }
 
-    return Container(
-        decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(60))),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.only(left: 10, right: 10),
-        child: active.value == false
-            ? Container(
-                width: 400,
-                height: 200,
-                child: Card(
-                    // color: const Color(0xffD6EBE3),
-                    color: Colors.grey[200],
-                    margin: const EdgeInsets.all(30),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+    var token = jsonEncode({
+      'tk': auth.token,
+      'us': staff.userRef,
+      'rl': staff.uRole,
+      'src': "AS-IN-D659B-e3M"
+    });
+
+    var headers = {
+      'x-lapo-eve-proc':
+          base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) +
+              (auth.token ?? ''),
+      'Content-type': 'text/json',
+    };
+
+    return Scaffold(
+        appBar: appraiser == 'Superior'
+            ? AppBar(
+                backgroundColor: Colors.white,
+                iconTheme: const IconThemeData(color: Colors.black),
+              )
+            : null,
+        body: Container(
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(60))),
+            alignment: Alignment.center,
+            padding: const EdgeInsets.only(left: 10, right: 10),
+            child: active.value == false
+                ? Container(
+                    width: 400,
+                    height: 150,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(5))),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Begin new Appraisal',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                        CircleAvatar(
+                          backgroundColor: Colors.grey[400],
+                          radius: 30,
+                          backgroundImage: NetworkImage(
+                            'http://10.0.0.184:8015/userservices/retrievephoto/${appraiserRef}/retrievephoto',
+                            headers: headers,
+                          ),
                         ),
                         Container(
-                          padding: const EdgeInsets.only(left: 30, right: 30),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                  width: 100,
-                                  height: 40,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      active.value = true;
-                                      appraiser.value = 'self';
-                                      metricStep.value = 0;
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color(0xff15B77C)),
-                                    child: const Text('Self'),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 100,
-                                  height: 40,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      active.value = true;
-                                      appraiser.value = 'other';
-                                      // metricStep.value = 0;
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color(0xff15B77C)),
-                                    child: const Text('Downliner'),
-                                  ),
-                                )
-                              ]),
+                          child: Text(
+                            trans?.createdBy ??
+                                (staff.firstName! +
+                                    " " +
+                                    staff.lastName.toString()),
+                            style: const TextStyle(
+                                fontSize: 18, color: Colors.black),
+                          ),
+                        ),
+                        Container(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xff15B77C)
+                            ),
+                            child: const Text('Appraise'),
+                            onPressed: () {
+                              metricStep.value = 0;
+                              active.value = true;
+                            },
+                          ),
                         )
                       ],
-                    )),
-              )
-            : metricStep.value == 1
-                ? BehaviouralComp(
-                    staff: staff,
-                    totalBC: totalBC,
-                    metricStep: metricStep,
-                    currentStep: currentStep,
-                    setStep: setStep,
-                    valueOne: valueOne,
-                    valueTwo: valueTwo,
-                    valueThree: valueThree,
-                    valueFour: valueFour,
-                    valueFive: valueFive,
-                    calculateBCSum: calculateBCSum)
-                : metricStep.value == 0
-                    ? Kpi(
-                        // staff: staff,
-                        // totalBC: totalBC.value ?? 0,
-                        // totalKpi: totalKpi.value ?? 0,
-                        // kp1: kp1,
-                        // kp2: kp2,
-                        // kp3: kp3,
-                        // metricStep: metricStep,
-                        // kp4: kp4,
-                        // validateWM: validateWM,
-                        // kp5: kp5,
-                        // kp6: kp6,
-                        // kp7: kp7,
-                        // calculateKpiSum: calculateKpiSum
+                    ))
+                : metricStep.value == 1
+                    ? BehaviouralComp(
                         staff: staff,
-                    totalKpi: totalKpi,
-                    metricStep: metricStep,
-                    currentStep: kpiStep,
-                    setStep: setStep,
-                    kpi1: kpi1,
-                    kpi2: kpi2,
-                    kpi3: kpi3,
-                    kpi4: kpi4,
-                    kpi5: kpi5,
-                    calculateKpiSum: calculateKpiSum
-                        )
-                    : metricStep.value == 2
-                        ? Recommendations(
+                        totalBC: totalBC,
+                        metricStep: metricStep,
+                        currentStep: bcStep,
+                        setStep: setStep,
+                        BCs: staffBC.value ?? [],
+                        active: active,
+                        calculateBCSum: calculateBCSum,
+                        BCVal: BCVal,
+                        bcJust: bcJust,
+                        addBc: addBc,
+                        bcObj: bcObj,
+                        appraiserRef: appraiserRef,
+                        appraiser: appraiser,
+                      )
+                    : metricStep.value == 0
+                        ? Kpi(
                             staff: staff,
-                            totalBC: totalBC.value ?? 0,
-                            totalKpi: totalKpi.value ?? 0,
-                            re1: re1,
-                            re2: re2,
-                            re3: re3,
+                            totalKpi: totalKpi,
                             metricStep: metricStep,
-                            re4: re4)
-                        : metricStep.value == 3
-                            ? Summary(
+                            currentStep: kpiStep,
+                            setStep: setStep,
+                            kpis: staffKpi.value ?? [],
+                            active: active,
+                            calculateKpiSum: calculateKpiSum,
+                            addKpiValue: addKpiValue,
+                            kpiVal: kpiVal,
+                            kpiJust: kpiJust,
+                            addKpi: addKpi,
+                            kpiObj: kpiObj,
+                            appraiser: appraiser,
+                            appraiserRef: appraiserRef,
+                          )
+                        : metricStep.value == 2
+                            ? Recommendations(
                                 staff: staff,
-                                totalBC: totalBC.value ?? 0,
-                                totalKpi: totalKpi.value ?? 0,
-                                ad1: ad1,
-                                ad2: ad2,
-                                ad3: ad3,
-                                appraiser: appraiser
-                                )
-                            : appraiser.value == "other"
-                                ? ListView(
-                                    children: dummyDownlines.map<Widget>(
-                                        ((Map<String, String> data) {
-                                      return Container(
-                                          padding: const EdgeInsets.all(10),
-                                          // decoration: BoxDecoration(
-                                          //   color: Colors.grey[200],
-                                          //   borderRadius: const BorderRadius.all(Radius.circular(8))
-                                          // ),
-                                          margin:
-                                              const EdgeInsets.only(top: 20),
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xffDFEEE9), padding: const EdgeInsets.all(10)),
-                                            onPressed: (() {
-                                              currentAppraiser.value = data['ref'];
-                                              metricStep.value = 0;
-                                            }),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Container(
-                                                  child: Row(children: [
-                                                    const CircleAvatar(
-                                                  backgroundColor: Colors.white,
-                                                  radius: 30,
-                                                ),
-                                                Container(
-                                                  margin: const EdgeInsets.only(
-                                                      right: 20,left: 10),
-                                                  height: 45,
-                                                  child: Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Flexible(
-                                                        child: Text(
-                                                          data['name'] ?? '',
-                                                          style: const TextStyle(
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                              fontSize: 14,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
-                                                                    color: Colors.black  
-                                                                    ),
-                                                        ),
-                                                      ),
-                                                      Flexible(
-                                                        child: Text(
-                                                          data['desc'] ?? '',
-                                                          style: const TextStyle(
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                              fontSize: 14,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
-                                                                      color: Colors.black  
-                                                                      ),
-                                                        ),
-                                                      )
-                                                    ],
-                                                  ),
-                                                ),
-                                                  ]),
-                                                ),
-                                                Flexible(
-                                                    child: Text(
-                                                  data['bu'] ?? '',
-                                                  style: const TextStyle(
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                          color: Colors.black  
-                                                          ),
-                                                )),
-                                              ],
-                                            ),
-                                          ));
-                                    })).toList(),
+                                totalBC: totalBC.value,
+                                totalKpi: totalKpi.value,
+                                re1: re1,
+                                re2: re2,
+                                re3: re3,
+                                metricStep: metricStep,
+                                re4: re4)
+                            : metricStep.value == 3
+                                ? Summary(
+                                    staff: staff,
+                                    totalBC: totalBC.value,
+                                    totalKpi: totalKpi.value,
+                                    ad1: ad1,
+                                    ad2: ad2,
+                                    ad3: ad3,
+                                    appraiser: appraiser,
+                                    submit: submitAppraisl,
+                                    trans: trans,
+                                    selfDetails: selfDetails.value,
                                   )
-                                : null);
+                                : appraiser == "other"
+                                    ? ListView(
+                                        children: dummyDownlines.map<Widget>(
+                                            ((Map<String, String> data) {
+                                          return Container(
+                                              padding: const EdgeInsets.all(10),
+                                              // decoration: BoxDecoration(
+                                              //   color: Colors.grey[200],
+                                              //   borderRadius: const BorderRadius.all(Radius.circular(8))
+                                              // ),
+                                              margin: const EdgeInsets.only(
+                                                  top: 20),
+                                              child: ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        const Color(0xffDFEEE9),
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            10)),
+                                                onPressed: (() {
+                                                  currentAppraiser.value =
+                                                      data['ref'];
+                                                  metricStep.value = 0;
+                                                }),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Container(
+                                                      child: Row(children: [
+                                                        const CircleAvatar(
+                                                          backgroundColor:
+                                                              Colors.white,
+                                                          radius: 30,
+                                                        ),
+                                                        Container(
+                                                          margin:
+                                                              const EdgeInsets
+                                                                      .only(
+                                                                  right: 20,
+                                                                  left: 10),
+                                                          height: 45,
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .spaceBetween,
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Flexible(
+                                                                child: Text(
+                                                                  data['name'] ??
+                                                                      '',
+                                                                  style: const TextStyle(
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      fontSize:
+                                                                          14,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w500,
+                                                                      color: Colors
+                                                                          .black),
+                                                                ),
+                                                              ),
+                                                              Flexible(
+                                                                child: Text(
+                                                                  data['desc'] ??
+                                                                      '',
+                                                                  style: const TextStyle(
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      fontSize:
+                                                                          14,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w500,
+                                                                      color: Colors
+                                                                          .black),
+                                                                ),
+                                                              )
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ]),
+                                                    ),
+                                                    Flexible(
+                                                        child: Text(
+                                                      data['bu'] ?? '',
+                                                      style: const TextStyle(
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          color: Colors.black),
+                                                    )),
+                                                  ],
+                                                ),
+                                              ));
+                                        })).toList(),
+                                      )
+                                    : null));
   }
 }

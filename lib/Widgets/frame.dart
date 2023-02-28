@@ -92,7 +92,7 @@ class Frame extends HookConsumerWidget {
     };
 
     useEffect(() {
-      Timer.periodic(const Duration(seconds: 250), (timer) async{
+      Timer.periodic(const Duration(minutes: 9), (timer) async{
         try {
           var cred = await renewContract(headers);
           ref.read(authProvider.notifier).state = Auth(token: cred?[0], aesKey: cred?[1], iv: cred?[2]);
@@ -101,6 +101,7 @@ class Frame extends HookConsumerWidget {
           print(err);
         }
     });
+    return null;
 
     },[auth]);
 
@@ -148,10 +149,9 @@ class Frame extends HookConsumerWidget {
         staff: staff,
         info: userData.value
       ),
-      Management(staff: staff, info: userData.value),
+      Management(staff: staff, info: userData.value, appraiser: 'Self', appraiserRef: staff.userRef as String,),
       Transactions(staff: staff, info: userData.value, auth: auth, ),
       Settings(staff: staff, info: userData.value),
-      // Confirmation(staff: staff, ref: 'TRFLVERL21IX67SN', trans: transactions.value![1])
     ];
 
     return WillPopScope(
@@ -197,8 +197,6 @@ class Frame extends HookConsumerWidget {
 
                   Container(
                     alignment: Alignment.center,
-                        // margin: const EdgeInsets.only(bottom: 10, top: 5, left: 60),
-                        // width: 120,
                         child: Row(
                           children: [
                             Text(
@@ -244,14 +242,15 @@ class Frame extends HookConsumerWidget {
 
           Expanded(
             child: Container(
-          //  margin: const EdgeInsets.only(bottom: 20),
-            // height: 700,
-            // padding: currentIndex.value != 0 ? const EdgeInsets.only(top: 20) : null,
             clipBehavior: Clip.hardEdge,
         decoration: const BoxDecoration(
           color: Color(0xffD6EBE3),
-          // color: Colors.white
-          // color: Colors.red,
+          gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        stops: [1 / 2, 2 / 8],
+        colors: [Color(0xffD6EBE3), Colors.white],
+      ),
           borderRadius: BorderRadius.vertical(top:Radius.circular(60))
           ),
             child: screens.elementAt(currentIndex.value),)

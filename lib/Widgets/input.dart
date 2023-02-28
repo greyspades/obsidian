@@ -40,7 +40,7 @@ class CustomInput extends HookWidget {
       enabled: isEnabled,
       style: DefaultTextStyle.of(context)
           .style
-          .copyWith(fontStyle: FontStyle.italic, height: 2, fontSize: 14,),
+          .copyWith(fontStyle: FontStyle.normal, height: 2, fontSize: 14,),
       keyboardType: textType,
       cursorColor: Colors.black,
       obscureText: isPassword == true ? !passwordVissible.value : false,

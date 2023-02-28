@@ -21,6 +21,13 @@ class Recommendations extends HookWidget {
   @override 
 
   Widget build(BuildContext context) {
+
+    String validateField(String value) {
+      if(value == null || value.isEmpty) {
+        return "Please fill in the required fields";
+      }
+      return '';
+    }
     return Form(
               key: _formKey,
               child: ListView(children: [
@@ -42,20 +49,22 @@ class Recommendations extends HookWidget {
                       const Text('Observed Opportunities for improvement', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: CustomInput(controller: re1,),
+                        child: CustomInput(controller: re1,
+                        validation: validateField,
+                        ),
                       )
                     ],),),
 
                     Container(
                       height: 80,
-                      margin: EdgeInsets.only(top: 20),
+                      margin: const EdgeInsets.only(top: 20),
                       child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,    
                       children: [
                       const Text('Training Needs', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: CustomInput(controller: re2),
+                        child: CustomInput(controller: re2, validation: validateField,),
                       )
                     ],),
                     ),
@@ -66,10 +75,10 @@ class Recommendations extends HookWidget {
                       child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,  
                       children: [
-                      const Text('Observed Strengths', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      const Text('Recommended for Promotion', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: CustomInput(controller: re3),
+                        child: CustomInput(controller: re3, validation: validateField,),
                       )
                     ],),
                     ),
@@ -83,7 +92,7 @@ class Recommendations extends HookWidget {
                       const Text('Employees Comments/Feedback', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: CustomInput(controller: re4),
+                        child: CustomInput(controller: re4, validation: validateField,),
                       )
                     ],),
                     ),

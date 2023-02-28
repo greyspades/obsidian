@@ -12,46 +12,48 @@ class CustomSlider extends HookWidget {
 
   dynamic onChange;
 
-  dynamic next;
+  dynamic? next;
 
-  dynamic prev;
+  dynamic? prev;
 
-  String name;
+  String? name;
+
+  num max;
 
   CustomSlider(
       {super.key,
       required this.value,
       required this.onChange,
-      required this.next,
-      required this.prev,
-      required this.name});
+      this.next,
+      this.prev,
+      this.name,
+      required this.max
+      });
 
   @override
   Widget build(BuildContext context) {
-    final rangeValue = useState<double>(1);
 
     return Container(
-      // height: 190,
       child: Card(
           color: Colors.grey[200],
           child: Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(5),
             child: Column(
               children: [
                 Container(
                     alignment: Alignment.center,
                     child: Text(
-                      name,
+                      name ?? '',
                       style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           height: 1.5),
                     )),
                 Container(
-                  height: 200,
+                  height: 230,
                   child: SfRadialGauge(
           axes: <RadialAxis>[
-            RadialAxis(minimum: 0, maximum: 11,
+            RadialAxis(minimum: 0, maximum: max + 1,
 
             ranges: [
               GaugeRange(startValue: 0, endValue: 4, color: const Color(0xffD6EBE3),startWidth: 0.06, sizeUnit: GaugeSizeUnit.factor,
@@ -60,9 +62,11 @@ class CustomSlider extends HookWidget {
               endWidth: 0.06),
               GaugeRange(startValue: 7,endValue: 11,color: const Color(0xff15B77C),startWidth: 0.06, sizeUnit: GaugeSizeUnit.factor,
               endWidth: 0.06)],
+
             pointers: <GaugePointer>[
               MarkerPointer(value: value,
               color: const Color(0xffFEB388),
+
               enableAnimation: true,
               enableDragging: true,
               markerHeight: 20,
@@ -73,6 +77,7 @@ class CustomSlider extends HookWidget {
               overlayRadius: 5,
               onValueChanged: onChange
               )],
+
             annotations: <GaugeAnnotation>[
               GaugeAnnotation(widget: Container(child: 
                  Text(value.toInt().toString(),style: const TextStyle(fontSize: 25,fontWeight: FontWeight.bold))),

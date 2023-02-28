@@ -47,7 +47,7 @@ class LineManager extends HookConsumerWidget {
       });
       var headers = {
         'x-lapo-eve-proc':
-            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')),
+            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) + (auth.token ?? ''),
         'Content-type': 'text/json',
       };
 
@@ -89,7 +89,7 @@ class LineManager extends HookConsumerWidget {
       });
       var headers = {
         'x-lapo-eve-proc':
-            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')),
+            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) + (auth.token ?? ''),
         'Content-type': 'text/json',
       };
 
@@ -159,7 +159,7 @@ class LineManager extends HookConsumerWidget {
       });
       var headers = {
         'x-lapo-eve-proc':
-            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')),
+            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) + (auth.token ?? ''),
         'Content-type': 'text/json',
       };
       var body = jsonEncode({
@@ -185,6 +185,8 @@ class LineManager extends HookConsumerWidget {
           base64ToHex(encryption(body, auth.aesKey ?? '', auth.iv ?? ''));
 
       var response = await http.post(url, headers: headers, body: xpayload);
+
+      print(response.body);
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         var xData = decryption(base64.encode(hex.decode(jsonDecode(data))),

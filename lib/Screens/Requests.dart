@@ -272,7 +272,6 @@ class RequestsState extends State<Requests> {
       // print(xdata);
       var result =
           List<Map<dynamic, dynamic>>.from(jsonDecode(xdata));
-
       return result;
     }
   }
@@ -493,10 +492,21 @@ class RequestsState extends State<Requests> {
     });
     var response =
         await http.post(url, headers: headers, body: base64ToHex(encryption(body, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')));
-    if (response.statusCode == 200) {
-      var xdata = decryption(base64.encode(hex.decode(jsonDecode(response.body))), widget.auth?.aesKey ?? '', widget.auth?.iv ?? '');
-      _showMyDialog(jsonDecode(xdata));
-    }
+    print(response.body);
+    var data = jsonDecode(response.body);
+    
+    return _showMyDialog(data);
+
+    // else {
+    //   var xdata = decryption(base64.encode(hex.decode(jsonDecode(response.body))), widget.auth?.aesKey ?? '', widget.auth?.iv ?? '');
+    //   return _showMyDialog(xdata);
+    // }
+
+    // if (response.statusCode == 200) {
+    //   var xdata = decryption(base64.encode(hex.decode(jsonDecode(response.body))), widget.auth?.aesKey ?? '', widget.auth?.iv ?? '');
+    //   print(xdata);
+    //   // _showMyDialog(xdata);
+    // }
   }
 
   validateField(String value) {
@@ -553,13 +563,13 @@ class RequestsState extends State<Requests> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: data['status'] == false
+          title: data['status'] == 400
               ? const Text('Unsuccessful')
               : const Text('Success'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text(data['message']),
+                Text(data['message_description']),
               ],
             ),
           ),
@@ -784,6 +794,7 @@ class RequestsState extends State<Requests> {
                                   },
                                   itemBuilder: (context, item) {
                                     var data = item as Map<dynamic, dynamic>;
+                                    // print(data);
                                     return Container(
                                       height: 60,
                                       padding: const EdgeInsets.all(10),

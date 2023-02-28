@@ -111,7 +111,7 @@ class SettingsItem extends HookConsumerWidget {
       'src': "AS-IN-D659B-e3M"
     });
     var headers = {
-      'x-lapo-eve-proc': base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) + (auth.token ?? ''),
       'Content-type': 'text/json',
     };
       var body = jsonEncode({
@@ -146,7 +146,7 @@ class SettingsItem extends HookConsumerWidget {
     });
 
     var headers = {
-      'x-lapo-eve-proc': base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? ''))+ (auth.token ?? ''),
       'Content-type': 'text/json',
     };
       var body = jsonEncode({
@@ -238,7 +238,7 @@ class SettingsItem extends HookConsumerWidget {
       'src': "AS-IN-D659B-e3M"
     });
     var headers = {
-      'x-lapo-eve-proc': base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')),
+      'x-lapo-eve-proc': base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? ''))+ (auth.token ?? ''),
       'Content-type': 'text/json',
     };
       final result = await http

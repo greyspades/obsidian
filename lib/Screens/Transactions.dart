@@ -130,7 +130,7 @@ class TransactionState extends State<Transactions> {
           decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(60))),
-          height: MediaQuery.of(context).size.height,
+          // height: MediaQuery.of(context).size.height,
           child: transactions != null
               ? Container(
                   child: ExpansionPanelList(
@@ -177,7 +177,7 @@ class TransactionState extends State<Transactions> {
                                         style: TextStyle(),
                                       ),
                                       Text(
-                                        trans.fullName.toString(),
+                                        trans.createdBy.toString(),
                                         style: const TextStyle(),
                                       )
                                     ],
@@ -324,7 +324,10 @@ class TransactionState extends State<Transactions> {
                                                       staff: widget.staff,
                                                       ref: trans.itemCode
                                                           .toString(),
-                                                      trans: trans)),
+                                                      trans: trans,
+                                                      type: trans.itemName as String,
+                                                      info: widget.info,
+                                                      )),
                                         );
                                       },
                                     ),

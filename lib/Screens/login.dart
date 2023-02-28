@@ -129,14 +129,11 @@ class Login extends HookConsumerWidget {
       var body = jsonEncode({
         // 'UsN': _usernameController.text,
         // 'Pwd': _passwordController.text,
-        'UsN': 'SN11536',
+        'UsN': 'SN11798',
+        // 'UsN' : 'SN12213',
         'Pwd': 'Password6\$',
         'xAppSource': "AS-IN-D659B-e3M"
       });
-
-      // final key = Key.fromUtf8(auth![1]);
-
-      // final iv = IV.fromUtf8(auth[2]);
 
       final encryptedBody = encryption(body, auth![1], auth[2]);
 
@@ -390,7 +387,6 @@ class Login extends HookConsumerWidget {
                               //    resetPassword();
                               // }
                               login();
-                              // makeContract();
                             },
                             splashColor: Colors.redAccent,
                             child: loading.value == false &&

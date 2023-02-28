@@ -52,6 +52,7 @@ dependencies:
   encrypt: ^5.0.1
   hex: ^0.2.0
   convert: ^3.1.1
+  # shared_preferences: ^2.0.0-nullsafety
   # aes_crypt: ^0.1.1
 
 dev_dependencies:

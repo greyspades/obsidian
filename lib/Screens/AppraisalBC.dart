@@ -1,3 +1,4 @@
+import 'package:e_360/Models/Transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:e_360/Models/Staff.dart';
@@ -22,261 +23,249 @@ Map<int, Color> color = {
 
 class BehaviouralComp extends HookWidget {
   Staff staff;
-  ValueNotifier<int?> totalBC;
+  ValueNotifier<int> totalBC;
   ValueNotifier<int?> metricStep;
   ValueNotifier<int> currentStep;
-  ValueNotifier<int> valueOne;
-  ValueNotifier<int> valueTwo;
-  ValueNotifier<int> valueThree;
-  ValueNotifier<int> valueFour;
-  ValueNotifier<int> valueFive;
+  List<Map<dynamic, dynamic>> BCs;
+  ValueNotifier<bool> active;
   dynamic setStep;
   dynamic calculateBCSum;
-  
-  BehaviouralComp({super.key, required this.staff, required this.totalBC, required this.metricStep, required this.currentStep, required this.setStep, required this.valueOne, required this.valueTwo, required this.valueThree, required this.valueFour, required this.valueFive, required this.calculateBCSum});
+  dynamic addBc;
+  TextEditingController bcJust;
+  dynamic? bcObj;
+  String appraiser;
+  String appraiserRef;
+  ValueNotifier<int> BCVal;
+  Transaction? trans;
+
+  BehaviouralComp(
+      {super.key,
+      required this.BCVal,
+      required this.staff,
+      required this.BCs,
+      required this.totalBC,
+      required this.metricStep,
+      required this.currentStep,
+      required this.setStep,
+      required this.active,
+      required this.calculateBCSum,
+      required this.bcJust,
+      required this.addBc,
+      required this.appraiser,
+      required this.appraiserRef,
+      this.bcObj,
+      this.trans});
 
   final _formKey = GlobalKey<FormState>(debugLabel: '');
 
-   final _kpiForm = GlobalKey<FormState>(debugLabel: '');
+  final _kpiForm = GlobalKey<FormState>(debugLabel: '');
 
-   MaterialColor colorCustom = MaterialColor(0xff15B77C, color);
+  MaterialColor colorCustom = MaterialColor(0xff15B77C, color);
 
-  @override 
-
+  @override
   Widget build(BuildContext context) {
+    final bcRef = useState<String?>(null);
+
+    final error = useState<String?>(null);
+
+    Future<void> _showMyDialog() async {
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text(
+              'Sure to go back?',
+              style: TextStyle(
+                  color: Color(0xff15B77C),
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold),
+            ),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text(
+                      'Your current Behavioural Competencies inputs will be discarded'),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Close'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: const Text('Continue'),
+                onPressed: () {
+                  metricStep.value = 0;
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     return ListView(
-              children: [
-                Container(
-                  alignment: Alignment.center,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  child: const Text('Behavioral Competencies', style: TextStyle(color: Color(0xff15B77C), fontSize: 20, fontWeight: FontWeight.bold),),
-                ),
-                Theme(
-                  data: ThemeData(
-                      primarySwatch: colorCustom,
-                      colorScheme: ColorScheme.light(primary: colorCustom)),
-                  child: Stepper(
-                      physics: const ClampingScrollPhysics(),
-                      controlsBuilder: ((context, details) {
-                        return Container(
-                            padding: const EdgeInsets.only(
-                                left: 100, right: 10, top: 5),
-                            child: currentStep.value != 5
-                                ? Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                const Color(0xff15B77C)),
-                                        onPressed: () {
-                                          details.onStepCancel!();
-                                        },
-                                        child: const Text(
-                                          'Prev',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                const Color(0xff15B77C)),
-                                        onPressed: () {
-                                          details.onStepContinue!();
-                                        },
-                                        child: const Text(
-                                          'Next',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                      )
-                                    ],
+      children: [
+        Container(
+          margin: const EdgeInsets.only(right: 20),
+          alignment: Alignment.centerRight,
+          child: IconButton(
+              onPressed: () {
+                _showMyDialog();
+              },
+              icon: const Icon(
+                Icons.keyboard_double_arrow_left_rounded,
+                size: 28,
+                color: Color(0xff15B77C),
+              )),
+        ),
+        Container(
+          alignment: Alignment.center,
+          margin: const EdgeInsets.only(bottom: 20),
+          child: const Text(
+            'Behavioral Competencies',
+            style: TextStyle(
+                color: Color(0xff15B77C),
+                fontSize: 20,
+                fontWeight: FontWeight.bold),
+          ),
+        ),
+        Theme(
+          data: ThemeData(
+              primarySwatch: colorCustom,
+              colorScheme: ColorScheme.light(primary: colorCustom)),
+          child: Stepper(
+            physics: const ClampingScrollPhysics(),
+            controlsBuilder: ((context, details) {
+              return Container(
+                  padding: const EdgeInsets.only(left: 100, right: 10, top: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xff15B77C)),
+                        onPressed: () {
+                          details.onStepCancel!();
+                        },
+                        child: const Text(
+                          'Prev',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xff15B77C)),
+                        onPressed: () {
+                          details.onStepContinue!();
+                        },
+                        child: const Text(
+                          'Next',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      )
+                    ],
+                  ));
+            }),
+            currentStep: currentStep.value,
+            onStepContinue: () {
+              if (currentStep.value < BCs.length - 1 &&
+                  bcJust.text.isNotEmpty &&
+                  BCVal.value > 0) {
+                totalBC.value += BCVal.value;
+                var result = {
+                  "xAppraisee": appraiserRef,
+                  "xAppraisalBy": staff.userRef,
+                  "xAppraiseeScope": appraiser,
+                  "xAppraisalItemType": "Bhav_comp",
+                  "xAppraisalItemRef": bcRef.value,
+                  "xEvaluationScore": BCVal.value.toString(),
+                  "xEvaluationJustify": bcJust.text
+                };
+                addBc(result);
+                bcRef.value = null;
+                BCVal.value = 0;
+                bcJust.clear();
+                error.value = null;
+                currentStep.value += 1;
+              } else if (bcJust.text.isEmpty) {
+                error.value = 'just';
+              } else if (BCVal.value < 1) {
+                error.value = 'score';
+              } else {
+                totalBC.value += BCVal.value;
+                calculateBCSum();
+              }
+            },
+            onStepCancel: () {
+              currentStep.value -= 1;
+              BCVal.value = 0;
+            },
+            onStepTapped: (int step) => setStep(step, 'BC'),
+            steps: BCs.map<Step>((e) {
+              return Step(
+                title: Container(
+                    margin: const EdgeInsets.only(top: 5, bottom: 5),
+                    decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(6))),
+                    padding: const EdgeInsets.all(10),
+                    child: Text(
+                      e['Bhv_Comp_Desc'],
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w500, fontSize: 16),
+                    )),
+                content: Container(
+                  child: Column(
+                    children: <Widget>[
+                      CustomSlider(
+                        value: BCVal.value.toDouble(),
+                        onChange: (value) {
+                          BCVal.value = value.toInt();
+                          bcRef.value = e['Bhv_Comp_Code'];
+                        },
+                        max: e['Bhv_Comp_WMark'],
+                      ),
+                      Container(
+                        child: error.value == 'just'
+                            ? const Text(
+                                'Please enter a justification for this score',
+                                style: TextStyle(color: Colors.red),
+                              )
+                            : error.value == 'score'
+                                ? const Text(
+                                    'Please select a score greater than 0',
+                                    style: TextStyle(color: Colors.red),
                                   )
-                                : null);
-                      }),
-                      currentStep: currentStep.value,
-                      onStepContinue: () {
-                        // currentStep.value = currentStep.value ++;
-                        currentStep.value < 5 ? currentStep.value += 1 : null;
-                      },
-                      onStepCancel: () {
-                        currentStep.value > 0 ? currentStep.value -= 1 : null;
-                      },
-                      onStepTapped: (int step) => setStep(step, 'BC'),
-                      steps: <Step>[
-                        Step(
-                          title: Container(
-                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
-                            padding: const EdgeInsets.all(10),
-                            // width: 200,
-                            child: const Text("Integrity", style: TextStyle(color: Color(0xff15B77C)),)),
-                          content: Container(
-                            // color: Colors.grey[200],
-                            child: Column(
-                              children: <Widget>[
-                                CustomSlider(
-                                    name: "Integrity",
-                                    value: valueOne.value.toDouble(),
-                                    onChange: (value) {
-                                      valueOne.value = value.toInt();
-                                    },
-                                    prev: () {},
-                                    next: () {
-                                      
-                                    })
-                              ],
-                            ),
-                          ),
-                          isActive: currentStep.value == 0,
-                          state: currentStep.value >= 0
-                              ? StepState.complete
-                              : StepState.disabled,
-                        ),
-                        Step(
-                          // title: const Text(
-                          //   '',
-                          //   style: TextStyle(
-                          //       fontSize: 16, fontWeight: FontWeight.bold),
-                          // ),
-                          title: Container(
-                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
-                            padding: const EdgeInsets.all(10),
-                            // width: 200,
-                            child: const Text("Effective Communication/Courtious relationship with others", style: TextStyle(color: Color(0xff15B77C)),)),
-                          content: Container(
-                            // color: Colors.grey[200],
-                            child: Column(
-                              children: <Widget>[
-                                CustomSlider(
-                                    name:
-                                        "Effective Communication/Courtious relationship with others",
-                                    value: valueTwo.value.toDouble(),
-                                    onChange: (value) {
-                                      valueTwo.value = value.toInt();
-                                    },
-                                    prev: () {},
-                                    next: () {})
-                              ],
-                            ),
-                          ),
-                          isActive: currentStep.value == 1,
-                          state: currentStep.value >= 1
-                              ? StepState.complete
-                              : StepState.disabled,
-                        ),
-                        Step(
-                          title: Container(
-                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
-                            padding: const EdgeInsets.all(10),
-                            // width: 200,
-                            child: const Text("Cost Mgt./Turn- Arround Time with Customers", style: TextStyle(color: Color(0xff15B77C)),)),
-                          content: Container(
-                            // color: Colors.grey[200],
-                            child: Column(
-                              children: <Widget>[
-                                CustomSlider(
-                                    name:
-                                        "Cost Mgt./Turn- Arround Time with Customers",
-                                    value: valueThree.value.toDouble(),
-                                    onChange: (value) {
-                                      valueThree.value = value.toInt();
-                                    },
-                                    prev: () {},
-                                    next: () {},
-                                    )
-                              ],
-                            ),
-                          ),
-                          isActive: currentStep.value == 2,
-                          state: currentStep.value >= 2
-                              ? StepState.complete
-                              : StepState.disabled,
-                        ),
-                        Step(
-                          title: Container(
-                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
-                            padding: const EdgeInsets.all(10),
-                            // width: 200,
-                            child: const Text("Decision Making /Initiative", style: TextStyle(color: Color(0xff15B77C)),)),
-                          content: Container(
-                            // color: Colors.grey[200],
-                            child: Column(
-                              children: <Widget>[
-                                CustomSlider(
-                                    name: "Decision Making /Initiative",
-                                    value: valueFour.value.toDouble(),
-                                    onChange: (value) {
-                                      valueFour.value = value.toInt();
-                                    },
-                                    prev: () {},
-                                    next: () {})
-                              ],
-                            ),
-                          ),
-                          isActive: currentStep.value == 3,
-                          state: currentStep.value >= 3
-                              ? StepState.complete
-                              : StepState.disabled,
-                        ),
-                        Step(
-                          title: Container(
-                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
-                            padding: const EdgeInsets.all(10),
-                            // width: 200,
-                            child: const Text("Innovative Orientation", style: TextStyle(color: Color(0xff15B77C)),)),
-                          content: Container(
-                            // color: Colors.grey[200],
-                            child: Column(
-                              children: <Widget>[
-                                CustomSlider(
-                                    name: "Innovative Orientation",
-                                    value: valueFive.value.toDouble(),
-                                    onChange: (value) {
-                                      valueFive.value = value.toInt();
-                                    },
-                                    prev: () {},
-                                    next: () {})
-                              ],
-                            ),
-                          ),
-                          isActive: currentStep.value == 4,
-                          state: currentStep.value >= 4
-                              ? StepState.complete
-                              : StepState.disabled,
-                        ),
-                        Step(
-                          title: Container(
-                            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: const BorderRadius.all(Radius.circular(6))),
-                            padding: const EdgeInsets.all(10),
-                            // width: 200,
-                            child: const Text("Next", style: TextStyle(color: Color(0xff15B77C)),)
-                            ),
-                          content: Container(
-                            child: Column(
-                              children: <Widget>[
-                                SizedBox(
-                                  height: 60,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      calculateBCSum();
-                                    },
-                                    child: const Text(
-                                      'Submit',
-                                      style: TextStyle(
-                                          fontSize: 14, color: Colors.white),
-                                    )),
-                                )
-                              ],
-                            ),
-                          ),
-                          isActive: currentStep.value == 5,
-                          state: currentStep.value >= 5
-                              ? StepState.complete
-                              : StepState.disabled,
-                        ),
-                      ]),
-                )
-              ],
-            );
+                                : null,
+                      ),
+                      CustomInput(
+                        controller: bcJust,
+                        hintText: 'Justification',
+                      )
+                    ],
+                  ),
+                ),
+                isActive: currentStep.value < BCs.length + 1,
+                state: currentStep.value >= BCs.length + 1
+                    ? StepState.complete
+                    : StepState.disabled,
+              );
+            }).toList(),
+          ),
+        ),
+        // ElevatedButton(
+        //     onPressed: () {
+        //       print(bcObj);
+        //     },
+        //     child: Text('click'))
+      ],
+    );
   }
 }
