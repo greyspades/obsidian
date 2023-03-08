@@ -36,7 +36,7 @@ class Confirmation extends HookConsumerWidget {
     final lineManager = useState<Map<dynamic, dynamic>?>(null);
 
     void retrieveLeave(String ref) async {
-      Uri url = Uri.parse('https://e360.lapo-nigeria.org/requisition/retrieveleave');
+      Uri url = Uri.parse('http://10.0.0.184:8015/requisition/retrieveleave');
 
       var token = jsonEncode({
         'tk': auth.token,
@@ -104,7 +104,7 @@ class Confirmation extends HookConsumerWidget {
     }
 
     void getLineManager() async {
-      Uri url = Uri.parse('https://e360.lapo-nigeria.org/userservices/mylinemanager');
+      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/mylinemanager');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -129,7 +129,7 @@ class Confirmation extends HookConsumerWidget {
     }
 
     void createLeave(String operation) async {
-      Uri url = Uri.parse('https://e360.lapo-nigeria.org/requisition/createleave');
+      Uri url = Uri.parse('http://10.0.0.184:8015/requisition/createleave');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,

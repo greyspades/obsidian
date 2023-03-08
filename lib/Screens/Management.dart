@@ -125,7 +125,7 @@ class Management extends HookConsumerWidget {
 
     Future<void> getKpi() async {
       Uri url =
-          Uri.parse('https://e360.lapo-nigeria.org/perfomance/listappraisalkpis');
+          Uri.parse('http://10.0.0.184:8015/perfomance/listappraisalkpis');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -157,7 +157,7 @@ class Management extends HookConsumerWidget {
 
       Future<void> getSelfEvaluation() async {
       Uri url = Uri.parse(
-          'https://e360.lapo-nigeria.org/perfomance/retrieveselfevaluation');
+          'http://10.0.0.184:8015/perfomance/retrieveselfevaluation');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -194,7 +194,7 @@ class Management extends HookConsumerWidget {
 
     Future<void> getBC() async {
       Uri url = Uri.parse(
-          'https://e360.lapo-nigeria.org/perfomance/listappraisalbehaviouralcomp');
+          'http://10.0.0.184:8015/perfomance/listappraisalbehaviouralcomp');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -378,7 +378,7 @@ class Management extends HookConsumerWidget {
 
     void submitAppraisl() async {
       Uri url = Uri.parse(
-          'https://e360.lapo-nigeria.org/perfomance/poastappraisalevaluation');
+          'http://10.0.0.184:8015/perfomance/poastappraisalevaluation');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -498,7 +498,7 @@ class Management extends HookConsumerWidget {
                           backgroundColor: Colors.grey[400],
                           radius: 30,
                           backgroundImage: NetworkImage(
-                            'http://10.0.0.184:8015/userservices/retrievephoto/${appraiserRef}/retrievephoto',
+                            'http://10.0.0.184:8015/userservices/retrievephoto/$appraiserRef/retrievephoto',
                             headers: headers,
                           ),
                         ),

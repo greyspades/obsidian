@@ -68,7 +68,7 @@ class Frame extends HookConsumerWidget {
     useEffect(() {
       void getData() async {
         Uri url = Uri.parse(
-            'https://e360.lapo-nigeria.org/userservices/primaryrecord/${staff.employeeNo}/primaryrecord');
+            'http://10.0.0.184:8015/userservices/primaryrecord/${staff.employeeNo}/primaryrecord');
 
         var token = jsonEncode({
           'tk': auth.token,

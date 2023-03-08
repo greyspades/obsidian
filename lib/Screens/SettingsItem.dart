@@ -102,7 +102,7 @@ class SettingsItem extends HookConsumerWidget {
 
     Future<void> resetPassword() async {
       loading.value = true;
-      Uri url = Uri.parse('https://e360.lapo-nigeria.org/userservices/passreset');
+      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/passreset');
       var token = jsonEncode({
       'tk': auth.token,
       'us': staff.userRef,

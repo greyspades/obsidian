@@ -38,7 +38,7 @@ class LineManager extends HookConsumerWidget {
 
     Future<dynamic> search(String item) async {
       Uri url =
-          Uri.parse('https://e360.lapo-nigeria.org/userservices/searchemployees');
+          Uri.parse('http://10.0.0.184:8015/userservices/searchemployees');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -80,7 +80,7 @@ class LineManager extends HookConsumerWidget {
 
     Future<void> getDivision() async {
       Uri url =
-          Uri.parse('https://e360.lapo-nigeria.org/userservices/divisionbyempNo');
+          Uri.parse('http://10.0.0.184:8015/userservices/divisionbyempNo');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -151,7 +151,7 @@ class LineManager extends HookConsumerWidget {
 
     Future<void> createDownline() async {
       loading.value = true;
-      Uri url = Uri.parse('https://e360.lapo-nigeria.org/userservices/createdownline');
+      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/createdownline');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,

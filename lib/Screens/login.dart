@@ -268,7 +268,7 @@ class Login extends HookConsumerWidget {
 
         Uri url = Uri.parse(
             // 'http://10.0.0.184:8015/userservices/mobile/authenticatem'
-            'https://e360.lapo-nigeria.org/userservices/mobile/authenticatem'
+            'http://10.0.0.184:8015/userservices/mobile/authenticatem'
             );
 
         String base64ToHex(String source) =>
