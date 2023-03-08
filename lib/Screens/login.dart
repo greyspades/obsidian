@@ -280,12 +280,12 @@ class Login extends HookConsumerWidget {
         var token = jsonEncode({'tk': auth.token, 'src': "AS-IN-D659B-e3M"});
 
         var body = jsonEncode({
-          'UsN': _usernameController.text,
-          'Pwd': _passwordController.text,
+          // 'UsN': _usernameController.text,
+          // 'Pwd': _passwordController.text,
           // 'UsN': 'SN11798',
-          // 'UsN': 'SN12216',
+          'UsN': 'SN12216',
           // 'UsN' : 'SN12213',
-          // 'Pwd': 'Password6\$',
+          'Pwd': 'Password6\$',
           'xAppSource': "AS-IN-D659B-e3M"
         });
 
@@ -309,7 +309,6 @@ class Login extends HookConsumerWidget {
                   connectionError.value =
                       'An Error Occured Connecting to the Server'
                 });
-        print(result.body);
         if (jsonDecode(result.body)?['status'] != 200) {
           loading.value = false;
           return _showMyDialog(jsonDecode(result.body));
@@ -543,14 +542,14 @@ class Login extends HookConsumerWidget {
                             textColor: Colors.white,
                             disabledColor: const Color(0xffA6D2C2),
                             onPressed: () {
-                              if (_formKey.currentState!.validate() &&
-                                  forgottenPassword.value == false &&
-                                  updateState.value?.status.toString() !=
-                                      'OtaStatus.DOWNLOADING') {
-                                login();
-                              }
+                              // if (_formKey.currentState!.validate() &&
+                              //     forgottenPassword.value == false &&
+                              //     updateState.value?.status.toString() !=
+                              //         'OtaStatus.DOWNLOADING') {
+                              //   login();
+                              // }
 
-                              // login();
+                              login();
                             },
                             splashColor: Colors.redAccent,
                             child: loading.value == false &&

@@ -91,7 +91,7 @@ class Frame extends HookConsumerWidget {
           final code = base64.encode(hex.decode(jsonDecode(response.body)['data']));
 
           final payload = decryption(code, auth.aesKey ?? '', auth.iv ?? '');
-          
+
           userData.value = jsonDecode(payload);
         }
       }
