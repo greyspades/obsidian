@@ -30,12 +30,13 @@ class Confirmation extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef _ref) {
     final auth = _ref.watch(authProvider);
+    final screen = _ref.watch(screenProvider);
 
     final leave = useState<Map<dynamic, dynamic>?>(null);
     final lineManager = useState<Map<dynamic, dynamic>?>(null);
 
     void retrieveLeave(String ref) async {
-      Uri url = Uri.parse('http://10.0.0.184:8015/requisition/retrieveleave');
+      Uri url = Uri.parse('https://e360.lapo-nigeria.org/requisition/retrieveleave');
 
       var token = jsonEncode({
         'tk': auth.token,
@@ -103,7 +104,7 @@ class Confirmation extends HookConsumerWidget {
     }
 
     void getLineManager() async {
-      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/mylinemanager');
+      Uri url = Uri.parse('https://e360.lapo-nigeria.org/userservices/mylinemanager');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -128,7 +129,7 @@ class Confirmation extends HookConsumerWidget {
     }
 
     void createLeave(String operation) async {
-      Uri url = Uri.parse('http://10.0.0.184:8015/requisition/createleave');
+      Uri url = Uri.parse('https://e360.lapo-nigeria.org/requisition/createleave');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -397,10 +398,13 @@ class Confirmation extends HookConsumerWidget {
                         )
                       ],
                     )
-                  : type == 'poastappraisalevaluation' &&
+                  : 
+                  type == 'poastappraisalevaluation' &&
                           staff.userRef != trans.xAppOriginRef
-                      ? ElevatedButton(
+                   ? 
+                      ElevatedButton(
                           onPressed: () {
+                            _ref.read(screenProvider.notifier).state = Screen(screen: 'manage');
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -416,8 +420,8 @@ class Confirmation extends HookConsumerWidget {
                           child: Text('Appraise'),
                           style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xff15B77C)),
-                        )
-                      : null)
+                        ) : null
+                      )
         ]),
       ),
     );

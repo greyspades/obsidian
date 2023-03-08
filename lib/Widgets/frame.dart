@@ -20,7 +20,8 @@ import 'package:e_360/Screens/Confirmation.dart';
 import 'package:e_360/helpers/contract.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:convert/convert.dart';
- import 'dart:async';
+import 'dart:async';
+import 'package:local_session_timeout/local_session_timeout.dart';
 
 
 class Frame extends HookConsumerWidget {
@@ -30,24 +31,44 @@ class Frame extends HookConsumerWidget {
   Frame({super.key, required this.staff, this.screen});
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
+  // Timer widget variable
   Timer? timer;
+  //navigator key for triggering navigation
+  final _navigatorKey = GlobalKey<NavigatorState>();
+  NavigatorState get _navigator => _navigatorKey.currentState!;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final screen = ref.watch(screenProvider);
+    //configuration for the timeout session
+    final sessionConfig = SessionConfig(
+        invalidateSessionForAppLostFocus: const Duration(seconds: 15),
+        invalidateSessionForUserInactivity: const Duration(minutes: 3));
+        
+    //listens and initiates the session timeout
+    sessionConfig.stream.listen((SessionTimeoutState timeoutEvent) {
+    if (timeoutEvent == SessionTimeoutState.userInactivityTimeout && screen.screen != 'manage') {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
+    } else if (timeoutEvent == SessionTimeoutState.appFocusTimeout) {
+        // Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
+        // print('lost focuss');
+    }});
+
+    //global state provider
     Auth auth = ref.watch(authProvider);
-
+    //current screens index
     final currentIndex = useState<int>(0);
+    //user personal data
     final userData = useState<Map<String, dynamic>>({});
-
+  //switch tabs
   void switchTab(int idx) {
     currentIndex.value = idx;
   }
-
+    //fetches user personal data
     useEffect(() {
       void getData() async {
         Uri url = Uri.parse(
-            'http://10.0.0.184:8015/userservices/primaryrecord/${staff.employeeNo}/primaryrecord');
+            'https://e360.lapo-nigeria.org/userservices/primaryrecord/${staff.employeeNo}/primaryrecord');
 
         var token = jsonEncode({
           'tk': auth.token,
@@ -79,6 +100,7 @@ class Frame extends HookConsumerWidget {
       // getTransactions();
     }, []);
 
+  //headers for api requests
     var token = jsonEncode({
       'tk': auth.token,
       'us': staff.userRef,
@@ -90,7 +112,8 @@ class Frame extends HookConsumerWidget {
       'x-lapo-eve-proc': base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) + (auth.token ?? ''),
       'Content-type': 'text/json',
     };
-
+  
+  //renews the contract after a specific duration
     useEffect(() {
       Timer.periodic(const Duration(minutes: 9), (timer) async{
         try {
@@ -105,6 +128,7 @@ class Frame extends HookConsumerWidget {
 
     },[auth]);
 
+  //sign out confirmation dialog
     Future<void> _showMyDialog() async {
     return showDialog<void>(
       context: context,
@@ -131,7 +155,7 @@ class Frame extends HookConsumerWidget {
       },
     );
   }
-
+//list of widget screens
     List<Widget> screens = <Widget>[
       Home(
         switchTab: switchTab,
@@ -154,10 +178,9 @@ class Frame extends HookConsumerWidget {
       Settings(staff: staff, info: userData.value),
     ];
 
-    return WillPopScope(
+    return SessionTimeoutManager(sessionConfig: sessionConfig, child: WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-
       backgroundColor: const Color(0xffD6EBE3),
       key: _scaffoldKey,
       resizeToAvoidBottomInset: true,
@@ -186,12 +209,12 @@ class Frame extends HookConsumerWidget {
                 Container(
                   alignment: Alignment.centerRight,
                   child: CircleAvatar(
+                    backgroundColor: Colors.grey[400],
                     radius: 40,
                     backgroundImage: NetworkImage(
                       'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
                       headers: headers,
                     ),
-                    // backgroundImage: AssetImage('images/ebele.png'),
                   ),
                 ),
 
@@ -270,12 +293,12 @@ class Frame extends HookConsumerWidget {
                         Container(
                           margin: const EdgeInsets.only(top: 30),
                           child: CircleAvatar(
+                          backgroundColor: Colors.grey[400],
                           radius: 50,
                           backgroundImage: NetworkImage(
                             'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
                             headers: headers,
                           ),
-                          // backgroundImage: AssetImage('images/ebele.png'),  
                         ),
                         ),
                         Container(
@@ -386,7 +409,7 @@ class Frame extends HookConsumerWidget {
                   Icons.receipt,
                   color: Color(0xff15B77C),
                 ),),
-                title: const Text('Transactions', style: TextStyle(color: Colors.black)),
+                title: const Text('Activities', style: TextStyle(color: Colors.black)),
                 onTap: () {
                   Navigator.pop(context);
                   currentIndex.value = 5;
@@ -424,7 +447,6 @@ class Frame extends HookConsumerWidget {
             ],
           )),
       bottomNavigationBar: Theme(
-        
         data: Theme.of(context).copyWith(
               // canvasColor: const Color(0xffD6EBE3),
               canvasColor: Colors.white,
@@ -442,7 +464,7 @@ class Frame extends HookConsumerWidget {
           BottomNavigationBarItem(
               icon: Icon(Icons.manage_accounts), label: 'Appraisals'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.receipt), label: 'Transactions'),
+              icon: Icon(Icons.receipt), label: 'Activities'),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings), label: 'Settings'),
 
@@ -459,6 +481,6 @@ class Frame extends HookConsumerWidget {
         unselectedFontSize: 12,
         selectedFontSize: 14,
       ),)
-    ));
+    )));
   }
 }

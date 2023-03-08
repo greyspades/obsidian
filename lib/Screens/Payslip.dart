@@ -9,41 +9,41 @@ import 'package:e_360/Models/DepOfficer.dart';
 List<Map<String, dynamic>> earnings = [
   {
     'name': 'Basic Pay',
-    'value': '49,601.80',
-    'ydt': '127,311.28'
+    'value': '00,000.00',
+    'ydt': '000,000.00'
   },
   {
     'name': 'Housing',
-    'value': '17,601.80',
-    'ydt': '44,311.28'
+    'value': '00,000.00',
+    'ydt': '00,000.00'
   },
   {
     'name': 'Meal',
-    'value': '17,601.80',
-    'ydt': '44,311.28'
+    'value': '00,000.00',
+    'ydt': '00,000.00'
   },
   {
     'name': 'Transport',
-    'value': '14,880.80',
-    'ydt': '36,193.28'
+    'value': '00,000.00',
+    'ydt': '00,000.00'
   },
   {
     'name': 'Utility',
-    'value': '12,569.80',
-    'ydt': '32,262.28'
+    'value': '00,000.00',
+    'ydt': '00,000.00'
   }
 ];
 
 List<Map<String, dynamic>> deductions = [
   {
     'name': 'Pension',
-    'value': '6,547.43',
-    'ydt': '16,805.07'
+    'value': '00,000.00',
+    'ydt': '00,000.00'
   },
   {
     'name': 'Tax',
-    'value': '5,997.88',
-    'ydt': '12,875.32'
+    'value': '00,000.00',
+    'ydt': '00,000.00'
   },
 ];
 
@@ -154,8 +154,8 @@ class Payslip extends HookWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const[
             Text('Gross Pay', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
-            Text('104,000.00', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
-            Text('266,933.00', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
+            Text('000,000.00', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
+            Text('000,000.00', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
           ]),
         ),
 
@@ -174,8 +174,8 @@ class Payslip extends HookWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const[
             Text('Total Deductions', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
-            Text('12,545.31', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
-            Text('29,680.39', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
+            Text('00,000.00', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
+            Text('00,000.00', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
           ]),
         ),
 
@@ -186,8 +186,8 @@ class Payslip extends HookWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const[
             Text('Net Pay', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
-            Text('91,454.67', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
-            Text('237,252.89', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
+            Text('00,000.00', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
+            Text('00,000.00', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),),
           ]),
         ),
         Container(
@@ -211,7 +211,7 @@ class Payslip extends HookWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const[
               Text('Tax Relief',style: TextStyle(fontWeight: FontWeight.bold),),
-              Text('44,019.09')
+              Text('00,000.00')
             ],)
           ]),
         )

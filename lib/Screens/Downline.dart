@@ -38,7 +38,7 @@ class LineManager extends HookConsumerWidget {
 
     Future<dynamic> search(String item) async {
       Uri url =
-          Uri.parse('http://10.0.0.184:8015/userservices/searchemployees');
+          Uri.parse('https://e360.lapo-nigeria.org/userservices/searchemployees');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -80,7 +80,7 @@ class LineManager extends HookConsumerWidget {
 
     Future<void> getDivision() async {
       Uri url =
-          Uri.parse('http://10.0.0.184:8015/userservices/divisionbyempNo');
+          Uri.parse('https://e360.lapo-nigeria.org/userservices/divisionbyempNo');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -120,18 +120,19 @@ class LineManager extends HookConsumerWidget {
     }
 
     Future<void> _showMyDialog(Map data) async {
+      loading.value = false;
       return showDialog<void>(
         context: context,
         barrierDismissible: false, // user must tap button!
         builder: (BuildContext context) {
           return AlertDialog(
-            title: data['status'] == false
+            title: data['status'] == 400
                 ? const Text('Unsuccessful')
                 : const Text('Success'),
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
-                  Text(data['message']),
+                  Text(data['message_description']),
                 ],
               ),
             ),
@@ -150,7 +151,7 @@ class LineManager extends HookConsumerWidget {
 
     Future<void> createDownline() async {
       loading.value = true;
-      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/createdownline');
+      Uri url = Uri.parse('https://e360.lapo-nigeria.org/userservices/createdownline');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -186,15 +187,17 @@ class LineManager extends HookConsumerWidget {
 
       var response = await http.post(url, headers: headers, body: xpayload);
 
-      print(response.body);
-      if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        var xData = decryption(base64.encode(hex.decode(jsonDecode(data))),
-            auth.aesKey ?? '', auth.iv ?? '');
-        loading.value = false;
-        var downlineResponse = Map<dynamic, dynamic>.from(jsonDecode(xData));
-        _showMyDialog(downlineResponse);
-      }
+      var data = jsonDecode(response.body);
+      print(data);
+      _showMyDialog(data);
+      // if (response.statusCode == 200) {
+      //   var data = jsonDecode(response.body);
+      //   var xData = decryption(base64.encode(hex.decode(jsonDecode(data))),
+      //       auth.aesKey ?? '', auth.iv ?? '');
+      //   loading.value = false;
+      //   var downlineResponse = Map<dynamic, dynamic>.from(jsonDecode(xData));
+      //   _showMyDialog(downlineResponse);
+      // }
     }
 
     useEffect(() {

@@ -8,6 +8,7 @@ import 'package:e_360/Widgets/input.dart';
 import 'package:e_360/Models/DepOfficer.dart';
 import 'package:e_360/Widgets/customSlider.dart';
 
+//color map for material
 Map<int, Color> color = {
   50: Color.fromRGBO(136, 14, 79, .1),
   100: Color.fromRGBO(136, 14, 79, .2),
@@ -64,8 +65,9 @@ class BehaviouralComp extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    //ref code for the current behavioral competency item
     final bcRef = useState<String?>(null);
-
+    //error state if any
     final error = useState<String?>(null);
 
     Future<void> _showMyDialog() async {
@@ -109,7 +111,8 @@ class BehaviouralComp extends HookWidget {
       );
     }
 
-    return ListView(
+    return Container(
+      child: BCs.isNotEmpty ? ListView(
       children: [
         Container(
           margin: const EdgeInsets.only(right: 20),
@@ -199,6 +202,16 @@ class BehaviouralComp extends HookWidget {
                 error.value = 'score';
               } else {
                 totalBC.value += BCVal.value;
+                var result = {
+                  "xAppraisee": appraiserRef,
+                  "xAppraisalBy": staff.userRef,
+                  "xAppraiseeScope": appraiser,
+                  "xAppraisalItemType": "Bhav_comp",
+                  "xAppraisalItemRef": bcRef.value,
+                  "xEvaluationScore": BCVal.value.toString(),
+                  "xEvaluationJustify": bcJust.text
+                };
+                addBc(result);
                 calculateBCSum();
               }
             },
@@ -266,6 +279,7 @@ class BehaviouralComp extends HookWidget {
         //     },
         //     child: Text('click'))
       ],
+    ) : null
     );
   }
 }

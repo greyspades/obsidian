@@ -2,13 +2,15 @@ import 'package:e_360/Models/Transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:e_360/Models/Staff.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:e_360/Widgets/input.dart';
 import 'package:e_360/Models/DepOfficer.dart';
 import 'package:e_360/Widgets/customSlider.dart';
+import 'package:e_360/helpers/contract.dart';
 
-class Summary extends HookWidget {
+class Summary extends HookConsumerWidget {
 
   Staff staff;
   int totalBC;
@@ -25,7 +27,7 @@ class Summary extends HookWidget {
 
   @override 
 
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ListView(children: [
               Container(
                   alignment: Alignment.center,
@@ -125,7 +127,7 @@ class Summary extends HookWidget {
                 child: selfDetails != null ? const Text('Self Appraisal Summary', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),) : null
               ),
               
-
+              //container for the appraisal items
               Container(
                 child: selfDetails != null ? Column(
                   children: selfDetails!.map<Widget>((e) {
@@ -155,9 +157,10 @@ class Summary extends HookWidget {
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
                   height: 60,
-                  child: ElevatedButton(child: Text('Submit'), onPressed: () {
+                  child: ElevatedButton(onPressed: () {
+                    ref.read(screenProvider.notifier).state = Screen(screen: null);
                     submit();
-                  }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xff15B77C))),
+                  }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xff15B77C)), child: const Text('Submit')),
                 ),
               )
             ],);

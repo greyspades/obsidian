@@ -64,25 +64,16 @@ class Management extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
-
+    //if an appraisal is currently active
     final active = useState<bool>(false);
+    //the current step of the appraisal item
     final currentStep = useState<int>(0);
-    final valueOne = useState<int>(0);
-    final valueTwo = useState<int>(0);
-    final valueThree = useState<int>(0);
-    final valueFour = useState<int>(0);
-    final valueFive = useState<int>(0);
-    // final appraiser = useState<String?>(null);
-    final downlines = useState<List<dynamic>?>(null);
+    //the stage of the appraisal process
     final metricStep = useState<int?>(null);
+    //total kpi
     final totalKpi = useState<int>(0);
+    //total behavioural competencies
     final totalBC = useState<int>(0);
-
-    final kpi1 = useState<int>(0);
-    final kpi2 = useState<int>(0);
-    final kpi3 = useState<int>(0);
-    final kpi4 = useState<int>(0);
-    final kpi5 = useState<int>(0);
 
     final kpiStep = useState<int>(0);
 
@@ -112,6 +103,8 @@ class Management extends HookConsumerWidget {
 
     final appariserInfo = useState<Map?>(null);
 
+    final promRec = useState<bool>(false);
+
     void addKpiValue(int val) {
       totalKpi.value += val;
     }
@@ -124,36 +117,6 @@ class Management extends HookConsumerWidget {
       bcObj.value = [...?bcObj.value, val];
     }
 
-    void getData() async {
-      Uri url = Uri.parse(
-          'http://10.0.0.184:8015/userservices/primaryrecord/$appraiserRef/primaryrecord');
-
-      var token = jsonEncode({
-        'tk': auth.token,
-        'us': staff.userRef,
-        'rl': staff.uRole,
-        'src': 'AS-IN-D659B-e3M'
-      });
-
-      var xheaders = encryption(token, auth.aesKey ?? '', auth.iv ?? '');
-
-      var headers = {
-        'x-lapo-eve-proc': base64ToHex(xheaders) + auth.token.toString(),
-        'Content-type': 'text/json',
-      };
-
-      var response = await http.get(url, headers: headers);
-      print(response.body);
-      if (response.statusCode == 200) {
-        final code =
-            base64.encode(hex.decode(jsonDecode(response.body)['data']));
-
-        final payload = decryption(code, auth.aesKey ?? '', auth.iv ?? '');
-        print(payload);
-        appariserInfo.value = jsonDecode(payload);
-      }
-    }
-
     // useEffect(() {
     //   // getData();
     //   // print(appraiserRef);
@@ -162,7 +125,7 @@ class Management extends HookConsumerWidget {
 
     Future<void> getKpi() async {
       Uri url =
-          Uri.parse('http://10.0.0.184:8015/perfomance/listappraisalkpis');
+          Uri.parse('https://e360.lapo-nigeria.org/perfomance/listappraisalkpis');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -194,7 +157,7 @@ class Management extends HookConsumerWidget {
 
       Future<void> getSelfEvaluation() async {
       Uri url = Uri.parse(
-          'http://10.0.0.184:8015/perfomance/retrieveselfevaluation');
+          'https://e360.lapo-nigeria.org/perfomance/retrieveselfevaluation');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -231,7 +194,7 @@ class Management extends HookConsumerWidget {
 
     Future<void> getBC() async {
       Uri url = Uri.parse(
-          'http://10.0.0.184:8015/perfomance/listappraisalbehaviouralcomp');
+          'https://e360.lapo-nigeria.org/perfomance/listappraisalbehaviouralcomp');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -406,8 +369,8 @@ class Management extends HookConsumerWidget {
     }
 
     void calculateBCSum() {
-      // var sum = totalBC.value * 0.10 * 2;
-      // totalBC.value = sum.toInt();
+      var sum = totalBC.value * 0.10 * 2;
+      totalBC.value = sum.toInt();
       int nextStep = appraiser == 'Self' ? 3 : 2;
       _showMyDialog(
           nextStep, 'Total Behavioral Competencies Score', totalBC.value);
@@ -415,7 +378,7 @@ class Management extends HookConsumerWidget {
 
     void submitAppraisl() async {
       Uri url = Uri.parse(
-          'http://10.0.0.184:8015/perfomance/poastappraisalevaluation');
+          'https://e360.lapo-nigeria.org/perfomance/poastappraisalevaluation');
       var token = jsonEncode({
         'tk': auth.token,
         'us': staff.userRef,
@@ -430,7 +393,7 @@ class Management extends HookConsumerWidget {
       };
       var body = jsonEncode({
         "xAppraisalEvaluationData": [...?bcObj.value, ...?kpiObj.value],
-        "xRecommendedForPromotion": re3.text,
+        "xRecommendedForPromotion": promRec.value == true ? '' : '',
         "xAppraisalTrainingNeedsData": re2.text,
         "xAreaOfImprovement": re1.text,
         "xAppraisalComment": re4.text,
@@ -447,46 +410,15 @@ class Management extends HookConsumerWidget {
           body:
               base64ToHex(encryption(body, auth.aesKey ?? '', auth.iv ?? '')));
       var data = jsonDecode(response.body);
-    
+      // print(body);
+      //   print(data);
         _showResponse(data);
-      if (response.statusCode == 200) {
+      // if (response.statusCode == 200) {
         // var data = jsonDecode(response.body);
         // print('success yaza!!!!!');
         // print(data);
         // _showResponse(data);
-      }
-    }
-
-    void getDownline() async {
-      Uri url = Uri.parse("http://10.0.0.184:8015/userservices/mydownline");
-      var token = jsonEncode({
-        'tk': auth.token,
-        'us': staff.userRef,
-        'rl': staff.uRole,
-        'src': "AS-IN-D659B-e3M"
-      });
-      var headers = {
-        'x-lapo-eve-proc':
-            base64ToHex(encryption(token, auth.aesKey ?? '', auth.iv ?? '')) +
-                (auth.token ?? ''),
-        'Content-type': 'text/json',
-      };
-      var body = jsonEncode({
-        "xPostValue": staff.userRef,
-      });
-      var response = await http.post(url,
-          headers: headers,
-          body:
-              base64ToHex(encryption(body, auth.aesKey ?? '', auth.iv ?? '')));
-      if (response.statusCode == 200) {
-        var xdata = decryption(
-            base64.encode(hex.decode(jsonDecode(response.body)['data'])),
-            auth.aesKey ?? '',
-            auth.iv ?? '');
-        var data = List<Map<dynamic, dynamic>>.from(jsonDecode(xdata));
-        print(data);
-        downlines.value = data;
-      }
+      // }
     }
 
     validateWM(String value, int max) {
@@ -508,7 +440,6 @@ class Management extends HookConsumerWidget {
 
     useEffect(() {
       if(trans != null) {
-        print(trans?.itemCode);
         getSelfEvaluation();
       }
 
@@ -520,22 +451,6 @@ class Management extends HookConsumerWidget {
         kpiStep.value = step;
       } else {
         currentStep.value = step;
-      }
-    }
-
-    handleDrag(int index, int value) {
-      switch (index) {
-        case 1:
-          valueOne.value = value;
-          break;
-
-        case 2:
-          valueTwo.value = value;
-          break;
-
-        case 3:
-          valueThree.value = value;
-          break;
       }
     }
 
@@ -569,13 +484,14 @@ class Management extends HookConsumerWidget {
             child: active.value == false
                 ? Container(
                     width: 400,
-                    height: 150,
+                    height: 140,
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius:
                             const BorderRadius.all(Radius.circular(5))),
-                    child: Row(
+                    child: Column(children: [
+                      Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CircleAvatar(
@@ -597,6 +513,8 @@ class Management extends HookConsumerWidget {
                           ),
                         ),
                         Container(
+                          width: 100,
+                          height: 40,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xff15B77C)
@@ -609,7 +527,25 @@ class Management extends HookConsumerWidget {
                           ),
                         )
                       ],
-                    ))
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(top: 20),
+                      child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,  
+                      children: [
+                      Text(staff.buName.toString(), style: const TextStyle(fontSize: 18)),
+                      Container(
+                        padding: const EdgeInsets.all(5),
+                        alignment: Alignment.center,
+                        width: 100,
+                        height: 30,
+                        decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(4)), color: Color.fromARGB(255, 189, 189, 189),),
+                        child: Text((DateTime.now().year -1).toString(), style: const TextStyle(fontSize: 18),),
+                      )
+                    ],),
+                    )
+                    ],)
+                    )
                 : metricStep.value == 1
                     ? BehaviouralComp(
                         staff: staff,
@@ -653,6 +589,7 @@ class Management extends HookConsumerWidget {
                                 re1: re1,
                                 re2: re2,
                                 re3: re3,
+                                promRec: promRec,
                                 metricStep: metricStep,
                                 re4: re4)
                             : metricStep.value == 3

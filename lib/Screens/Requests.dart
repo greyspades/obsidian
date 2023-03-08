@@ -96,7 +96,7 @@ class RequestsState extends State<Requests> {
   final searchController = TextEditingController();
 
   Future<void> getLeaveTypes() async {
-    Uri url = Uri.parse('http://10.0.0.184:8015/requisition/leave/leavetypes/lv_req/leavetypes');
+    Uri url = Uri.parse('https://e360.lapo-nigeria.org/requisition/leave/leavetypes/lv_req/leavetypes');
     var token = jsonEncode({
       'tk': widget.auth?.token,
       'us': widget.staff.userRef,
@@ -119,7 +119,7 @@ class RequestsState extends State<Requests> {
   }
 
   Future<void> getLineManager() async {
-    Uri url = Uri.parse('http://10.0.0.184:8015/userservices/mylinemanager');
+    Uri url = Uri.parse('https://e360.lapo-nigeria.org/userservices/mylinemanager');
     var token = jsonEncode({
       'tk': widget.auth?.token,
       'us': widget.staff.userRef,
@@ -143,7 +143,7 @@ class RequestsState extends State<Requests> {
   }
 
   Future<void> getLeaveSetup() async {
-    Uri url = Uri.parse('http://10.0.0.184:8015/requisition/leave/leavesetup');
+    Uri url = Uri.parse('https://e360.lapo-nigeria.org/requisition/leave/leavesetup');
     var token = jsonEncode({
       'tk': widget.auth?.token,
       'us': widget.staff.userRef,
@@ -171,7 +171,7 @@ class RequestsState extends State<Requests> {
   }
 
   Future<void> getDivision() async {
-    Uri url = Uri.parse('http://10.0.0.184:8015/userservices/divisionbyempNo');
+    Uri url = Uri.parse('https://e360.lapo-nigeria.org/userservices/divisionbyempNo');
     
     var token = jsonEncode({
       'tk': widget.auth?.token,
@@ -210,7 +210,7 @@ class RequestsState extends State<Requests> {
 
   Future<void> getUtlzDetails(String id) async {
     Uri url = Uri.parse(
-        'http://10.0.0.184:8015/requisition/retrieveleaveUtlzdetails');
+        'https://e360.lapo-nigeria.org/requisition/retrieveleaveUtlzdetails');
     var token = jsonEncode({
       'tk': widget.auth?.token,
       'us': widget.staff.userRef,
@@ -240,7 +240,7 @@ class RequestsState extends State<Requests> {
   }
 
   Future<dynamic> search(String item) async {
-    Uri url = Uri.parse('http://10.0.0.184:8015/userservices/searchemployees');
+    Uri url = Uri.parse('https://e360.lapo-nigeria.org/userservices/searchemployees');
     var token = jsonEncode({
       'tk': widget.auth?.token,
       'us': widget.staff.userRef,
@@ -449,7 +449,7 @@ class RequestsState extends State<Requests> {
     DateTime end = DateTime.parse(endDate.toString());
     final differenceInDays = end.difference(start).inDays;
 
-    Uri url = Uri.parse('http://10.0.0.184:8015/requisition/createleave');
+    Uri url = Uri.parse('https://e360.lapo-nigeria.org/requisition/createleave');
 
     var token = jsonEncode({
       'tk': widget.auth?.token,
@@ -492,7 +492,6 @@ class RequestsState extends State<Requests> {
     });
     var response =
         await http.post(url, headers: headers, body: base64ToHex(encryption(body, widget.auth?.aesKey ?? '', widget.auth?.iv ?? '')));
-    print(response.body);
     var data = jsonDecode(response.body);
     
     return _showMyDialog(data);

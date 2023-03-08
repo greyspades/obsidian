@@ -32,7 +32,7 @@ class TransactionState extends State<Transactions> {
     setState(() {
       loading = true;
     });
-    Uri url = Uri.parse('http://10.0.0.184:8015/userservices/listtransactions');
+    Uri url = Uri.parse('https://e360.lapo-nigeria.org/userservices/listtransactions');
     var token = jsonEncode({
       'tk': widget.auth.token,
       'us': widget.staff.userRef,
@@ -82,7 +82,7 @@ class TransactionState extends State<Transactions> {
   }
 
   Future<Map<dynamic, dynamic>> retrieveLeave(String ref) async {
-    Uri url = Uri.parse('http://10.0.0.184:8015/requisition/retrieveleave');
+    Uri url = Uri.parse('https://e360.lapo-nigeria.org/requisition/retrieveleave');
     var token = jsonEncode({
       'tk': widget.auth.token,
       'us': widget.staff.userRef,

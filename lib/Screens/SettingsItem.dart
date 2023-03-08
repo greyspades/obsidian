@@ -71,20 +71,19 @@ class SettingsItem extends HookConsumerWidget {
     // final source = useState<String>('gallery');
 
     Future<void> _showMyDialog(Map data) async {
+      loading.value = false;
       return showDialog<void>(
         context: context,
         barrierDismissible: false, // user must tap button!
         builder: (BuildContext context) {
           return AlertDialog(
-            title: data['status'] == false
+            title: data['status'] == 400
                 ? const Text('Unsuccessful')
                 : const Text('Success'),
-            // title: Text('Unsuccessful'),
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
-                  // Text('Invalid details'),
-                  Text(data['message'])
+                  Text(data['message_description'])
                 ],
               ),
             ),
@@ -103,7 +102,7 @@ class SettingsItem extends HookConsumerWidget {
 
     Future<void> resetPassword() async {
       loading.value = true;
-      Uri url = Uri.parse('http://10.0.0.184:8015/userservices/passreset');
+      Uri url = Uri.parse('https://e360.lapo-nigeria.org/userservices/passreset');
       var token = jsonEncode({
       'tk': auth.token,
       'us': staff.userRef,
@@ -126,12 +125,15 @@ class SettingsItem extends HookConsumerWidget {
 
       final result = await http
           .post(url, headers: headers, body: xpayload);
-          if(result.statusCode == 200) {
-            var xData = decryption(base64.encode(hex.decode(jsonDecode(result.body))), auth.aesKey ?? '', auth.iv ?? '');
-            var data =
-          Map<dynamic, dynamic>.from(jsonDecode(xData));
+          var data = jsonDecode(result.body);
+          print(data);
           _showMyDialog(data);
-          }
+          // if(result.statusCode == 200) {
+          //   var xData = decryption(base64.encode(hex.decode(jsonDecode(result.body))), auth.aesKey ?? '', auth.iv ?? '');
+          //   var data =
+          // Map<dynamic, dynamic>.from(jsonDecode(xData));
+          // _showMyDialog(data);
+          // }
     }
 
     Future<void> updatePhone() async {

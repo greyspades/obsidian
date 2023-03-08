@@ -17,13 +17,15 @@ import 'package:e_360/helpers/aes.dart';
 import 'package:convert/convert.dart';
 import 'package:e_360/helpers/contract.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends HookConsumerWidget {
   final String title;
   Login({super.key, required this.title});
 
   OtaEvent? event;
+
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,17 +42,132 @@ class Login extends HookConsumerWidget {
     final updateState = useState<OtaEvent?>(null);
     final forgottenPassword = useState<bool>(false);
     final connectionError = useState<String?>(null);
-    final animController = useState<AnimationController?>(null);
+    final firstName = useState<String?>(null);
     final token = useState<String?>(null);
-    final aesKey = useState<String?>(null);
-    final aesIv = useState<String?>(null);
-    final credentials = useState<List<String>?>(null);
+    final key = useState<String?>(null);
+    final iv = useState<String?>(null);
     // final isValid = useState<bool>(_formKey.currentState!.validate());
 
     useEffect(() {
       inputState.value = _usernameController.text;
     }, [_usernameController, _passwordController]);
 
+    Future<void> tryOtaUpdate() async {
+      try {
+        print(token.value);
+        var credentials = jsonEncode({
+          'tk': token.value,
+          // 'us': '',
+          // 'rl': '',
+          'src': "AS-IN-D659B-e3M"
+        });
+        var headers = {
+          'x-lapo-eve-proc':
+              base64ToHex(encryption(credentials, key.value ?? '', iv.value ?? '')) +
+                  (token.value ?? ''),
+          'Content-type': 'text/json',
+        };
+        //LINK CONTAINS APK OF E360 app
+        OtaUpdate()
+            .execute(
+          // 'http://10.0.0.184:8015/updates/downloadappversionfile/1.0.2/downloadappversionfile',
+          'http://10.0.0.94:5000/apk/E360.apk',
+          // 'https://internal1.4q.sk/flutter_hello_world.apk',
+          destinationFilename: 'E360.apk',
+          // headers: headers
+          //FOR NOW ANDROID ONLY - ABILITY TO VALIDATE CHECKSUM OF FILE:
+          // sha256checksum: 'd6da28451a1e15cf7a75f2c3f151befad3b80ad0bb232ab15c20897e54f21478',
+        )
+            .listen(
+          (OtaEvent event) {
+            //updates the update state
+            updateState.value = event;
+          },
+        );
+        // ignore: avoid_catches_without_on_clauses
+      } catch (e) {
+        print('Failed to make OTA update. Details: $e');
+      }
+    }
+
+    useEffect(() {
+      initiateContract() async {
+        final auth = await makeContract();
+        if (auth?.isNotEmpty == true) {
+          ref.read(authProvider.notifier).state =
+              Auth(token: auth?[0], aesKey: auth?[1], iv: auth?[2]);
+        }
+
+        token.value = auth?[0];
+        key.value = auth?[1];
+        iv.value = auth?[2];
+        
+        // Uri url =
+        //     Uri.parse(
+        //       // 'http://10.0.0.184:8015/updates/checkappversiondetails'
+        //       'http://10.0.0.94:5000/get_latest_version'
+        //       );
+
+        // var credentials = jsonEncode({
+        //   'tk': auth?[0],
+        //   // 'us': '',
+        //   // 'rl': '',
+        //   'src': "AS-IN-D659B-e3M"
+        // });
+        // var headers = {
+        //   'x-lapo-eve-proc':
+        //       base64ToHex(encryption(credentials, auth?[1] ?? '', auth?[2] ?? '')) +
+        //           (auth?[0] ?? ''),
+        //   'Content-type': 'text/json',
+        // };
+        // var body = jsonEncode({
+        //   "xTransRef": "",
+        //   "xTransScope": "129dekekddkffmf2sv25",
+        //   "xAppTransScope": "9e9efefech009eee",
+        //   "xAppSource": "AS-IN-D659B-e3M",
+        //   "xRecTargetSection": ""
+        // });
+        // final xpayload =
+        //     base64ToHex(encryption(body, auth?[1] ?? '', auth?[2] ?? ''));
+
+        // var result = await http.post(url, headers: headers, body: xpayload);
+
+        // var data = jsonDecode(result.body)["data"];
+        //   var xData = decryption(base64.encode(hex.decode(data)),
+        //       auth?[1] ?? '', auth?[2] ?? '');
+        // var info = Map<dynamic, dynamic>.from(jsonDecode(xData)[0]);
+
+        // var serverVersion = double.parse(info['App_Version_No']);
+        // PackageInfo packageInfo = await PackageInfo.fromPlatform();
+        // var version = double.parse(packageInfo.version);
+        // var code = packageInfo.buildNumber;
+
+        // // if(serverVersion > version)
+        // print(version.runtimeType);
+        // print(code);
+        // print('got here');
+        // tryOtaUpdate();
+      }
+
+      initiateContract();
+
+      return null;
+    }, []);
+
+//gets the users name from local storage if it exists
+    useEffect(() {
+      void getName() async {
+        final SharedPreferences prefs = await _prefs;
+        if (prefs.containsKey('firstname') == true) {
+          var name = prefs.getString('firstname');
+          firstName.value = name;
+        }
+      }
+
+      getName();
+      return null;
+    });
+//validation for input fields
     validateUsername(String value) {
       if (value == null || value.isEmpty) {
         return 'Please enter a Username';
@@ -65,6 +182,7 @@ class Login extends HookConsumerWidget {
       return null;
     }
 
+// displays a dialog for login errors
     Future<void> _showMyDialog(Map data) async {
       return showDialog<void>(
         context: context,
@@ -74,13 +192,9 @@ class Login extends HookConsumerWidget {
             title: data['status'] == false
                 ? const Text('Unsuccessful')
                 : const Text('Success'),
-            // title: Text('Unsuccessful'),
             content: SingleChildScrollView(
               child: ListBody(
-                children: <Widget>[
-                  // Text('Invalid details'),
-                  Text(data['message'])
-                ],
+                children: <Widget>[Text(data['message_description'])],
               ),
             ),
             actions: <Widget>[
@@ -96,6 +210,32 @@ class Login extends HookConsumerWidget {
       );
     }
 
+    Future<void> _showUpdateDialog(Map data) async {
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('App Update'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[Text('A new ')],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Update'),
+                onPressed: () {
+                  tryOtaUpdate();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    //gets the current time for the intro
     String getTime() {
       var hour = DateTime.now().hour;
       if (hour < 12) {
@@ -107,64 +247,98 @@ class Login extends HookConsumerWidget {
       return 'Evening';
     }
 
+    //logs the user in
     void login() async {
       loading.value = true;
-      
+
       connectionError.value = null;
 
-      final auth = await makeContract();
+      try {
+        // initiates the contract for
+        // final auth = await makeContract();
 
-      if(auth?.isNotEmpty == true) ref.read(authProvider.notifier).state = Auth(token: auth?[0], aesKey: auth?[1], iv: auth?[2]);
+        // // print(auth);
 
-      Uri url =
-          Uri.parse('http://10.0.0.184:8015/userservices/mobile/authenticatem');
+        // // adds auth credentials to global state
+        // if (auth?.isNotEmpty == true)
+        //   ref.read(authProvider.notifier).state =
+        //       Auth(token: auth?[0], aesKey: auth?[1], iv: auth?[2]);
 
-      String base64ToHex(String source) =>
-    base64Decode(LineSplitter.split(source).join())
-        .map((e) => e.toRadixString(16).padLeft(2, '0'))
-        .join();
+        // https://e360.lapo-nigeria.org/
 
-      var token = jsonEncode({'tk': auth?[0], 'src': "AS-IN-D659B-e3M"});
+        Uri url = Uri.parse(
+            // 'http://10.0.0.184:8015/userservices/mobile/authenticatem'
+            'https://e360.lapo-nigeria.org/userservices/mobile/authenticatem'
+            );
 
-      var body = jsonEncode({
-        // 'UsN': _usernameController.text,
-        // 'Pwd': _passwordController.text,
-        'UsN': 'SN11798',
-        // 'UsN' : 'SN12213',
-        'Pwd': 'Password6\$',
-        'xAppSource': "AS-IN-D659B-e3M"
-      });
+        String base64ToHex(String source) =>
+            base64Decode(LineSplitter.split(source).join())
+                .map((e) => e.toRadixString(16).padLeft(2, '0'))
+                .join();
 
-      final encryptedBody = encryption(body, auth![1], auth[2]);
+        // token for the headers
+        var token = jsonEncode({'tk': auth.token, 'src': "AS-IN-D659B-e3M"});
 
-      final encryptedHeader = encryption(token, auth[1], auth[2]);
+        var body = jsonEncode({
+          'UsN': _usernameController.text,
+          'Pwd': _passwordController.text,
+          // 'UsN': 'SN11798',
+          // 'UsN': 'SN12216',
+          // 'UsN' : 'SN12213',
+          // 'Pwd': 'Password6\$',
+          'xAppSource': "AS-IN-D659B-e3M"
+        });
 
-      var headers = {
-        'x-lapo-eve-proc': base64ToHex(encryptedHeader) + auth[0],
-        'Content-type': 'text/json',
-      };
-      
-      final result = await http
-          .post(url, headers: headers, body: base64ToHex(encryptedBody))
-          .timeout(const Duration(seconds: 10))
-          .catchError((err) => {
-                loading.value = false,
-                connectionError.value = 'Check your internet connection'
-              });
-      if (result.statusCode == 200) {
+        final encryptedBody =
+            encryption(body, auth.aesKey ?? '', auth.iv ?? '');
+
+        final encryptedHeader =
+            encryption(token, auth.aesKey ?? '', auth.iv ?? '');
+
+        var headers = {
+          'x-lapo-eve-proc': base64ToHex(encryptedHeader) + (auth.token ?? ''),
+          'Content-type': 'text/json',
+        };
+
+        final result = await http
+            .post(url, headers: headers, body: base64ToHex(encryptedBody))
+            .timeout(const Duration(seconds: 10))
+            .catchError((err) => {
+                  // print(err),
+                  loading.value = false,
+                  connectionError.value =
+                      'An Error Occured Connecting to the Server'
+                });
+        print(result.body);
         if (jsonDecode(result.body)?['status'] != 200) {
           loading.value = false;
           return _showMyDialog(jsonDecode(result.body));
         }
+
+        //initiates shared preferences for local storage
+        final SharedPreferences prefs = await _prefs;
+
         loading.value = false;
-        
-        var payload = decryption(base64.encode(hex.decode(jsonDecode(result.body)['data'])), auth[1], auth[2]);
-        
+
+        var payload = decryption(
+            base64.encode(hex.decode(jsonDecode(result.body)['data'])),
+            auth.aesKey ?? '',
+            auth.iv ?? '');
+
         final Staff data = Staff.fromJson(jsonDecode(payload));
+
+        firstName.value = data.firstName;
+
+        // stores the users first name in local storage
+        if (prefs.containsKey('firstname') == false) {
+          prefs.setString('firstname', data.firstName ?? '');
+        }
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => Frame(staff: data)));
-      } else {
+      } catch (e) {
+        print(e);
         loading.value = false;
+        connectionError.value = 'An Error Occured Connecting to the Server';
       }
     }
 
@@ -192,51 +366,36 @@ class Login extends HookConsumerWidget {
           .then((result) => {print(result)});
     }
 
-    Future<void> tryOtaUpdate() async {
-      try {
-        //LINK CONTAINS APK OF FLUTTER HELLO WORLD FROM FLUTTER SDK EXAMPLES
-        OtaUpdate()
-            .execute(
-          'http://10.0.0.94:5000/apk/E360.apk',
-          // 'https://internal1.4q.sk/flutter_hello_world.apk',
-          destinationFilename: 'E360_alpha.apk',
-          //FOR NOW ANDROID ONLY - ABILITY TO VALIDATE CHECKSUM OF FILE:
-          // sha256checksum: 'd6da28451a1e15cf7a75f2c3f151befad3b80ad0bb232ab15c20897e54f21478',
-        )
-            .listen(
-          (OtaEvent event) {
-            print(event.value);
-            print(event.status);
-            updateState.value = event;
-          },
-        );
-        // ignore: avoid_catches_without_on_clauses
-      } catch (e) {
-        print('Failed to make OTA update. Details: $e');
-      }
-    }
+    // initiates ota update
 
+    // checks for the current app version and compares versions on the server
     void checkForUpdate() async {
       Uri url = Uri.parse('http://10.0.0.94:5000/get_latest_version');
       final result = await http.get(url);
-      print(result.body);
       if (result.statusCode == 200) {
         var currentVersion = double.parse(result.body);
+        // gets the current version from app
         PackageInfo packageInfo = await PackageInfo.fromPlatform();
-        String version = packageInfo.version;
+        var version = packageInfo.version;
         String code = packageInfo.buildNumber;
+        var ver = double.parse(version.replaceAll(RegExp(r'[^0-9.]'),''));
+        print('got here');
+        // // print(currentVersion);
+        // print(ver
+        // .runtimeType);
+
         // var appVersion = double.parse(version);
-        if (currentVersion > 1.0) {
-          tryOtaUpdate();
-        } else {
-          print('Already using most recent version');
-        }
+        // if (currentVersion > 1.0) {
+        //   tryOtaUpdate();
+        // } else {
+        //   print('Already using most recent version');
+        // }
       }
     }
 
     useEffect(() {
       // tryOtaUpdate();
-      // checkForUpdate();
+      checkForUpdate();
     }, []);
 
     return WillPopScope(
@@ -249,8 +408,7 @@ class Login extends HookConsumerWidget {
             actions: [
               IconButton(
                   onPressed: () {},
-                  icon: Icon(Icons.help, color: Colors.grey[500])
-                  )
+                  icon: Icon(Icons.help, color: Colors.grey[500]))
             ],
           ),
           body: ListView(
@@ -272,23 +430,32 @@ class Login extends HookConsumerWidget {
                       const Text('Good',
                           style: TextStyle(
                               fontWeight: FontWeight.w800,
-                              fontSize: 32,
+                              fontSize: 28,
                               fontFamily: 'Ubuntu-light')),
                       const Text('  '),
                       Text(
                         getTime() + ',',
                         style: const TextStyle(
                             fontWeight: FontWeight.w800,
-                            fontSize: 32,
+                            fontSize: 28,
                             fontFamily: 'Ubuntu-light'),
                       ),
                       const Text('  '),
-                      const Text('Boss',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 32,
-                              color: Color(0xff15B77C),
-                              fontFamily: 'Ubuntu-regular'))
+                      Container(
+                        child: firstName.value == null
+                            ? const Text('Boss',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 28,
+                                    color: Color(0xff15B77C),
+                                    fontFamily: 'Ubuntu-regular'))
+                            : Text(firstName.value.toString(),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 28,
+                                    color: Color(0xff15B77C),
+                                    fontFamily: 'Ubuntu-regular')),
+                      )
                     ],
                   )),
               Form(
@@ -376,17 +543,14 @@ class Login extends HookConsumerWidget {
                             textColor: Colors.white,
                             disabledColor: const Color(0xffA6D2C2),
                             onPressed: () {
-                              // if (_formKey.currentState!.validate() &&
-                              //     forgottenPassword.value == false
-                              //     && updateState.value?.status.toString() != 'OtaStatus.DOWNLOADING'
-                              //     ) {
-                              //   login();
-                              // }
+                              if (_formKey.currentState!.validate() &&
+                                  forgottenPassword.value == false &&
+                                  updateState.value?.status.toString() !=
+                                      'OtaStatus.DOWNLOADING') {
+                                login();
+                              }
 
-                              // else if(_formKey.currentState!.validate() && forgottenPassword.value == true) {
-                              //    resetPassword();
-                              // }
-                              login();
+                              // login();
                             },
                             splashColor: Colors.redAccent,
                             child: loading.value == false &&
@@ -415,19 +579,19 @@ class Login extends HookConsumerWidget {
                                               )
                                             : null),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: TextButton(
-                            onPressed: () {
-                              // forgottenPassword.value = !forgottenPassword.value;
-                            },
-                            child: forgottenPassword.value == true
-                                ? const Text('Cancel Password Reset',
-                                    style: TextStyle(color: Color(0xff15B77C)))
-                                : const Text('Forgot Password',
-                                    style:
-                                        TextStyle(color: Color(0xff15B77C)))),
-                      ),
+                      // Padding(
+                      //   padding: const EdgeInsets.only(top: 20),
+                      //   child: TextButton(
+                      //       onPressed: () {
+                      //         // forgottenPassword.value = !forgottenPassword.value;
+                      //       },
+                      //       child: forgottenPassword.value == true
+                      //           ? const Text('Cancel Password Reset',
+                      //               style: TextStyle(color: Color(0xff15B77C)))
+                      //           : const Text('Forgot Password',
+                      //               style:
+                      //                   TextStyle(color: Color(0xff15B77C)))),
+                      // ),
                       Container(
                           height: 50,
                           child: updateState.value?.status.toString() ==

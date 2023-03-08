@@ -1,19 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:e_360/Models/Staff.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:e_360/Widgets/input.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:local_session_timeout/local_session_timeout.dart';
+import 'package:e_360/Screens/login.dart';
 
-class Home extends HookWidget {
+import '../helpers/contract.dart';
+
+class Home extends HookConsumerWidget {
   dynamic switchTab;
 
   Home({super.key, required this.switchTab});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
+  Widget build(BuildContext context, WidgetRef ref) {
+
+    final screen = ref.watch(screenProvider);
+    //configuration for the timeout session
+    final sessionConfig = SessionConfig(
+        invalidateSessionForAppLostFocus: const Duration(seconds: 15),
+        invalidateSessionForUserInactivity: const Duration(minutes: 3));
+
+    sessionConfig.stream.listen((SessionTimeoutState timeoutEvent) {
+    if (timeoutEvent == SessionTimeoutState.userInactivityTimeout && screen.screen != 'manage') {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
+    } else if (timeoutEvent == SessionTimeoutState.appFocusTimeout) {
+        // Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
+        // print('lost focuss');
+    }});
+    return SessionTimeoutManager(sessionConfig: sessionConfig, child: Container(
       color: Colors.white,
       padding: const EdgeInsets.only(),
       // margin: const EdgeInsets.only(bottom: 30),
@@ -217,6 +236,6 @@ class Home extends HookWidget {
                   
                 ]),)
       ]),
-    );
+    ));
   }
 }

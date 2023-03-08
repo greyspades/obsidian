@@ -77,15 +77,15 @@ class Kpi extends HookWidget {
       }
     }
 
-    useEffect(() {
-      Future.delayed(const Duration(seconds: 3), () async {
-        if (kpis.isEmpty) {
-          metricStep.value = 1;
-        }
-      });
+    // useEffect(() {
+    //   Future.delayed(const Duration(seconds: 3), () async {
+    //     if (kpis.isEmpty) {
+    //       metricStep.value = 1;
+    //     }
+    //   });
 
-      // print(object)
-    }, []);
+    //   // print(object)
+    // }, []);
 
     Future<void> _showMyDialog() async {
       return showDialog<void>(
@@ -128,7 +128,8 @@ class Kpi extends HookWidget {
       );
     }
 
-    return ListView(
+    return Container(
+      child: kpis.isNotEmpty ? ListView(
       children: [
         Container(
           margin: const EdgeInsets.only(right: 20),
@@ -219,6 +220,17 @@ class Kpi extends HookWidget {
                     } else if (kpiVal.value < 1) {
                       error.value = 'score';
                     } else {
+                      totalKpi.value += kpiVal.value;
+                      var result = {
+                        "xAppraisee": appraiserRef,
+                        "xAppraisalBy": staff.userRef,
+                        "xAppraiseeScope": appraiser,
+                        "xAppraisalItemType": "KPI",
+                        "xAppraisalItemRef": kpiRef.value,
+                        "xEvaluationScore": kpiVal.value.toString(),
+                        "xEvaluationJustify": kpiJust.text
+                      };
+                      addKpi(result);
                       calculateKpiSum();
                     }
                   },
@@ -275,8 +287,8 @@ class Kpi extends HookWidget {
                           ],
                         ),
                       ),
-                      isActive: currentStep.value < kpis.length + 1,
-                      state: currentStep.value >= kpis.length + 1
+                      isActive: currentStep.value < kpis.length,
+                      state: currentStep.value >= kpis.length
                           ? StepState.complete
                           : StepState.disabled,
                     );
@@ -285,9 +297,15 @@ class Kpi extends HookWidget {
               : Container(),
         ),
         // ElevatedButton(onPressed: () {
-        //   print(appraiser);
+        //   print(kpiVal.value);
+        //   print(totalKpi.value);
+        //   print(kpiJust.text);
         // }, child: Text('click'))
       ],
+    ) : Container(
+      padding: const EdgeInsets.all(8),
+      decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(8)), color: Color.fromARGB(255, 229, 225, 225)),
+      child: const Text('You have no KPI set, please contact your line manager'),)
     );
   }
 }
