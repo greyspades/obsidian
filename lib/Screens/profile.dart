@@ -1,16 +1,97 @@
+import 'package:e_360/helpers/contract.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:e_360/Models/Staff.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:convert/convert.dart';
+import 'dart:async';
+import 'package:local_session_timeout/local_session_timeout.dart';
+import 'package:e_360/helpers/contract.dart';
+import 'package:e_360/helpers/aes.dart';
 
-class Profile extends HookWidget {
+class Profile extends HookConsumerWidget {
   final Staff staff;
   final Map<String, dynamic>? info;
   const Profile({super.key, required this.staff, this.info});
   
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authProvider);
+
+    final email = useState<String?>(null);
+
+    final phone = useState<String?>(null);
+
+    useEffect(() {
+      void getEmail() async {
+        Uri url = Uri.parse(
+            'https://e360.lapo-nigeria.org/userservices/retrievemyemails');
+
+        var token = jsonEncode({
+          'tk': auth.token,
+          'us': staff.userRef,
+          'rl': staff.uRole,
+          'src': 'AS-IN-D659B-e3M'
+        });
+
+        var xheaders = encryption(token, auth.aesKey ?? '', auth.iv ?? '');
+
+        var headers = {
+          'x-lapo-eve-proc': base64ToHex(xheaders) + auth.token.toString(),
+          'Content-type': 'text/json',
+        };
+      
+        var response = await http.get(url, headers: headers);
+
+
+        if (response.statusCode == 200) {
+
+          final code = base64.encode(hex.decode(jsonDecode(response.body)['data']));
+
+          final payload = decryption(code, auth.aesKey ?? '', auth.iv ?? '');
+
+          var data = Map<dynamic, dynamic>.from(jsonDecode(payload)[0])["Item"];
+
+          email.value = data;
+        }
+      }
+       void getPhone() async {
+        Uri url = Uri.parse(
+            'https://e360.lapo-nigeria.org/userservices/retrievemymobilenumbers');
+
+        var token = jsonEncode({
+          'tk': auth.token,
+          'us': staff.userRef,
+          'rl': staff.uRole,
+          'src': 'AS-IN-D659B-e3M'
+        });
+
+        var xheaders = encryption(token, auth.aesKey ?? '', auth.iv ?? '');
+
+        var headers = {
+          'x-lapo-eve-proc': base64ToHex(xheaders) + auth.token.toString(),
+          'Content-type': 'text/json',
+        };
+      
+        var response = await http.get(url, headers: headers);
+        if (response.statusCode == 200) {
+
+          final code = base64.encode(hex.decode(jsonDecode(response.body)['data']));
+
+          final payload = decryption(code, auth.aesKey ?? '', auth.iv ?? '');
+
+          var data = Map<dynamic, dynamic>.from(jsonDecode(payload)[0])["Item"];
+
+          phone.value = data;
+        }
+      }
+
+      getEmail();
+      getPhone();
+      // getTransactions();
+    }, []);
 
     List<Map<String, dynamic>> userInfo = [
       {
@@ -45,17 +126,17 @@ class Profile extends HookWidget {
       },
       {
         'title': 'Marital Status',
-        'value': info?['maritalStatus'] ?? 'null',
+        'value': info?['MaritalStatus'] ?? 'null',
         'icon': Icons.group
       },
       {
         'title': 'Email Address',
-        'value': info?['Email'] ?? 'null',
+        'value': email.value,
         'icon': Icons.mail
       },
       {
         'title': 'Phone Number',
-        'value': info?['Mobile'] ?? 'null',
+        'value': phone.value,
         'icon': Icons.local_phone
       },
     ];
