@@ -212,7 +212,7 @@ class Frame extends HookConsumerWidget {
                     backgroundColor: Colors.grey[400],
                     radius: 40,
                     backgroundImage: NetworkImage(
-                      'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
+                      'https://e360.lapo-nigeria.org/userservices/retrievephoto/${staff.userRef}/retrievephoto',
                       headers: headers,
                     ),
                   ),
@@ -296,7 +296,7 @@ class Frame extends HookConsumerWidget {
                           backgroundColor: Colors.grey[400],
                           radius: 50,
                           backgroundImage: NetworkImage(
-                            'http://10.0.0.184:8015/userservices/retrievephoto/${staff.userRef}/retrievephoto',
+                            'https://e360.lapo-nigeria.org/userservices/retrievephoto/${staff.userRef}/retrievephoto',
                             headers: headers,
                           ),
                         ),

@@ -498,7 +498,7 @@ class Management extends HookConsumerWidget {
                           backgroundColor: Colors.grey[400],
                           radius: 30,
                           backgroundImage: NetworkImage(
-                            'http://10.0.0.184:8015/userservices/retrievephoto/${appraiserRef}/retrievephoto',
+                            'https://e360.lapo-nigeria.org/userservices/retrievephoto/${appraiserRef}/retrievephoto',
                             headers: headers,
                           ),
                         ),
