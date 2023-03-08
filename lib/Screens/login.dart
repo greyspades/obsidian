@@ -18,6 +18,8 @@ import 'package:convert/convert.dart';
 import 'package:e_360/helpers/contract.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class Login extends HookConsumerWidget {
   final String title;
@@ -54,33 +56,17 @@ class Login extends HookConsumerWidget {
 
     Future<void> tryOtaUpdate() async {
       try {
-        print(token.value);
-        var credentials = jsonEncode({
-          'tk': token.value,
-          // 'us': '',
-          // 'rl': '',
-          'src': "AS-IN-D659B-e3M"
-        });
-        var headers = {
-          'x-lapo-eve-proc':
-              base64ToHex(encryption(credentials, key.value ?? '', iv.value ?? '')) +
-                  (token.value ?? ''),
-          'Content-type': 'text/json',
-        };
         //LINK CONTAINS APK OF E360 app
         OtaUpdate()
             .execute(
           // 'http://10.0.0.184:8015/updates/downloadappversionfile/1.0.2/downloadappversionfile',
           'http://10.0.0.94:5000/apk/E360.apk',
-          // 'https://internal1.4q.sk/flutter_hello_world.apk',
           destinationFilename: 'E360.apk',
-          // headers: headers
           //FOR NOW ANDROID ONLY - ABILITY TO VALIDATE CHECKSUM OF FILE:
           // sha256checksum: 'd6da28451a1e15cf7a75f2c3f151befad3b80ad0bb232ab15c20897e54f21478',
         )
             .listen(
           (OtaEvent event) {
-            //updates the update state
             updateState.value = event;
           },
         );
@@ -97,56 +83,9 @@ class Login extends HookConsumerWidget {
           ref.read(authProvider.notifier).state =
               Auth(token: auth?[0], aesKey: auth?[1], iv: auth?[2]);
         }
-
         token.value = auth?[0];
         key.value = auth?[1];
         iv.value = auth?[2];
-        
-        // Uri url =
-        //     Uri.parse(
-        //       // 'http://10.0.0.184:8015/updates/checkappversiondetails'
-        //       'http://10.0.0.94:5000/get_latest_version'
-        //       );
-
-        // var credentials = jsonEncode({
-        //   'tk': auth?[0],
-        //   // 'us': '',
-        //   // 'rl': '',
-        //   'src': "AS-IN-D659B-e3M"
-        // });
-        // var headers = {
-        //   'x-lapo-eve-proc':
-        //       base64ToHex(encryption(credentials, auth?[1] ?? '', auth?[2] ?? '')) +
-        //           (auth?[0] ?? ''),
-        //   'Content-type': 'text/json',
-        // };
-        // var body = jsonEncode({
-        //   "xTransRef": "",
-        //   "xTransScope": "129dekekddkffmf2sv25",
-        //   "xAppTransScope": "9e9efefech009eee",
-        //   "xAppSource": "AS-IN-D659B-e3M",
-        //   "xRecTargetSection": ""
-        // });
-        // final xpayload =
-        //     base64ToHex(encryption(body, auth?[1] ?? '', auth?[2] ?? ''));
-
-        // var result = await http.post(url, headers: headers, body: xpayload);
-
-        // var data = jsonDecode(result.body)["data"];
-        //   var xData = decryption(base64.encode(hex.decode(data)),
-        //       auth?[1] ?? '', auth?[2] ?? '');
-        // var info = Map<dynamic, dynamic>.from(jsonDecode(xData)[0]);
-
-        // var serverVersion = double.parse(info['App_Version_No']);
-        // PackageInfo packageInfo = await PackageInfo.fromPlatform();
-        // var version = double.parse(packageInfo.version);
-        // var code = packageInfo.buildNumber;
-
-        // // if(serverVersion > version)
-        // print(version.runtimeType);
-        // print(code);
-        // print('got here');
-        // tryOtaUpdate();
       }
 
       initiateContract();
@@ -210,22 +149,23 @@ class Login extends HookConsumerWidget {
       );
     }
 
-    Future<void> _showUpdateDialog(Map data) async {
+    Future<void> _showUpdateDialog() async {
       return showDialog<void>(
         context: context,
         barrierDismissible: false, // user must tap button!
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('App Update'),
+            title: const Text('Update Available'),
             content: SingleChildScrollView(
               child: ListBody(
-                children: <Widget>[Text('A new ')],
+                children: const <Widget>[Text('A new version is available for download')],
               ),
             ),
             actions: <Widget>[
               TextButton(
                 child: const Text('Update'),
                 onPressed: () {
+                   Navigator.of(context).pop();
                   tryOtaUpdate();
                 },
               ),
@@ -254,18 +194,6 @@ class Login extends HookConsumerWidget {
       connectionError.value = null;
 
       try {
-        // initiates the contract for
-        // final auth = await makeContract();
-
-        // // print(auth);
-
-        // // adds auth credentials to global state
-        // if (auth?.isNotEmpty == true)
-        //   ref.read(authProvider.notifier).state =
-        //       Auth(token: auth?[0], aesKey: auth?[1], iv: auth?[2]);
-
-        // https://e360.lapo-nigeria.org/
-
         Uri url = Uri.parse(
             // 'http://10.0.0.184:8015/userservices/mobile/authenticatem'
             'https://e360.lapo-nigeria.org/userservices/mobile/authenticatem'
@@ -371,31 +299,39 @@ class Login extends HookConsumerWidget {
     // checks for the current app version and compares versions on the server
     void checkForUpdate() async {
       Uri url = Uri.parse('http://10.0.0.94:5000/get_latest_version');
-      final result = await http.get(url);
+      final result = await http.get(url, headers: {
+      "Access-Control-Allow-Origin": "*",
+      'Content-Type': 'application/json',
+      'Accept': '*/*'
+    });
       if (result.statusCode == 200) {
-        var currentVersion = double.parse(result.body);
         // gets the current version from app
         PackageInfo packageInfo = await PackageInfo.fromPlatform();
         var version = packageInfo.version;
-        String code = packageInfo.buildNumber;
-        var ver = double.parse(version.replaceAll(RegExp(r'[^0-9.]'),''));
-        print('got here');
-        // // print(currentVersion);
-        // print(ver
-        // .runtimeType);
+      
+        var versionList = version.split('.');
 
-        // var appVersion = double.parse(version);
-        // if (currentVersion > 1.0) {
-        //   tryOtaUpdate();
-        // } else {
-        //   print('Already using most recent version');
-        // }
+        var serverList = result.body.split('.');
+
+        if(int.parse(versionList[0]) < int.parse(serverList[0]) || int.parse(versionList[1]) < int.parse(serverList[1])) {
+          _showUpdateDialog();
+        }
+        else {
+          print('its current');
+          return;
+        }
       }
     }
 
     useEffect(() {
-      // tryOtaUpdate();
-      checkForUpdate();
+      if(kIsWeb) {
+        return;
+      }
+      else if(Platform.isAndroid) {
+        checkForUpdate();
+      }
+      // checkForUpdate();
+      return null;
     }, []);
 
     return WillPopScope(
@@ -593,6 +529,7 @@ class Login extends HookConsumerWidget {
                       //                   TextStyle(color: Color(0xff15B77C)))),
                       // ),
                       Container(
+                        margin: const EdgeInsets.only(top: 50),
                           height: 50,
                           child: updateState.value?.status.toString() ==
                                   'OtaStatus.DOWNLOADING'
