@@ -393,7 +393,7 @@ class Management extends HookConsumerWidget {
       };
       var body = jsonEncode({
         "xAppraisalEvaluationData": [...?bcObj.value, ...?kpiObj.value],
-        "xRecommendedForPromotion": promRec.value == true ? '' : '',
+        "xRecommendedForPromotion": promRec.value == true ? '1' : '0',
         "xAppraisalTrainingNeedsData": re2.text,
         "xAreaOfImprovement": re1.text,
         "xAppraisalComment": re4.text,

@@ -313,7 +313,7 @@ class Login extends HookConsumerWidget {
 
         var serverList = result.body.split('.');
 
-        if(int.parse(versionList[0]) < int.parse(serverList[0]) || int.parse(versionList[1]) < int.parse(serverList[1])) {
+        if(int.parse(versionList[1]) < int.parse(serverList[1]) || int.parse(versionList[2]) < int.parse(serverList[2]) ) {
           _showUpdateDialog();
         }
         else {
