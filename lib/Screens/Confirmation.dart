@@ -78,7 +78,7 @@ class Confirmation extends HookConsumerWidget {
         barrierDismissible: false, // user must tap button!
         builder: (BuildContext context) {
           return AlertDialog(
-            title: data['status'] == false
+            title: data['status'] != 200
                 ? const Text('Unsuccessful')
                 : const Text('Success'),
             // title: Text('Unsuccessful'),
@@ -86,7 +86,7 @@ class Confirmation extends HookConsumerWidget {
               child: ListBody(
                 children: <Widget>[
                   // Text('Invalid details'),
-                  Text(data['message'])
+                  Text(data['message_description'])
                 ],
               ),
             ),
@@ -183,12 +183,10 @@ class Confirmation extends HookConsumerWidget {
 
       var response = await http.post(url, headers: headers, body: xpayload);
       var data = jsonDecode(response.body);
-      _showMyDialog(jsonDecode(data));
-      // if (response.statusCode == 200) {
-      //   var data = jsonDecode(response.body);
-      // var xData = decryption(base64.encode(hex.decode(jsonDecode(data))), auth.aesKey ?? '', auth.iv ?? '');
-      // _showMyDialog(jsonDecode(xData));
-      // }
+      if(data != null) {
+        _showMyDialog(data);
+      }
+    
     }
 
     useEffect(() {
@@ -462,7 +460,8 @@ class Confirmation extends HookConsumerWidget {
 
           Container(
               padding: const EdgeInsets.only(top: 30, left: 20, right: 20),
-              child: type == 'createleave' &&
+              child: type == 'createleave'
+               &&
                       staff.userRef != trans.xAppOriginRef
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

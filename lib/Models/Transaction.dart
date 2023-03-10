@@ -54,7 +54,7 @@ class Transaction {
         createdBy: json['CreatedBy'],
         fullName: json['FullName'],
         xStageNo: json['xStageNo'],
-        buName: json['Bu_Name'],
+        buName: json['tOrigin_BU_Name'],
         xStageStatus: json['xStageStatus'],
         xApprovalStatus: json['xApprovalStatus'],
         applvStatusId: json['Appvl_Sts_Id'],
