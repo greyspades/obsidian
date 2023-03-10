@@ -205,7 +205,7 @@ class Confirmation extends HookConsumerWidget {
       body: Container(
         child: Column(children: [
           Container(
-            height: 350,
+            height: 450,
             padding: const EdgeInsets.all(10),
             color: Colors.grey[200],
             child: Column(
@@ -220,7 +220,11 @@ class Confirmation extends HookConsumerWidget {
                         style: TextStyle(),
                       ),
                       Container(
-                        child: leave.value?["LeaveName"] != null ? Text(leave.value?["LeaveName"]) : trans.itemName =='poastappraisalevaluation' ? const Text('Self Appraisal') : null,
+                        child: leave.value?["LeaveName"] != null
+                            ? Text(leave.value?["LeaveName"])
+                            : trans.itemName == 'poastappraisalevaluation'
+                                ? const Text('Self Appraisal')
+                                : null,
                       )
                     ],
                   ),
@@ -353,7 +357,110 @@ class Confirmation extends HookConsumerWidget {
                         style: const TextStyle(),
                       )
                     ],
-                  )
+                  ),
+                  Container(
+                      height: 150,
+                      child: leave.value != null
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Deputizing Officer',
+                                      style: TextStyle(),
+                                    ),
+                                    Text(
+                                      leave.value?["DeputizerName"],
+                                      style: const TextStyle(),
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Start Date',
+                                      style: TextStyle(),
+                                    ),
+                                    Text(
+                                      leave.value?["Lv_Start_Date"]
+                                              .toString()
+                                              .split('T')[0] ??
+                                          '',
+                                      style: const TextStyle(),
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'End Date',
+                                      style: TextStyle(),
+                                    ),
+                                    Text(
+                                      leave.value?["Lv_End_Date"]
+                                              .toString()
+                                              .split('T')[0] ??
+                                          '',
+                                      style: const TextStyle(),
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Resumption Date',
+                                      style: TextStyle(),
+                                    ),
+                                    Text(
+                                      leave.value?["Lv_Rsm_Date"]
+                                              .toString()
+                                              .split('T')[0] ??
+                                          '',
+                                      style: const TextStyle(),
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Duration in Days',
+                                      style: TextStyle(),
+                                    ),
+                                    Text(
+                                      leave.value?["Lv_Duration"].toString() ??
+                                          '',
+                                      style: const TextStyle(),
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Justification',
+                                      style: TextStyle(),
+                                    ),
+                                    Text(
+                                      leave.value?["Lv_Justify"],
+                                      style: const TextStyle(),
+                                    )
+                                  ],
+                                ),
+                              ],
+                            )
+                          : null)
                 ]),
           ),
 
@@ -398,13 +505,12 @@ class Confirmation extends HookConsumerWidget {
                         )
                       ],
                     )
-                  : 
-                  type == 'poastappraisalevaluation' &&
+                  : type == 'poastappraisalevaluation' &&
                           staff.userRef != trans.xAppOriginRef
-                   ? 
-                      ElevatedButton(
+                      ? ElevatedButton(
                           onPressed: () {
-                            _ref.read(screenProvider.notifier).state = Screen(screen: 'manage');
+                            _ref.read(screenProvider.notifier).state =
+                                Screen(screen: 'manage');
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -420,8 +526,8 @@ class Confirmation extends HookConsumerWidget {
                           child: Text('Appraise'),
                           style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xff15B77C)),
-                        ) : null
-                      )
+                        )
+                      : null)
         ]),
       ),
     );

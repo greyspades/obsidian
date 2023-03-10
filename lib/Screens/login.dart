@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -32,12 +34,13 @@ class Login extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
+    Timer? timer;
 
-    final _formKey = GlobalKey<FormState>(debugLabel: '');
-    final _usernameController = useTextEditingController();
-    final _passwordController = useTextEditingController();
-    final _newPasswordController = useTextEditingController();
-    final _confirmPasswordController = useTextEditingController();
+    final formKey = GlobalKey<FormState>(debugLabel: '');
+    final usernameController = useTextEditingController();
+    final passwordController = useTextEditingController();
+    final newPasswordController = useTextEditingController();
+    final confirmPasswordController = useTextEditingController();
     final focussed = useState<bool>(false);
     final inputState = useState<String>('');
     final loading = useState<bool>(false);
@@ -48,17 +51,36 @@ class Login extends HookConsumerWidget {
     final token = useState<String?>(null);
     final key = useState<String?>(null);
     final iv = useState<String?>(null);
+    final checkingVersion = useState<bool>(false);
+    final updateFailed = useState<bool>(false);
     // final isValid = useState<bool>(_formKey.currentState!.validate());
 
     useEffect(() {
-      inputState.value = _usernameController.text;
-    }, [_usernameController, _passwordController]);
+      inputState.value = usernameController.text;
+    }, [usernameController, passwordController]);
 
-    Future<void> tryOtaUpdate() async {
+    void _handleInactivity() {
+      timer?.cancel();
+      timer = null;
+      updateFailed.value = true;
+      updateState.value = null;
+    }
+  //initializes the timer for detecting activity
+    void _initializeTimer(OtaEvent e) {
+      if (timer != null) {
+        timer?.cancel();
+        updateState.value = e;
+      }
+      // setup action after 5 minutes
+      timer = Timer(const Duration(seconds: 10), () => _handleInactivity());
+    }
+
+        Future<void> tryOtaUpdate() async {
       try {
         //LINK CONTAINS APK OF E360 app
         OtaUpdate()
             .execute(
+              // 'https://internal1.4q.sk/flutter_hello_world.apk',
           // 'http://10.0.0.184:8015/updates/downloadappversionfile/1.0.2/downloadappversionfile',
           'http://10.0.0.94:5000/apk/E360.apk',
           destinationFilename: 'E360.apk',
@@ -67,14 +89,85 @@ class Login extends HookConsumerWidget {
         )
             .listen(
           (OtaEvent event) {
-            updateState.value = event;
-          },
+            // print(event.status);
+            // print(event.value);
+            _initializeTimer(event);
+          }
         );
         // ignore: avoid_catches_without_on_clauses
       } catch (e) {
         print('Failed to make OTA update. Details: $e');
+        updateFailed.value = true;
       }
     }
+
+    Future<void> _showUpdateDialog() async {
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false, // user must tap button!
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Update Available'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: const <Widget>[Text('A new version is available for download')],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Update'),
+                onPressed: () {
+                   Navigator.of(context).pop();
+                  tryOtaUpdate();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+void checkForUpdate() async {
+      try {
+            Uri url = Uri.parse('http://10.0.0.94:5000/get_latest_version');
+      final result = await http.get(url, headers: {
+      "Access-Control-Allow-Origin": "*",
+      'Content-Type': 'application/json',
+      'Accept': '*/*'
+    });
+      if (result.statusCode == 200) {
+        // gets the current version from app
+        PackageInfo packageInfo = await PackageInfo.fromPlatform();
+        var version = packageInfo.version;
+        var versionList = version.split('.');
+
+        var serverList = result.body.split('.');
+
+        if(int.parse(versionList[1]) < int.parse(serverList[1]) || int.parse(versionList[2]) < int.parse(serverList[2]) ) {
+          checkingVersion.value = false;
+          _showUpdateDialog();
+        }
+        else {
+          checkingVersion.value = false;
+          return;
+        }
+      }
+      } catch(e) {
+        checkingVersion.value = false;
+      }
+    }
+
+    useEffect(() {
+      if(kIsWeb) {
+        return;
+      }
+      else if(Platform.isAndroid) {
+        checkingVersion.value = true;
+        checkForUpdate();
+      }
+      // checkForUpdate();
+      return null;
+    }, []);
 
     useEffect(() {
       initiateContract() async {
@@ -149,32 +242,6 @@ class Login extends HookConsumerWidget {
       );
     }
 
-    Future<void> _showUpdateDialog() async {
-      return showDialog<void>(
-        context: context,
-        barrierDismissible: false, // user must tap button!
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Update Available'),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: const <Widget>[Text('A new version is available for download')],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Update'),
-                onPressed: () {
-                   Navigator.of(context).pop();
-                  tryOtaUpdate();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
-
     //gets the current time for the intro
     String getTime() {
       var hour = DateTime.now().hour;
@@ -208,8 +275,8 @@ class Login extends HookConsumerWidget {
         var token = jsonEncode({'tk': auth.token, 'src': "AS-IN-D659B-e3M"});
 
         var body = jsonEncode({
-          'UsN': _usernameController.text,
-          'Pwd': _passwordController.text,
+          'UsN': usernameController.text,
+          'Pwd': passwordController.text,
           // 'UsN': 'SN11798',
           // 'UsN': 'SN12216',
           // 'UsN' : 'SN12213',
@@ -237,7 +304,6 @@ class Login extends HookConsumerWidget {
                   connectionError.value =
                       'An Error Occured Connecting to the Server'
                 });
-        print(result.body);
         if (jsonDecode(result.body)?['status'] != 200) {
           loading.value = false;
           return _showMyDialog(jsonDecode(result.body));
@@ -264,7 +330,6 @@ class Login extends HookConsumerWidget {
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => Frame(staff: data)));
       } catch (e) {
-        print(e);
         loading.value = false;
         connectionError.value = 'An Error Occured Connecting to the Server';
       }
@@ -284,8 +349,8 @@ class Login extends HookConsumerWidget {
       var body = {
         "rUsN": "SN11536",
         "rOldPwd": "Password6\$",
-        "rNewPwd": _newPasswordController.value,
-        "rONewPwdVrfy": _confirmPasswordController,
+        "rNewPwd": newPasswordController.value,
+        "rONewPwdVrfy": confirmPasswordController,
         "xAppSource": "AS-IN-D659B-e3M"
       };
 
@@ -297,42 +362,6 @@ class Login extends HookConsumerWidget {
     // initiates ota update
 
     // checks for the current app version and compares versions on the server
-    void checkForUpdate() async {
-      Uri url = Uri.parse('http://10.0.0.94:5000/get_latest_version');
-      final result = await http.get(url, headers: {
-      "Access-Control-Allow-Origin": "*",
-      'Content-Type': 'application/json',
-      'Accept': '*/*'
-    });
-      if (result.statusCode == 200) {
-        // gets the current version from app
-        PackageInfo packageInfo = await PackageInfo.fromPlatform();
-        var version = packageInfo.version;
-      
-        var versionList = version.split('.');
-
-        var serverList = result.body.split('.');
-
-        if(int.parse(versionList[1]) < int.parse(serverList[1]) || int.parse(versionList[2]) < int.parse(serverList[2]) ) {
-          _showUpdateDialog();
-        }
-        else {
-          print('its current');
-          return;
-        }
-      }
-    }
-
-    useEffect(() {
-      if(kIsWeb) {
-        return;
-      }
-      else if(Platform.isAndroid) {
-        checkForUpdate();
-      }
-      // checkForUpdate();
-      return null;
-    }, []);
 
     return WillPopScope(
         onWillPop: () async => false,
@@ -395,7 +424,7 @@ class Login extends HookConsumerWidget {
                     ],
                   )),
               Form(
-                  key: _formKey,
+                  key: formKey,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -404,7 +433,7 @@ class Login extends HookConsumerWidget {
                         child: SizedBox(
                             width: 330,
                             child: CustomInput(
-                              controller: _usernameController,
+                              controller: usernameController,
                               hintText: 'your username',
                               labelText: 'Username',
                               validation: validateUsername,
@@ -417,7 +446,7 @@ class Login extends HookConsumerWidget {
                             ? SizedBox(
                                 width: 330,
                                 child: CustomInput(
-                                  controller: _passwordController,
+                                  controller: passwordController,
                                   hintText: 'your password',
                                   labelText: 'Password',
                                   validation: validatePassword,
@@ -427,7 +456,7 @@ class Login extends HookConsumerWidget {
                                 width: 330,
                                 height: 60,
                                 child: CustomInput(
-                                  controller: _passwordController,
+                                  controller: passwordController,
                                   hintText: 'Enter Old Password',
                                   labelText: 'Enter Old Password',
                                   validation: validatePassword,
@@ -448,7 +477,7 @@ class Login extends HookConsumerWidget {
                                         width: 330,
                                         height: 60,
                                         child: CustomInput(
-                                          controller: _newPasswordController,
+                                          controller: newPasswordController,
                                           hintText: 'Enter New Password',
                                           labelText: 'Enter New Password',
                                           validation: validatePassword,
@@ -459,7 +488,7 @@ class Login extends HookConsumerWidget {
                                         height: 60,
                                         child: CustomInput(
                                           controller:
-                                              _confirmPasswordController,
+                                              confirmPasswordController,
                                           hintText: 'Confirm New Password',
                                           labelText: 'Confirm New Password',
                                           validation: validatePassword,
@@ -475,17 +504,16 @@ class Login extends HookConsumerWidget {
                                 borderRadius: BorderRadius.circular(8)),
                             height: 64.0,
                             minWidth: 320.0,
-                            color: const Color(0xff15B77C),
+                            color: (checkingVersion.value == true || updateState.value?.status.toString() ==
+                                      'OtaStatus.DOWNLOADING') ? const Color.fromARGB(255, 212, 216, 215) :  const Color(0xff15B77C),
                             textColor: Colors.white,
                             disabledColor: const Color(0xffA6D2C2),
                             onPressed: () {
-                              if (_formKey.currentState!.validate() &&
-                                  forgottenPassword.value == false &&
+                              if (formKey.currentState!.validate() &&
                                   updateState.value?.status.toString() !=
-                                      'OtaStatus.DOWNLOADING') {
+                                      'OtaStatus.DOWNLOADING' && checkingVersion.value != true) {
                                 login();
                               }
-
                               // login();
                             },
                             splashColor: Colors.redAccent,
@@ -515,24 +543,29 @@ class Login extends HookConsumerWidget {
                                               )
                                             : null),
                       ),
-                      // Padding(
-                      //   padding: const EdgeInsets.only(top: 20),
-                      //   child: TextButton(
-                      //       onPressed: () {
-                      //         // forgottenPassword.value = !forgottenPassword.value;
-                      //       },
-                      //       child: forgottenPassword.value == true
-                      //           ? const Text('Cancel Password Reset',
-                      //               style: TextStyle(color: Color(0xff15B77C)))
-                      //           : const Text('Forgot Password',
-                      //               style:
-                      //                   TextStyle(color: Color(0xff15B77C)))),
-                      // ),
+
+                      Container(
+                        margin: const EdgeInsets.only(top: 50),
+                child: checkingVersion.value == true ? Column(children: [
+                  Container(
+                    child: const CircularProgressIndicator(
+                    strokeWidth: 8,
+                    backgroundColor: Color(0xff15B77C),
+                    color: Color(0xffEF9545),
+                  ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 10),
+                    child: const Text('Checking App version', style: TextStyle(color: Colors.black),)
+                  )
+                ]) : null
+              ),
+
                       Container(
                         margin: const EdgeInsets.only(top: 50),
                           height: 50,
                           child: updateState.value?.status.toString() ==
-                                  'OtaStatus.DOWNLOADING'
+                                  'OtaStatus.DOWNLOADING' && updateFailed.value != true
                               ? Column(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -564,7 +597,14 @@ class Login extends HookConsumerWidget {
                                     )
                                   ],
                                 )
-                              : null),
+                              : updateFailed.value == true ? const Text(
+                                      'App update failed, please try again later',
+                                      style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ) : null
+                              ),
 
                       Container(
                         child: connectionError.value != null
