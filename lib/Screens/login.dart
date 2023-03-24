@@ -134,6 +134,9 @@ void checkForUpdate() async {
       "Access-Control-Allow-Origin": "*",
       'Content-Type': 'application/json',
       'Accept': '*/*'
+    }).timeout(const Duration(seconds: 10), onTimeout: () {
+      checkingVersion.value = false;
+      return http.Response('Error', 408); 
     });
       if (result.statusCode == 200) {
         // gets the current version from app
