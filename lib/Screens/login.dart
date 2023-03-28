@@ -53,13 +53,15 @@ class Login extends HookConsumerWidget {
     final iv = useState<String?>(null);
     final checkingVersion = useState<bool>(false);
     final updateFailed = useState<bool>(false);
+
+    final versionId = useState<String?>(null);
     // final isValid = useState<bool>(_formKey.currentState!.validate());
 
-    useEffect(() {
-      inputState.value = usernameController.text;
-    }, [usernameController, passwordController]);
+    // useEffect(() {
+    //   inputState.value = usernameController.text;
+    // }, [usernameController, passwordController]);
 
-    void _handleInactivity() {
+        void _handleInactivity() {
       timer?.cancel();
       timer = null;
       updateFailed.value = true;
@@ -75,15 +77,29 @@ class Login extends HookConsumerWidget {
       timer = Timer(const Duration(seconds: 10), () => _handleInactivity());
     }
 
-        Future<void> tryOtaUpdate() async {
+    Future<void> tryOtaUpdate() async {
       try {
+        print(versionId.value);
+        print(token.value);
+        var credentials = jsonEncode({
+          'tk': token.value,
+          
+          'src': "AS-IN-D659B-e3M"
+        });
+        print(credentials);
+        var headers = {
+          'x-lapo-eve-proc':
+              base64ToHex(encryption(credentials, key.value ?? '', iv.value ?? '')) + (auth.token ?? ''),
+          'Content-type': 'text/json',
+        };
         //LINK CONTAINS APK OF E360 app
         OtaUpdate()
             .execute(
               // 'https://internal1.4q.sk/flutter_hello_world.apk',
-          // 'http://10.0.0.184:8015/updates/downloadappversionfile/1.0.2/downloadappversionfile',
-          'http://10.0.0.94:5000/apk/E360.apk',
+          'http://10.0.0.184:8015/updates/downloadappversionfile/${versionId.value}/downloadappversionfile',
+          // 'http://10.0.0.94:5000/apk/E360.apk',
           destinationFilename: 'E360.apk',
+          headers: headers
           //FOR NOW ANDROID ONLY - ABILITY TO VALIDATE CHECKSUM OF FILE:
           // sha256checksum: 'd6da28451a1e15cf7a75f2c3f151befad3b80ad0bb232ab15c20897e54f21478',
         )
@@ -101,7 +117,7 @@ class Login extends HookConsumerWidget {
       }
     }
 
-    Future<void> _showUpdateDialog() async {
+        Future<void> _showUpdateDialog() async {
       return showDialog<void>(
         context: context,
         barrierDismissible: false, // user must tap button!
@@ -126,6 +142,87 @@ class Login extends HookConsumerWidget {
         },
       );
     }
+
+        useEffect(() {
+      initiateContract() async {
+        try {
+          final auth = await makeContract();
+        if (auth?.isNotEmpty == true) {
+          ref.read(authProvider.notifier).state =
+              Auth(token: auth?[0], aesKey: auth?[1], iv: auth?[2]);
+        }
+        token.value = auth?[0];
+        key.value = auth?[1];
+        iv.value = auth?[2];
+
+        checkingVersion.value = true;
+          Uri url =
+            Uri.parse(
+              'http://10.0.0.184:8015/updates/checkappversiondetails'
+              );
+
+        var credentials = jsonEncode({
+          'tk': auth?[0],
+          
+          'src': "AS-IN-D659B-e3M"
+        });
+        var headers = {
+          'x-lapo-eve-proc':
+              base64ToHex(encryption(credentials, auth?[1] ?? '', auth?[2] ?? '')) +
+                  (auth?[0] ?? ''),
+          'Content-type': 'text/json',
+        };
+        var body = jsonEncode({
+          "xTransRef": "",
+          "xTransScope": "129dekekddkffmf2sv25",
+          "xAppTransScope": "9e9efefech009eee",
+          "xAppSource": "AS-IN-D659B-e3M",
+          "xRecTargetSection": ""
+        });
+        final xpayload =
+            base64ToHex(encryption(body, auth?[1] ?? '', auth?[2] ?? ''));
+
+        var result = await http.post(url, headers: headers, body: xpayload);
+
+        var data = jsonDecode(result.body)["data"];
+          var xData = decryption(base64.encode(hex.decode(data)),
+              auth?[1] ?? '', auth?[2] ?? '');
+        var info = Map<dynamic, dynamic>.from(jsonDecode(xData)[0]);
+        print(info);
+        PackageInfo packageInfo = await PackageInfo.fromPlatform();
+        var version = packageInfo.version;
+        var versionList = version.split('.');
+        var serverVersion = info['App_Version_No'];
+
+        var serverList = serverVersion.split('.');
+        print(serverVersion);
+        print(serverList);
+        print(versionList);
+
+        checkingVersion.value = false;
+          versionId.value = info['App_Version_Id'];
+          _showUpdateDialog();
+
+        if(int.parse(versionList[1]) < int.parse(serverList[1]) || int.parse(versionList[2]) < int.parse(serverList[2]) ) {
+          checkingVersion.value = false;
+          versionId.value = info['App_Version_Id'];
+          _showUpdateDialog();
+        }
+        else {
+          print('its correct');
+          checkingVersion.value = false;
+          return;
+        }
+        }
+        catch(e) {
+          print(e);
+        }
+      }
+
+      initiateContract();
+
+      return null;
+    }, []);
 
 void checkForUpdate() async {
       try {
@@ -160,34 +257,19 @@ void checkForUpdate() async {
       }
     }
 
-    useEffect(() {
-      if(kIsWeb) {
-        return;
-      }
-      else if(Platform.isAndroid) {
-        checkingVersion.value = true;
-        checkForUpdate();
-      }
-      // checkForUpdate();
-      return null;
-    }, []);
+    // useEffect(() {
+    //   if(kIsWeb) {
+    //     return;
+    //   }
+    //   else if(Platform.isAndroid) {
+    //     checkingVersion.value = true;
+    //     checkForUpdate();
+    //   }
+    //   // checkForUpdate();
+    //   return null;
+    // }, []);
 
-    useEffect(() {
-      initiateContract() async {
-        final auth = await makeContract();
-        if (auth?.isNotEmpty == true) {
-          ref.read(authProvider.notifier).state =
-              Auth(token: auth?[0], aesKey: auth?[1], iv: auth?[2]);
-        }
-        token.value = auth?[0];
-        key.value = auth?[1];
-        iv.value = auth?[2];
-      }
 
-      initiateContract();
-
-      return null;
-    }, []);
 
 //gets the users name from local storage if it exists
     useEffect(() {
@@ -201,7 +283,7 @@ void checkForUpdate() async {
 
       getName();
       return null;
-    });
+    }, []);
 //validation for input fields
     validateUsername(String value) {
       if (value == null || value.isEmpty) {

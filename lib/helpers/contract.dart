@@ -3,7 +3,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 Future<List<String>?> makeContract() async {
-      Uri url = Uri.parse('https://e360.lapo-nigeria.org/03a3b2c6f7d8e1c4_0a');
+      Uri url = Uri.parse(
+        // 'https://e360.lapo-nigeria.org/03a3b2c6f7d8e1c4_0a'
+        'http://10.0.0.184:8015/03a3b2c6f7d8e1c4_0a'
+        );
       final response = await http.get(url);
       if (response.statusCode == 200) {
         var data = response.headers['x-lapo-eve-proc']?.split('~');
