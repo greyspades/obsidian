@@ -46,13 +46,13 @@ class Frame extends HookConsumerWidget {
         invalidateSessionForUserInactivity: const Duration(minutes: 3));
         
     //listens and initiates the session timeout
-    sessionConfig.stream.listen((SessionTimeoutState timeoutEvent) {
-    if (timeoutEvent == SessionTimeoutState.userInactivityTimeout && screen.screen != 'manage') {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
-    } else if (timeoutEvent == SessionTimeoutState.appFocusTimeout) {
-        // Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
-        // print('lost focuss');
-    }});
+    // sessionConfig.stream.listen((SessionTimeoutState timeoutEvent) {
+    // if (timeoutEvent == SessionTimeoutState.userInactivityTimeout && screen.screen != 'manage') {
+    //     Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
+    // } else if (timeoutEvent == SessionTimeoutState.appFocusTimeout) {
+    //     // Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
+    //     // print('lost focuss');
+    // }});
 
     //global state provider
     Auth auth = ref.watch(authProvider);

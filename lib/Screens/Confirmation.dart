@@ -461,8 +461,8 @@ class Confirmation extends HookConsumerWidget {
           Container(
               padding: const EdgeInsets.only(top: 30, left: 20, right: 20),
               child: type == 'createleave'
-              //  &&
-              //         staff.userRef != trans.xAppOriginRef
+               &&
+                      staff.userRef != trans.xAppOriginRef
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

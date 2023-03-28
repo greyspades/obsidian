@@ -25,13 +25,13 @@ class Home extends HookConsumerWidget {
         invalidateSessionForAppLostFocus: const Duration(seconds: 15),
         invalidateSessionForUserInactivity: const Duration(minutes: 3));
 
-    sessionConfig.stream.listen((SessionTimeoutState timeoutEvent) {
-    if (timeoutEvent == SessionTimeoutState.userInactivityTimeout && screen.screen != 'manage') {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
-    } else if (timeoutEvent == SessionTimeoutState.appFocusTimeout) {
-        // Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
-        // print('lost focuss');
-    }});
+    // sessionConfig.stream.listen((SessionTimeoutState timeoutEvent) {
+    // if (timeoutEvent == SessionTimeoutState.userInactivityTimeout && screen.screen != 'manage') {
+    //     Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
+    // } else if (timeoutEvent == SessionTimeoutState.appFocusTimeout) {
+    //     // Navigator.push(context, MaterialPageRoute(builder: (context) => Login(title: '')));
+    //     // print('lost focuss');
+    // }});
     return SessionTimeoutManager(sessionConfig: sessionConfig, child: Container(
       color: Colors.white,
       padding: const EdgeInsets.only(),

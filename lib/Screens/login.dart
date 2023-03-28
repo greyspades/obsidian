@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -18,6 +20,11 @@ import 'package:convert/convert.dart';
 import 'package:e_360/helpers/contract.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:path_provider/path_provider.dart';
+// import 'package:flowder/flowder.dart';
+// import 'package:permission_handler/permission_handler.dart';
+
+
 
 class Login extends HookConsumerWidget {
   final String title;
@@ -54,36 +61,45 @@ class Login extends HookConsumerWidget {
 
     Future<void> tryOtaUpdate() async {
       try {
-        print(token.value);
-        var credentials = jsonEncode({
-          'tk': token.value,
-          // 'us': '',
-          // 'rl': '',
-          'src': "AS-IN-D659B-e3M"
-        });
+        Uri url = Uri.parse(
+            // 'http://10.0.0.184:8015/userservices/mobile/authenticatem'
+            'http://10.0.0.184:8015/updates/downloadappversionfile/43b60816-47ab-479b-bca1-888150f96dd1/downloadappversionfile'
+            );
+
+        String base64ToHex(String source) =>
+            base64Decode(LineSplitter.split(source).join())
+                .map((e) => e.toRadixString(16).padLeft(2, '0'))
+                .join();
+
+        // token for the headers
+        var token = jsonEncode({'tk': auth.token, 'src': "AS-IN-D659B-e3M"});
+
+        final encryptedHeader =
+            encryption(token, auth.aesKey ?? '', auth.iv ?? '');
+
         var headers = {
-          'x-lapo-eve-proc':
-              base64ToHex(encryption(credentials, key.value ?? '', iv.value ?? '')) +
-                  (token.value ?? ''),
+          'x-lapo-eve-proc': base64ToHex(encryptedHeader) + (auth.token ?? ''),
           'Content-type': 'text/json',
         };
         //LINK CONTAINS APK OF E360 app
         OtaUpdate()
             .execute(
-          // 'http://10.0.0.184:8015/updates/downloadappversionfile/1.0.2/downloadappversionfile',
-          'http://10.0.0.94:5000/apk/E360.apk',
+              'http://10.0.0.184:8015/updates/downloadappversionfile/43b60816-47ab-479b-bca1-888150f96dd1/downloadappversionfile',
+          // 'http://10.0.0.94:5000/apk/E360.apk',
           // 'https://internal1.4q.sk/flutter_hello_world.apk',
           destinationFilename: 'E360.apk',
-          // headers: headers
+          headers: headers
           //FOR NOW ANDROID ONLY - ABILITY TO VALIDATE CHECKSUM OF FILE:
           // sha256checksum: 'd6da28451a1e15cf7a75f2c3f151befad3b80ad0bb232ab15c20897e54f21478',
         )
             .listen(
           (OtaEvent event) {
+            print(event.status);
+            print(event.value);
             //updates the update state
             updateState.value = event;
           },
-        );
+        ).onError((e) => print(e));
         // ignore: avoid_catches_without_on_clauses
       } catch (e) {
         print('Failed to make OTA update. Details: $e');
@@ -102,40 +118,41 @@ class Login extends HookConsumerWidget {
         key.value = auth?[1];
         iv.value = auth?[2];
         
-        // Uri url =
-        //     Uri.parse(
-        //       // 'http://10.0.0.184:8015/updates/checkappversiondetails'
-        //       'http://10.0.0.94:5000/get_latest_version'
-        //       );
+        Uri url =
+            Uri.parse(
+              'http://10.0.0.184:8015/updates/checkappversiondetails'
+              // 'http://10.0.0.94:5000/get_latest_version'
+              );
 
-        // var credentials = jsonEncode({
-        //   'tk': auth?[0],
-        //   // 'us': '',
-        //   // 'rl': '',
-        //   'src': "AS-IN-D659B-e3M"
-        // });
-        // var headers = {
-        //   'x-lapo-eve-proc':
-        //       base64ToHex(encryption(credentials, auth?[1] ?? '', auth?[2] ?? '')) +
-        //           (auth?[0] ?? ''),
-        //   'Content-type': 'text/json',
-        // };
-        // var body = jsonEncode({
-        //   "xTransRef": "",
-        //   "xTransScope": "129dekekddkffmf2sv25",
-        //   "xAppTransScope": "9e9efefech009eee",
-        //   "xAppSource": "AS-IN-D659B-e3M",
-        //   "xRecTargetSection": ""
-        // });
-        // final xpayload =
-        //     base64ToHex(encryption(body, auth?[1] ?? '', auth?[2] ?? ''));
+        var credentials = jsonEncode({
+          'tk': auth?[0],
+          // 'us': '',
+          // 'rl': '',
+          'src': "AS-IN-D659B-e3M"
+        });
+        var headers = {
+          'x-lapo-eve-proc':
+              base64ToHex(encryption(credentials, auth?[1] ?? '', auth?[2] ?? '')) +
+                  (auth?[0] ?? ''),
+          'Content-type': 'text/json',
+        };
+        var body = jsonEncode({
+          "xTransRef": "",
+          "xTransScope": "129dekekddkffmf2sv25",
+          "xAppTransScope": "9e9efefech009eee",
+          "xAppSource": "AS-IN-D659B-e3M",
+          "xRecTargetSection": ""
+        });
+        final xpayload =
+            base64ToHex(encryption(body, auth?[1] ?? '', auth?[2] ?? ''));
 
-        // var result = await http.post(url, headers: headers, body: xpayload);
+        var result = await http.post(url, headers: headers, body: xpayload);
 
-        // var data = jsonDecode(result.body)["data"];
-        //   var xData = decryption(base64.encode(hex.decode(data)),
-        //       auth?[1] ?? '', auth?[2] ?? '');
-        // var info = Map<dynamic, dynamic>.from(jsonDecode(xData)[0]);
+        var data = jsonDecode(result.body)["data"];
+          var xData = decryption(base64.encode(hex.decode(data)),
+              auth?[1] ?? '', auth?[2] ?? '');
+        var info = Map<dynamic, dynamic>.from(jsonDecode(xData)[0]);
+        print(info);
 
         // var serverVersion = double.parse(info['App_Version_No']);
         // PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -280,12 +297,12 @@ class Login extends HookConsumerWidget {
         var token = jsonEncode({'tk': auth.token, 'src': "AS-IN-D659B-e3M"});
 
         var body = jsonEncode({
-          // 'UsN': _usernameController.text,
-          // 'Pwd': _passwordController.text,
+          'UsN': _usernameController.text,
+          'Pwd': _passwordController.text,
           // 'UsN': 'SN11798',
-          'UsN': 'SN12216',
+          // 'UsN': 'SN12216',
           // 'UsN' : 'SN12213',
-          'Pwd': 'Password6\$',
+          // 'Pwd': 'Password6\$2',
           'xAppSource': "AS-IN-D659B-e3M"
         });
 
@@ -391,6 +408,41 @@ class Login extends HookConsumerWidget {
         // }
       }
     }
+
+    // late DownloaderUtils options;
+  // late DownloaderCore core;
+  late final String path;
+
+
+    void getVersion() async{
+              Uri url = Uri.parse(
+            // 'http://10.0.0.184:8015/userservices/mobile/authenticatem'
+            'http://10.0.0.184:8015/updates/downloadappversionfile/43b60816-47ab-479b-bca1-888150f96dd1/downloadappversionfile'
+            );
+
+        String base64ToHex(String source) =>
+            base64Decode(LineSplitter.split(source).join())
+                .map((e) => e.toRadixString(16).padLeft(2, '0'))
+                .join();
+
+        // token for the headers
+        var token = jsonEncode({'tk': auth.token, 'src': "AS-IN-D659B-e3M"});
+
+        final encryptedHeader =
+            encryption(token, auth.aesKey ?? '', auth.iv ?? '');
+
+        var headers = {
+          'x-lapo-eve-proc': base64ToHex(encryptedHeader) + (auth.token ?? ''),
+          'Content-type': 'text/json',
+        };
+
+    }
+
+
+    // final option = useState<DownloaderUtils?>(null);
+    // final core = useState<DownloaderCore?>(null);
+    // final path = useState<String?>(null);
+
 
     useEffect(() {
       // tryOtaUpdate();
@@ -549,7 +601,8 @@ class Login extends HookConsumerWidget {
                               //   login();
                               // }
 
-                              login();
+                              // getVersion();
+                              tryOtaUpdate();
                             },
                             splashColor: Colors.redAccent,
                             child: loading.value == false &&
