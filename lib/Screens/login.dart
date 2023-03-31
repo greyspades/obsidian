@@ -139,12 +139,16 @@ class Login extends HookConsumerWidget {
       initiateContract() async {
         try {
           checkingVersion.value = true;
-          final auth = await makeContract();
+          final auth = await makeContract().timeout(const Duration(seconds: 10))
+          .catchError((e) {
+            print(e);
+            checkingVersion.value = false;
+          });
         if (auth?.isNotEmpty == true) {
           ref.read(authProvider.notifier).state =
               Auth(token: auth?[0], aesKey: auth?[1], iv: auth?[2]);
-        }
-        token.value = auth?[0];
+
+          token.value = auth?[0];
         key.value = auth?[1];
         iv.value = auth?[2];
           Uri url =
@@ -201,11 +205,18 @@ class Login extends HookConsumerWidget {
           return false;
         }
         }
+        
+        }
+        // on TimeoutException catch(e) {
+        //   print('timepuo');
+        //   checkingVersion.value = false;
+        //   return false;
+        // }
         catch(e) {
           print(e);
           checkingVersion.value = false;
           return false;
-        }  
+        } 
       }
 
       initiateContract();
