@@ -173,7 +173,7 @@ class Login extends HookConsumerWidget {
         final xpayload =
             base64ToHex(encryption(body, auth?[1] ?? '', auth?[2] ?? ''));
 
-        var result = await http.post(url, headers: headers, body: xpayload);
+        var result = await http.post(url, headers: headers, body: xpayload).timeout(const Duration(seconds: 20));
 
         var data = jsonDecode(result.body)["data"];
     
@@ -631,8 +631,10 @@ void checkForUpdate() async {
               ),
 
                       Container(
-                        margin: const EdgeInsets.only(top: 50),
-                          height: 50,
+                        margin: updateState.value?.status.toString() ==
+                                  'OtaStatus.DOWNLOADING' && updateFailed.value != true ? const EdgeInsets.only(top: 50) : null,
+                          height: updateState.value?.status.toString() ==
+                                  'OtaStatus.DOWNLOADING' && updateFailed.value != true ? 50 : null,
                           child: updateState.value?.status.toString() ==
                                   'OtaStatus.DOWNLOADING' && updateFailed.value != true
                               ? Column(
