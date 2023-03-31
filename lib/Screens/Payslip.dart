@@ -47,7 +47,6 @@ List<Map<String, dynamic>> deductions = [
   },
 ];
 
-
 class Payslip extends HookWidget {
 
   Staff staff;

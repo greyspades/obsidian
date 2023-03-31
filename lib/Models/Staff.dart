@@ -33,6 +33,7 @@ class Staff {
         roleName: json['Rol_Name'],
         buCode: json['Bu_Code'],
         buName: json['Bu_Name'],
-        userRef: json['UserRef']);
+        userRef: json['UserRef']
+      );
   }
 }

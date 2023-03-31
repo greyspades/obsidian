@@ -61,7 +61,7 @@ class Login extends HookConsumerWidget {
     //   inputState.value = usernameController.text;
     // }, [usernameController, passwordController]);
 
-        void _handleInactivity() {
+    void _handleInactivity() {
       timer?.cancel();
       timer = null;
       updateFailed.value = true;
@@ -73,43 +73,35 @@ class Login extends HookConsumerWidget {
         timer?.cancel();
         updateState.value = e;
       }
-      // setup action after 5 minutes
-      timer = Timer(const Duration(seconds: 10), () => _handleInactivity());
+      // handle update failed after timeout
+      timer = Timer(const Duration(seconds: 20), () => _handleInactivity());
     }
 
     Future<void> tryOtaUpdate() async {
       try {
-        print(versionId.value);
-        print(token.value);
-        var credentials = jsonEncode({
-          'tk': token.value,
-          
-          'src': "AS-IN-D659B-e3M"
-        });
-        print(credentials);
+        // token for the headers
+        var credentials = jsonEncode({'tk': token.value, 'src': "AS-IN-D659B-e3M"});
+
+        final encryptedHeader =
+            encryption(credentials, key.value ?? '', iv.value ?? '');
+
         var headers = {
-          'x-lapo-eve-proc':
-              base64ToHex(encryption(credentials, key.value ?? '', iv.value ?? '')) + (auth.token ?? ''),
+          'x-lapo-eve-proc': base64ToHex(encryptedHeader) + (token.value ?? ''),
           'Content-type': 'text/json',
         };
         //LINK CONTAINS APK OF E360 app
         OtaUpdate()
             .execute(
-              // 'https://internal1.4q.sk/flutter_hello_world.apk',
-          'http://10.0.0.184:8015/updates/downloadappversionfile/${versionId.value}/downloadappversionfile',
-          // 'http://10.0.0.94:5000/apk/E360.apk',
+          'https://e360.lapo-nigeria.org/updates/downloadappversionfile/${versionId.value}/downloadappversionfile',
           destinationFilename: 'E360.apk',
           headers: headers
-          //FOR NOW ANDROID ONLY - ABILITY TO VALIDATE CHECKSUM OF FILE:
-          // sha256checksum: 'd6da28451a1e15cf7a75f2c3f151befad3b80ad0bb232ab15c20897e54f21478',
         )
             .listen(
           (OtaEvent event) {
-            // print(event.status);
-            // print(event.value);
+            print(event.value);
             _initializeTimer(event);
           }
-        );
+        ).onError((e) => print(e));
         // ignore: avoid_catches_without_on_clauses
       } catch (e) {
         print('Failed to make OTA update. Details: $e');
@@ -146,6 +138,7 @@ class Login extends HookConsumerWidget {
         useEffect(() {
       initiateContract() async {
         try {
+          checkingVersion.value = true;
           final auth = await makeContract();
         if (auth?.isNotEmpty == true) {
           ref.read(authProvider.notifier).state =
@@ -154,11 +147,9 @@ class Login extends HookConsumerWidget {
         token.value = auth?[0];
         key.value = auth?[1];
         iv.value = auth?[2];
-
-        checkingVersion.value = true;
           Uri url =
             Uri.parse(
-              'http://10.0.0.184:8015/updates/checkappversiondetails'
+              'https://e360.lapo-nigeria.org/updates/checkappversiondetails'
               );
 
         var credentials = jsonEncode({
@@ -185,37 +176,30 @@ class Login extends HookConsumerWidget {
         var result = await http.post(url, headers: headers, body: xpayload);
 
         var data = jsonDecode(result.body)["data"];
-          var xData = decryption(base64.encode(hex.decode(data)),
+    
+        var xData = decryption(base64.encode(hex.decode(data)),
               auth?[1] ?? '', auth?[2] ?? '');
         var info = Map<dynamic, dynamic>.from(jsonDecode(xData)[0]);
-        print(info);
         PackageInfo packageInfo = await PackageInfo.fromPlatform();
         var version = packageInfo.version;
         var versionList = version.split('.');
         var serverVersion = info['App_Version_No'];
 
         var serverList = serverVersion.split('.');
-        print(serverVersion);
-        print(serverList);
-        print(versionList);
-
-        checkingVersion.value = false;
-          versionId.value = info['App_Version_Id'];
-          _showUpdateDialog();
-
+        
         if(int.parse(versionList[1]) < int.parse(serverList[1]) || int.parse(versionList[2]) < int.parse(serverList[2]) ) {
           checkingVersion.value = false;
           versionId.value = info['App_Version_Id'];
           _showUpdateDialog();
         }
         else {
-          print('its correct');
           checkingVersion.value = false;
           return;
         }
         }
         catch(e) {
           print(e);
+          checkingVersion.value = false;
         }
       }
 
