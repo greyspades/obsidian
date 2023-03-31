@@ -20,7 +20,7 @@ import 'package:convert/convert.dart';
 import 'package:e_360/helpers/contract.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, SocketException;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class Login extends HookConsumerWidget {
@@ -173,7 +173,11 @@ class Login extends HookConsumerWidget {
         final xpayload =
             base64ToHex(encryption(body, auth?[1] ?? '', auth?[2] ?? ''));
 
-        var result = await http.post(url, headers: headers, body: xpayload).timeout(const Duration(seconds: 20));
+        var result = await http.post(url, headers: headers, body: xpayload).timeout(const Duration(seconds: 20), onTimeout: () {
+          checkingVersion.value = false;
+
+          return http.Response('Error', 408);
+        });
 
         var data = jsonDecode(result.body)["data"];
     
@@ -194,13 +198,14 @@ class Login extends HookConsumerWidget {
         }
         else {
           checkingVersion.value = false;
-          return;
+          return false;
         }
         }
         catch(e) {
           print(e);
           checkingVersion.value = false;
-        }
+          return false;
+        }  
       }
 
       initiateContract();
