@@ -297,12 +297,12 @@ class Login extends HookConsumerWidget {
         var token = jsonEncode({'tk': auth.token, 'src': "AS-IN-D659B-e3M"});
 
         var body = jsonEncode({
-          'UsN': _usernameController.text,
-          'Pwd': _passwordController.text,
+          // 'UsN': _usernameController.text,
+          // 'Pwd': _passwordController.text,
           // 'UsN': 'SN11798',
-          // 'UsN': 'SN12216',
+          'UsN': 'SN12216',
           // 'UsN' : 'SN12213',
-          // 'Pwd': 'Password6\$2',
+          'Pwd': 'Password6\$2',
           'xAppSource': "AS-IN-D659B-e3M"
         });
 
@@ -316,6 +316,8 @@ class Login extends HookConsumerWidget {
           'x-lapo-eve-proc': base64ToHex(encryptedHeader) + (auth.token ?? ''),
           'Content-type': 'text/json',
         };
+
+        print(body);
 
         final result = await http
             .post(url, headers: headers, body: base64ToHex(encryptedBody))
@@ -591,7 +593,7 @@ class Login extends HookConsumerWidget {
                             height: 64.0,
                             minWidth: 320.0,
                             color: const Color(0xff15B77C),
-                            textColor: Colors.white,
+                            textColor: Color.fromARGB(255, 82, 34, 34),
                             disabledColor: const Color(0xffA6D2C2),
                             onPressed: () {
                               // if (_formKey.currentState!.validate() &&
@@ -602,7 +604,8 @@ class Login extends HookConsumerWidget {
                               // }
 
                               // getVersion();
-                              tryOtaUpdate();
+                              // tryOtaUpdate();
+                              login();
                             },
                             splashColor: Colors.redAccent,
                             child: loading.value == false &&

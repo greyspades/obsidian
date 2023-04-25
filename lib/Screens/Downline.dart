@@ -188,20 +188,12 @@ class LineManager extends HookConsumerWidget {
       var response = await http.post(url, headers: headers, body: xpayload);
 
       var data = jsonDecode(response.body);
-      print(data);
       _showMyDialog(data);
-      // if (response.statusCode == 200) {
-      //   var data = jsonDecode(response.body);
-      //   var xData = decryption(base64.encode(hex.decode(jsonDecode(data))),
-      //       auth.aesKey ?? '', auth.iv ?? '');
-      //   loading.value = false;
-      //   var downlineResponse = Map<dynamic, dynamic>.from(jsonDecode(xData));
-      //   _showMyDialog(downlineResponse);
-      // }
     }
 
     useEffect(() {
       getDivision();
+      return null;
     }, []);
 
     return Scaffold(
