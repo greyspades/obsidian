@@ -155,7 +155,6 @@ class Login extends HookConsumerWidget {
             Uri.parse(
               'https://e360.lapo-nigeria.org/updates/checkappversiondetails'
               );
-
         var credentials = jsonEncode({
           'tk': auth?[0],
           
@@ -176,13 +175,11 @@ class Login extends HookConsumerWidget {
         });
         final xpayload =
             base64ToHex(encryption(body, auth?[1] ?? '', auth?[2] ?? ''));
-
         var result = await http.post(url, headers: headers, body: xpayload).timeout(const Duration(seconds: 20), onTimeout: () {
           checkingVersion.value = false;
 
           return http.Response('Error', 408);
         });
-
         var data = jsonDecode(result.body)["data"];
     
         var xData = decryption(base64.encode(hex.decode(data)),
