@@ -34,6 +34,7 @@ class Login extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
+    final env = ref.watch(environment);
     Timer? timer;
 
     final formKey = GlobalKey<FormState>(debugLabel: '');
@@ -92,7 +93,7 @@ class Login extends HookConsumerWidget {
         //LINK CONTAINS APK OF E360 app
         OtaUpdate()
             .execute(
-          'https://e360.lapo-nigeria.org/updates/downloadappversionfile/${versionId.value}/downloadappversionfile',
+          '${env.current}/updates/downloadappversionfile/${versionId.value}/downloadappversionfile',
           destinationFilename: 'E360.apk',
           headers: headers
         )
@@ -153,7 +154,7 @@ class Login extends HookConsumerWidget {
         iv.value = auth?[2];
           Uri url =
             Uri.parse(
-              'https://e360.lapo-nigeria.org/updates/checkappversiondetails'
+              '${env.current}/updates/checkappversiondetails'
               );
         var credentials = jsonEncode({
           'tk': auth?[0],
@@ -175,32 +176,32 @@ class Login extends HookConsumerWidget {
         });
         final xpayload =
             base64ToHex(encryption(body, auth?[1] ?? '', auth?[2] ?? ''));
-        var result = await http.post(url, headers: headers, body: xpayload).timeout(const Duration(seconds: 20), onTimeout: () {
-          checkingVersion.value = false;
+        // var result = await http.post(url, headers: headers, body: xpayload).timeout(const Duration(seconds: 20), onTimeout: () {
+        //   checkingVersion.value = false;
 
-          return http.Response('Error', 408);
-        });
-        var data = jsonDecode(result.body)["data"];
+        //   return http.Response('Error', 408);
+        // });
+        // var data = jsonDecode(result.body)["data"];
     
-        var xData = decryption(base64.encode(hex.decode(data)),
-              auth?[1] ?? '', auth?[2] ?? '');
-        var info = Map<dynamic, dynamic>.from(jsonDecode(xData)[0]);
-        PackageInfo packageInfo = await PackageInfo.fromPlatform();
-        var version = packageInfo.version;
-        var versionList = version.split('.');
-        var serverVersion = info['App_Version_No'];
+        // var xData = decryption(base64.encode(hex.decode(data)),
+        //       auth?[1] ?? '', auth?[2] ?? '');
+        // var info = Map<dynamic, dynamic>.from(jsonDecode(xData)[0]);
+        // PackageInfo packageInfo = await PackageInfo.fromPlatform();
+        // var version = packageInfo.version;
+        // var versionList = version.split('.');
+        // var serverVersion = info['App_Version_No'];
 
-        var serverList = serverVersion.split('.');
+        // var serverList = serverVersion.split('.');
         
-        if(int.parse(versionList[1]) < int.parse(serverList[1]) || int.parse(versionList[2]) < int.parse(serverList[2]) ) {
-          checkingVersion.value = false;
-          versionId.value = info['App_Version_Id'];
-          _showUpdateDialog();
-        }
-        else {
-          checkingVersion.value = false;
-          return false;
-        }
+        // if(int.parse(versionList[1]) < int.parse(serverList[1]) || int.parse(versionList[2]) < int.parse(serverList[2]) ) {
+        //   checkingVersion.value = false;
+        //   versionId.value = info['App_Version_Id'];
+        //   _showUpdateDialog();
+        // }
+        // else {
+        //   checkingVersion.value = false;
+        //   return false;
+        // }
         }
         
         }
@@ -345,7 +346,7 @@ void checkForUpdate() async {
       try {
         Uri url = Uri.parse(
             // 'http://10.0.0.184:8015/userservices/mobile/authenticatem'
-            'https://e360.lapo-nigeria.org/userservices/mobile/authenticatem'
+            '${env.current}/userservices/mobile/authenticatem'
             );
 
         String base64ToHex(String source) =>
@@ -357,12 +358,12 @@ void checkForUpdate() async {
         var token = jsonEncode({'tk': auth.token, 'src': "AS-IN-D659B-e3M"});
 
         var body = jsonEncode({
-          'UsN': usernameController.text,
-          'Pwd': passwordController.text,
-          // 'UsN': 'SN11798',
+          // 'UsN': usernameController.text,
+          // 'Pwd': passwordController.text,
+          'UsN': 'SN11798',
           // 'UsN': 'SN12216',
           // 'UsN' : 'SN12213',
-          // 'Pwd': 'Password6\$',
+          'Pwd': 'Password6\$',
           'xAppSource': "AS-IN-D659B-e3M"
         });
 
